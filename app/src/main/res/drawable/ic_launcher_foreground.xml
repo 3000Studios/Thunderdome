@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Engine Exhaust Thruster Plumes -->
+    <path
+        android:pathData="M48,74 L54,100 L42,76 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="48"
+                android:startY="74"
+                android:endX="48"
+                android:endY="100"
+                android:type="linear">
+                <item android:color="#00E5FF" android:offset="0.0" />
+                <item android:color="#0066FF" android:offset="0.6" />
+                <item android:color="#00000000" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:pathData="M60,74 L66,76 L54,100 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="60"
+                android:startY="74"
+                android:endX="60"
+                android:endY="100"
+                android:type="linear">
+                <item android:color="#00E5FF" android:offset="0.0" />
+                <item android:color="#0066FF" android:offset="0.6" />
+                <item android:color="#00000000" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:pathData="M51,76 L54,98 L57,76 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- Jet Main Fuselage & Forward Swept Wings -->
+    <path
+        android:pathData="M54,16 L58,32 L68,44 L90,62 L88,68 L68,64 L62,75 L56,76 L54,78 L52,76 L46,75 L40,64 L20,68 L18,62 L40,44 L50,32 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="54"
+                android:startY="16"
+                android:endX="54"
+                android:endY="78"
+                android:type="linear">
+                <item android:color="#E2E8F0" android:offset="0.0" />
+                <item android:color="#94A3B8" android:offset="0.5" />
+                <item android:color="#334155" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Wing Accents & Energy Panels -->
+    <path
+        android:pathData="M54,18 L57,32 L54,34 L51,32 Z"
+        android:fillColor="#00F0FF" />
+    <path
+        android:pathData="M66,48 L86,63 L84,65 L66,52 Z"
+        android:fillColor="#00E5FF" />
+    <path
+        android:pathData="M42,48 L22,63 L24,65 L42,52 Z"
+        android:fillColor="#00E5FF" />
+
+    <!-- Cockpit Canopy (Glowing Neon Orange & Amber) -->
+    <path
+        android:pathData="M54,32 C56.5,32 58,37 57.5,46 C57,51 55.5,55 54,55 C52.5,55 51,51 50.5,46 C50,37 51.5,32 54,32 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="54"
+                android:startY="32"
+                android:endX="54"
+                android:endY="55"
+                android:type="linear">
+                <item android:color="#FFE600" android:offset="0.0" />
+                <item android:color="#FF7A00" android:offset="0.7" />
+                <item android:color="#FF2E00" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Twin Wingtip Cannons -->
+    <path
+        android:pathData="M18,58 L19,58 L19,64 L18,64 Z"
+        android:fillColor="#00F0FF" />
+    <path
+        android:pathData="M89,58 L90,58 L90,64 L89,64 Z"
+        android:fillColor="#00F0FF" />
+</vector>

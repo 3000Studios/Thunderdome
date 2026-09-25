@@ -1,0 +1,6 @@
+{
+  "name": "AeroStrike",
+  "description": "Production-quality top-down aerial combat shooter with customizable futuristic aircraft, reactive parallax environments, explosive VFX, and roguelite progression.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
