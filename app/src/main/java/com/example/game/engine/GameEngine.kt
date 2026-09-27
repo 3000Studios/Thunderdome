@@ -17,7 +17,8 @@ data class GameCombatStats(
     var plasmaCoresEarned: Int = 0,
     var currentLevel: Int = 1,
     var currentXp: Int = 0,
-    var xpToNextLevel: Int = 100
+    var xpToNextLevel: Int = 100,
+    var overclocksEarned: Int = 0
 )
 
 class GameEngine(
@@ -55,7 +56,13 @@ class GameEngine(
     var fingerOffsetX: Float = 0f
     var fingerOffsetY: Float = 55f
 
-    fun onDirectTouchDown(touchX: Float, touchY: Float, screenWidth: Float, screenHeight: Float) {
+    fun onDirectTouchDown(
+        touchX: Float,
+        touchY: Float,
+        screenWidth: Float,
+        screenHeight: Float,
+        touchOffsetY: Float = 55f
+    ) {
         isDirectTouchActive = true
         val dx = touchX - playerState.x
         val dy = touchY - playerState.y
@@ -68,11 +75,11 @@ class GameEngine(
         } else {
             // Finger touched elsewhere on screen: snap aircraft directly to finger
             fingerOffsetX = 0f
-            fingerOffsetY = 55f
+            fingerOffsetY = touchOffsetY
             val padX = 40f
             val padY = 90f
             playerState.x = touchX.coerceIn(padX, screenWidth - padX)
-            playerState.y = (touchY - 55f).coerceIn(padY, screenHeight - padY)
+            playerState.y = (touchY - touchOffsetY).coerceIn(padY, screenHeight - padY)
             playerState.vx = 0f
             playerState.vy = 0f
         }
@@ -177,6 +184,7 @@ class GameEngine(
         combatStats.currentLevel = 1
         combatStats.currentXp = 0
         combatStats.xpToNextLevel = 120
+        combatStats.overclocksEarned = 0
 
         vfx.clear()
         weaponSystem.clear()
@@ -502,8 +510,7 @@ class GameEngine(
             combatStats.currentXp -= combatStats.xpToNextLevel
             combatStats.currentLevel++
             combatStats.xpToNextLevel = (combatStats.xpToNextLevel * 1.35f).toInt()
-            // Trigger 3 random roguelite perks selection modal!
-            pendingPerkSelection = PerkCatalog.getRandomChoices(3, playerState.perks.keys.toList())
+            combatStats.overclocksEarned++
             audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
         }
     }

@@ -19,15 +19,18 @@ data class AircraftSpec(
     val unlockCostCredits: Long,
     val unlockCostCores: Int,
     val primaryColor: Color,
-    val accentColor: Color
+    val accentColor: Color,
+    val abilityName: String = "",
+    val abilityDescription: String = "",
+    val defaultSpecialAbilityId: String = "chrono_overdrive"
 )
 
 object AircraftCatalog {
     val APEX_FALCON = AircraftSpec(
         id = "apex_falcon",
-        name = "Apex Falcon",
-        role = "Multi-Role Stealth Striker",
-        description = "Advanced 6th-generation atmospheric fighter with variable-geometry stealth wings and twin vectored ion thrusters.",
+        name = "Falconix",
+        role = "Balanced Fighter",
+        description = "Balanced fighter focused on short-burst aerial damage.",
         baseHealth = 1000f,
         baseShield = 600f,
         baseSpeed = 780f,
@@ -38,14 +41,17 @@ object AircraftCatalog {
         unlockCostCredits = 0L,
         unlockCostCores = 0,
         primaryColor = Color(0xFFE2E8F0),
-        accentColor = AeroCyan
+        accentColor = AeroCyan,
+        abilityName = "Focus Fire",
+        abilityDescription = "Increases weapon damage for a short burst.",
+        defaultSpecialAbilityId = "chrono_overdrive"
     )
 
     val VALKYRIE_PHANTOM = AircraftSpec(
         id = "valkyrie_phantom",
-        name = "Valkyrie Phantom",
-        role = "Hypersonic Interceptor",
-        description = "Lightweight composite interceptor engineered for lightning strikes, evasive barrel rolls, and high-frequency energy weapons.",
+        name = "BlazeHound",
+        role = "Speed Interceptor",
+        description = "Speed interceptor built for rapid evasive maneuvers.",
         baseHealth = 800f,
         baseShield = 750f,
         baseSpeed = 960f,
@@ -56,14 +62,17 @@ object AircraftCatalog {
         unlockCostCredits = 3500L,
         unlockCostCores = 10,
         primaryColor = Color(0xFF93C5FD),
-        accentColor = AeroViolet
+        accentColor = AeroViolet,
+        abilityName = "Afterburner Dash",
+        abilityDescription = "Brief extreme speed boost with heat falloff.",
+        defaultSpecialAbilityId = "warp_dash"
     )
 
     val TITAN_DREAD = AircraftSpec(
         id = "titan_dread",
-        name = "Titan Dread",
-        role = "Armored Gunship Fortress",
-        description = "Heavily armored aerial dreadnought featuring reinforced kinetic plating and dual heavy flak cannons.",
+        name = "Iron Bastion",
+        role = "Heavy Defender",
+        description = "Heavy defender that projects a defensive energy barrier.",
         baseHealth = 1600f,
         baseShield = 900f,
         baseSpeed = 650f,
@@ -74,14 +83,17 @@ object AircraftCatalog {
         unlockCostCredits = 7000L,
         unlockCostCores = 25,
         primaryColor = Color(0xFFFCA5A5),
-        accentColor = AeroCrimson
+        accentColor = AeroCrimson,
+        abilityName = "Shield Dome",
+        abilityDescription = "Projects a defensive energy barrier.",
+        defaultSpecialAbilityId = "hyper_shield"
     )
 
     val SOLARIS_SPECTER = AircraftSpec(
         id = "solaris_specter",
-        name = "Solaris Specter",
-        role = "Experimental Directed Energy Craft",
-        description = "Prototype craft utilizing magnetic confinement coils to project continuous railgun beams and solar flare shockwaves.",
+        name = "Solaris",
+        role = "Light Beam Craft",
+        description = "Light beam craft that fires a piercing solar lance.",
         baseHealth = 950f,
         baseShield = 1100f,
         baseSpeed = 840f,
@@ -92,10 +104,69 @@ object AircraftCatalog {
         unlockCostCredits = 12000L,
         unlockCostCores = 45,
         primaryColor = Color(0xFFFDE047),
-        accentColor = AeroEmerald
+        accentColor = AeroEmerald,
+        abilityName = "Radiant Lance",
+        abilityDescription = "Fires a piercing solar beam.",
+        defaultSpecialAbilityId = "nova_blast"
     )
 
-    val ALL_AIRCRAFT = listOf(APEX_FALCON, VALKYRIE_PHANTOM, TITAN_DREAD, SOLARIS_SPECTER)
+    private fun rosterCraft(
+        id: String,
+        name: String,
+        role: String,
+        abilityName: String,
+        abilityDescription: String,
+        specialId: String,
+        primaryColor: Color,
+        accentColor: Color,
+        health: Float,
+        speed: Float,
+        unlockCost: Long
+    ) = AircraftSpec(
+        id = id,
+        name = name,
+        role = role,
+        description = "$role configured for $abilityName.",
+        baseHealth = health,
+        baseShield = health * 0.65f,
+        baseSpeed = speed,
+        baseHandling = (speed / 720f).coerceIn(0.9f, 1.45f),
+        baseBoostCapacity = (speed / 7f).coerceIn(80f, 150f),
+        baseBoostRecharge = (speed / 24f).coerceIn(22f, 45f),
+        baseCritChance = (speed / 5000f).coerceIn(0.1f, 0.28f),
+        unlockCostCredits = unlockCost,
+        unlockCostCores = (unlockCost / 350L).toInt(),
+        primaryColor = primaryColor,
+        accentColor = accentColor,
+        abilityName = abilityName,
+        abilityDescription = abilityDescription,
+        defaultSpecialAbilityId = specialId
+    )
+
+    val ROSTER_EXPANSION = listOf(
+        rosterCraft("frostbite", "Frostbite", "Ice Control", "Cryo Blast", "Freezes enemies and slows projectiles.", "chrono_overdrive", Color(0xFFBFE9FF), AeroCyan, 920f, 810f, 5000L),
+        rosterCraft("voltstrike", "Voltstrike", "Electric Assault", "Chain Lightning", "Arcs through multiple enemies.", "nova_blast", Color(0xFFFFCF3E), Color(0xFFFF8A00), 880f, 900f, 6500L),
+        rosterCraft("shadowspine", "Shadowspine", "Stealth Recon", "Phase Cloak", "Temporarily vanish from enemy targeting.", "warp_dash", Color(0xFF37145C), AeroViolet, 760f, 1020f, 8000L),
+        rosterCraft("pyroclast", "Pyroclast", "Fire Bomber", "Inferno Wave", "Launches a spreading wave of fire.", "nova_blast", Color(0xFFFF4A16), Color(0xFFFFD04A), 1260f, 700f, 9000L),
+        rosterCraft("aquastorm", "Aquastorm", "Water Support", "Tidal Surge", "Knocks back enemies with a water shockwave.", "hyper_shield", Color(0xFF1EA7FF), AeroCyan, 1040f, 760f, 10500L),
+        rosterCraft("toxinwing", "Toxinwing", "Biochem Assault", "Neuro Toxin", "Leaves a damaging cloud in its wake.", "nova_blast", Color(0xFF51D66B), Color(0xFFB8FF59), 900f, 850f, 12000L),
+        rosterCraft("galestrider", "Galestrider", "Wind Maneuver", "Aerial Vortex", "Creates a vortex that pulls enemies.", "chrono_overdrive", Color(0xFFE9FAFF), AeroCyan, 790f, 1080f, 14000L),
+        rosterCraft("magnorak", "Magnorak", "Gravity Control", "Gravity Well", "Traps enemies in a gravity field.", "hyper_shield", Color(0xFF7E27CC), AeroViolet, 1120f, 760f, 16000L),
+        rosterCraft("nightraven", "Nightraven", "Dark Assassin", "Shadow Burst", "Teleports ahead with an explosive burst.", "warp_dash", Color(0xFF170F2A), AeroViolet, 830f, 980f, 18000L),
+        rosterCraft("zephyrion", "Zephyrion", "Mobility Specialist", "Wind Step", "Instant directional dodge.", "warp_dash", Color(0xFFB7F5DF), AeroEmerald, 780f, 1100f, 20500L),
+        rosterCraft("terrashock", "Terrashock", "Earth Breaker", "Seismic Slam", "Creates a shockwave that damages and stuns.", "nova_blast", Color(0xFFA56A39), AeroAmber, 1450f, 620f, 23000L),
+        rosterCraft("emberlash", "Emberlash", "Plasma Gunship", "Plasma Nova", "Unleashes a close-range plasma blast.", "nova_blast", Color(0xFFFF6330), AeroAmber, 1200f, 780f, 25500L),
+        rosterCraft("cryospear", "Cryospear", "Sniper", "Ice Shot", "Ultra-long range armor-piercing shot.", "chrono_overdrive", Color(0xFFD4F3FF), AeroCyan, 860f, 920f, 28000L),
+        rosterCraft("stormrider", "Stormrider", "Weather Dominator", "Thunder Field", "Calls down random lightning strikes.", "hyper_shield", Color(0xFF7865FF), AeroViolet, 980f, 890f, 31000L),
+        rosterCraft("voidrunner", "Voidrunner", "Dimensional", "Portal Shift", "Creates a short-range teleport portal.", "warp_dash", Color(0xFF7624FF), AeroViolet, 820f, 1050f, 34000L),
+        rosterCraft("runhawk", "Runhawk", "Demolition", "Cluster Reign", "Drops explosive missile clusters.", "nova_blast", Color(0xFF858A96), AeroOrange, 1320f, 680f, 37000L),
+        rosterCraft("nebulus", "Nebulus", "Support Drone", "Drone Swarm", "Deploys a protective drone formation.", "hyper_shield", Color(0xFFE2B2FF), AeroViolet, 900f, 850f, 40000L),
+        rosterCraft("helix", "Helix", "Adaptive", "Morph Mode", "Cycles between tactical configurations.", "chrono_overdrive", Color(0xFF54F5E6), AeroCyan, 960f, 900f, 44000L),
+        rosterCraft("omegashard", "Omegashard", "Disruption", "System Break", "Disables enemy weapons temporarily.", "nova_blast", Color(0xFFE92C3E), AeroCrimson, 1080f, 860f, 48000L),
+        rosterCraft("apex_nova", "Apex Nova", "Ultimate Class", "Nova Catastrophe", "Massive screen-clearing energy eruption.", "nova_blast", Color(0xFFFFF0C4), AeroAmber, 1400f, 980f, 60000L)
+    )
+
+    val ALL_AIRCRAFT = listOf(APEX_FALCON, VALKYRIE_PHANTOM, TITAN_DREAD, SOLARIS_SPECTER) + ROSTER_EXPANSION
 
     fun getById(id: String): AircraftSpec = ALL_AIRCRAFT.firstOrNull { it.id == id } ?: APEX_FALCON
 }

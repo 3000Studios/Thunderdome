@@ -2,6 +2,7 @@ package com.example.data
 
 import android.content.Context
 import androidx.room.Database
+import androidx.room.migration.Migration
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
@@ -16,7 +17,7 @@ import kotlinx.coroutines.launch
         AircraftSaveEntity::class,
         SettingsEntity::class
     ],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 abstract class AeroStrikeDatabase : RoomDatabase() {
@@ -33,10 +34,27 @@ abstract class AeroStrikeDatabase : RoomDatabase() {
                     AeroStrikeDatabase::class.java,
                     "aerostrike_database"
                 )
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .addCallback(DatabaseCallback(scope))
                     .build()
                 INSTANCE = instance
                 instance
+            }
+        }
+
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE aircraft_saves ADD COLUMN overclockLevel INTEGER NOT NULL DEFAULT 0"
+                )
+            }
+        }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE game_settings ADD COLUMN touchInputEnabled INTEGER NOT NULL DEFAULT 1")
+                database.execSQL("ALTER TABLE game_settings ADD COLUMN touchOffsetY REAL NOT NULL DEFAULT 55")
+                database.execSQL("ALTER TABLE game_settings ADD COLUMN soundEnabled INTEGER NOT NULL DEFAULT 1")
             }
         }
 

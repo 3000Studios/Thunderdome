@@ -171,7 +171,10 @@ fun MissionSelectScreen(
                 val spec = com.example.game.model.AircraftCatalog.getById(profile.selectedAircraftId)
                 val allSaves = viewModel.allAircraft.value
                 val craftSave = allSaves.find { it.aircraftId == spec.id }
-                    ?: com.example.data.AircraftSaveEntity(aircraftId = spec.id)
+                    ?: com.example.data.AircraftSaveEntity(
+                        aircraftId = spec.id,
+                        specialAbilityId = spec.defaultSpecialAbilityId
+                    )
                 val primary = com.example.game.model.WeaponCatalog.getById(craftSave.primaryWeaponId)
                 val secondary = com.example.game.model.WeaponCatalog.getById(craftSave.secondaryWeaponId)
                 val special = com.example.game.model.WeaponCatalog.getById(craftSave.specialAbilityId)

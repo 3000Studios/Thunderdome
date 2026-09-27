@@ -46,6 +46,44 @@ fun SettingsScreen(viewModel: GameViewModel) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
+        Text("AUDIO & FLIGHT INPUT", style = MaterialTheme.typography.labelLarge, color = Color.White)
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Sound", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+            Switch(
+                checked = settings.soundEnabled,
+                onCheckedChange = { viewModel.updateSettings(soundEnabled = it) },
+                modifier = Modifier.testTag("sound_enabled_switch")
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text("Swipe Flight Control", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                Text("Disable to prevent accidental movement", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
+            }
+            Switch(
+                checked = settings.touchInputEnabled,
+                onCheckedChange = { viewModel.updateSettings(touchInputEnabled = it) },
+                modifier = Modifier.testTag("touch_input_switch")
+            )
+        }
+        Text("Plane Position Above Thumb", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+        Slider(
+            value = settings.touchOffsetY,
+            onValueChange = { viewModel.updateSettings(touchOffsetY = it) },
+            valueRange = 20f..180f,
+            modifier = Modifier.fillMaxWidth().testTag("plane_position_slider")
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
         // Graphics Scalability Profiles
         Text("GRAPHICS PROFILE (VULKAN RENDERING)", style = MaterialTheme.typography.labelLarge, color = Color.White)
         Spacer(modifier = Modifier.height(8.dp))

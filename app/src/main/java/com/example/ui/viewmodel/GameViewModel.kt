@@ -128,7 +128,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             settings.collect { s ->
                 audioHaptics.hapticsEnabled = s.hapticsEnabled
-                audioHaptics.sfxVolume = s.sfxVolume
+                audioHaptics.sfxVolume = if (s.soundEnabled) s.sfxVolume else 0f
                 gameEngine.graphicsPreset = s.graphicsPreset
             }
         }
@@ -150,7 +150,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                     plasmaCores = prof.plasmaCores - spec.unlockCostCores
                 )
                 repository.updateProfile(updatedProf)
-                val craft = repository.getAircraftById(spec.id) ?: AircraftSaveEntity(aircraftId = spec.id)
+                val craft = repository.getAircraftById(spec.id) ?: AircraftSaveEntity(
+                    aircraftId = spec.id,
+                    specialAbilityId = spec.defaultSpecialAbilityId
+                )
                 repository.updateAircraft(craft.copy(isUnlocked = true))
                 audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
             }
@@ -226,11 +229,30 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun bankMissionOverclocks() {
+        val earnedOverclocks = gameEngine.combatStats.overclocksEarned
+        if (earnedOverclocks <= 0) return
+
+        viewModelScope.launch {
+            val aircraftId = gameEngine.currentAircraftSpec.id
+            val aircraft = repository.getAircraftById(aircraftId)
+                ?: AircraftSaveEntity(aircraftId = aircraftId)
+            repository.updateAircraft(
+                aircraft.copy(overclockLevel = aircraft.overclockLevel + earnedOverclocks)
+            )
+            gameEngine.combatStats.overclocksEarned = 0
+            audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+        }
+    }
+
     fun updateSettings(
         preset: String? = null,
         fps: Int? = null,
         scheme: String? = null,
+        touchInputEnabled: Boolean? = null,
+        touchOffsetY: Float? = null,
         haptics: Boolean? = null,
+        soundEnabled: Boolean? = null,
         sfx: Float? = null,
         music: Float? = null
     ) {
@@ -240,7 +262,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 graphicsPreset = preset ?: current.graphicsPreset,
                 targetFps = fps ?: current.targetFps,
                 controlScheme = scheme ?: current.controlScheme,
+                touchInputEnabled = touchInputEnabled ?: current.touchInputEnabled,
+                touchOffsetY = touchOffsetY ?: current.touchOffsetY,
                 hapticsEnabled = haptics ?: current.hapticsEnabled,
+                soundEnabled = soundEnabled ?: current.soundEnabled,
                 sfxVolume = sfx ?: current.sfxVolume,
                 musicVolume = music ?: current.musicVolume
             )

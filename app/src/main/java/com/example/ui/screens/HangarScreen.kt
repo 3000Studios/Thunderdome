@@ -49,7 +49,10 @@ fun HangarScreen(
     }
 
     val currentSave = allSaves.find { it.aircraftId == selectedAircraftSpec.id }
-        ?: AircraftSaveEntity(aircraftId = selectedAircraftSpec.id)
+        ?: AircraftSaveEntity(
+            aircraftId = selectedAircraftSpec.id,
+            specialAbilityId = selectedAircraftSpec.defaultSpecialAbilityId
+        )
 
     val currentPaint = PaintCatalog.getById(currentSave.paintSchemeId)
     val currentExhaust = ExhaustCatalog.getById(currentSave.exhaustColorId)
@@ -228,6 +231,19 @@ fun HangarScreen(
                             style = MaterialTheme.typography.labelSmall,
                             color = AeroCyan
                         )
+                        if (selectedAircraftSpec.abilityName.isNotBlank()) {
+                            Text(
+                                text = "ABILITY // ${selectedAircraftSpec.abilityName}",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = AeroAmber,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                            Text(
+                                text = selectedAircraftSpec.abilityDescription,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondary
+                            )
+                        }
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = selectedAircraftSpec.description,

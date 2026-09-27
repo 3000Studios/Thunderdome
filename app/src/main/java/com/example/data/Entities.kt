@@ -25,6 +25,7 @@ data class AircraftSaveEntity(
     @PrimaryKey val aircraftId: String,
     val isUnlocked: Boolean = false,
     val level: Int = 1,
+    val overclockLevel: Int = 0,
     val paintSchemeId: String = "stealth_black",
     val exhaustColorId: String = "cyan_flame",
     val primaryWeaponId: String = "plasma_gatling",
@@ -44,7 +45,10 @@ data class SettingsEntity(
     val targetFps: Int = 60,
     val controlScheme: String = "TOUCH_FOLLOW",
     val touchSensitivity: Float = 1.0f,
+    val touchInputEnabled: Boolean = true,
+    val touchOffsetY: Float = 55f,
     val hapticsEnabled: Boolean = true,
+    val soundEnabled: Boolean = true,
     val sfxVolume: Float = 0.9f,
     val musicVolume: Float = 0.8f
 )

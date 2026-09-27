@@ -101,7 +101,8 @@ fun CombatScreen(
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(settings.controlScheme, settings.touchSensitivity) {
+                .pointerInput(settings.controlScheme, settings.touchSensitivity, settings.touchInputEnabled, settings.touchOffsetY) {
+                    if (!settings.touchInputEnabled) return@pointerInput
                     if (settings.controlScheme == "JOYSTICK") {
                         detectDragGestures(
                             onDragEnd = {
@@ -125,7 +126,8 @@ fun CombatScreen(
                                 touchX = down.position.x,
                                 touchY = down.position.y,
                                 screenWidth = size.width.toFloat(),
-                                screenHeight = size.height.toFloat()
+                                screenHeight = size.height.toFloat(),
+                                touchOffsetY = settings.touchOffsetY
                             )
                             down.consume()
 
@@ -187,15 +189,7 @@ fun CombatScreen(
             }
         }
 
-        // 4. Roguelite Perk Level-Up Selection Modal
-        engine.pendingPerkSelection?.let { perks ->
-            RoguelitePerkModal(
-                perks = perks,
-                onSelectPerk = { engine.selectPerk(it) }
-            )
-        }
-
-        // 5. Pause Menu Modal
+        // 4. Pause Menu Modal
         if (engine.isPaused) {
             PauseModal(
                 onResume = { engine.isPaused = false },
@@ -206,10 +200,11 @@ fun CombatScreen(
             )
         }
 
-        // 6. Game Over / Debriefing Screen
+        // 5. Game Over / Debriefing Screen
         if (engine.isGameOver) {
             GameOverModal(
                 stats = stats,
+            onBankOverclocks = viewModel::bankMissionOverclocks,
                 onRetry = {
                     val w = canvasSize.width.toFloat()
                     val h = canvasSize.height.toFloat()
@@ -692,9 +687,11 @@ fun PauseModal(
 @Composable
 fun GameOverModal(
     stats: com.example.game.engine.GameCombatStats,
+    onBankOverclocks: () -> Unit,
     onRetry: () -> Unit,
     onExit: () -> Unit
 ) {
+    var overclocksBanked by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -750,9 +747,29 @@ fun GameOverModal(
                     Text("Plasma Cores:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
                     Text("+${stats.plasmaCoresEarned}", color = AeroViolet, style = MaterialTheme.typography.bodyMedium)
                 }
+                if (stats.overclocksEarned > 0 && !overclocksBanked) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("System Overclocks:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                        Text("+${stats.overclocksEarned}", color = AeroCyan, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+
+            if (stats.overclocksEarned > 0 && !overclocksBanked) {
+                Button(
+                    onClick = {
+                        onBankOverclocks()
+                        overclocksBanked = true
+                    },
+                    modifier = Modifier.fillMaxWidth().testTag("bank_overclocks_button"),
+                    colors = ButtonDefaults.buttonColors(containerColor = AeroAmber, contentColor = DarkVoid)
+                ) {
+                    Text("BANK SYSTEM OVERCLOCKS", fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

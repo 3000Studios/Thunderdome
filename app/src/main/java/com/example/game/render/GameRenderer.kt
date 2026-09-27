@@ -291,20 +291,34 @@ object GameRenderer {
         val bodyColor = if (isInvulnerable) Color.White else paint.bodyColor
         val trimColor = paint.trimColor
 
-        // Main Fuselage Path
+        val silhouette = Math.floorMod(spec.id.hashCode(), 4)
+        val wingSpan = when (silhouette) {
+            0 -> 38f
+            1 -> 46f
+            2 -> 30f
+            else -> 52f
+        }
+        val wingSweep = when (silhouette) {
+            0 -> 18f
+            1 -> 10f
+            2 -> 26f
+            else -> 14f
+        }
+
+        // Procedural silhouettes keep each roster role visually distinct without external sprite sheets.
         val path = Path().apply {
             moveTo(0f, -34f) // Nose
             lineTo(8f, -12f)
             lineTo(18f, 2f)
-            lineTo(38f, 18f) // Right wingtip
-            lineTo(34f, 25f)
+            lineTo(wingSpan, wingSweep) // Right wingtip
+            lineTo(wingSpan - 4f, wingSweep + 7f)
             lineTo(14f, 20f)
-            lineTo(10f, 30f) // Right engine
+            lineTo(10f, if (silhouette == 2) 36f else 30f) // Right engine
             lineTo(0f, 26f)
-            lineTo(-10f, 30f) // Left engine
+            lineTo(-10f, if (silhouette == 2) 36f else 30f) // Left engine
             lineTo(-14f, 20f)
-            lineTo(-34f, 25f)
-            lineTo(-38f, 18f) // Left wingtip
+            lineTo(-wingSpan + 4f, wingSweep + 7f)
+            lineTo(-wingSpan, wingSweep) // Left wingtip
             lineTo(-18f, 2f)
             lineTo(-8f, -12f)
             close()
@@ -329,8 +343,8 @@ object GameRenderer {
         )
 
         // Wingtip energy lights
-        scope.drawCircle(AeroCyan, radius = 2.5f, center = Offset(-36f, 18f))
-        scope.drawCircle(AeroCyan, radius = 2.5f, center = Offset(36f, 18f))
+        scope.drawCircle(color = trimColor, radius = 2.5f, center = Offset(-wingSpan + 2f, wingSweep))
+        scope.drawCircle(color = trimColor, radius = 2.5f, center = Offset(wingSpan - 2f, wingSweep))
     }
 
     private fun drawEnemyCraft(
