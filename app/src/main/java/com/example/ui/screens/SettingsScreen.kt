@@ -116,8 +116,8 @@ fun SettingsScreen(viewModel: GameViewModel) {
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             listOf(
-                "JOYSTICK" to "Virtual Stick",
-                "TOUCH_FOLLOW" to "Touch-Follow"
+                "TOUCH_FOLLOW" to "Finger Tracking (Direct)",
+                "JOYSTICK" to "Virtual Stick"
             ).forEach { (scheme, title) ->
                 val active = settings.controlScheme == scheme
                 Box(

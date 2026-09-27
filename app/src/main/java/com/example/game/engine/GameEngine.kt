@@ -51,6 +51,66 @@ class GameEngine(
     var inputDirY: Float = 0f
     var isFireHeld: Boolean = false
 
+    var isDirectTouchActive: Boolean = false
+    var fingerOffsetX: Float = 0f
+    var fingerOffsetY: Float = 55f
+
+    fun onDirectTouchDown(touchX: Float, touchY: Float, screenWidth: Float, screenHeight: Float) {
+        isDirectTouchActive = true
+        val dx = touchX - playerState.x
+        val dy = touchY - playerState.y
+        val dist = kotlin.math.hypot(dx, dy)
+
+        if (dist < 180f) {
+            // Finger touched on or near the aircraft: preserve exact relative offset
+            fingerOffsetX = dx
+            fingerOffsetY = dy
+        } else {
+            // Finger touched elsewhere on screen: snap aircraft directly to finger
+            fingerOffsetX = 0f
+            fingerOffsetY = 55f
+            val padX = 40f
+            val padY = 90f
+            playerState.x = touchX.coerceIn(padX, screenWidth - padX)
+            playerState.y = (touchY - 55f).coerceIn(padY, screenHeight - padY)
+            playerState.vx = 0f
+            playerState.vy = 0f
+        }
+    }
+
+    fun onDirectTouchMove(
+        touchX: Float,
+        touchY: Float,
+        screenWidth: Float,
+        screenHeight: Float,
+        sensitivity: Float = 1.0f
+    ) {
+        isDirectTouchActive = true
+        val padX = 40f
+        val padY = 90f
+
+        val targetX = (touchX - fingerOffsetX).coerceIn(padX, screenWidth - padX)
+        val targetY = (touchY - fingerOffsetY).coerceIn(padY, screenHeight - padY)
+
+        val deltaX = targetX - playerState.x
+        val deltaY = targetY - playerState.y
+
+        // Responsive velocity for visual banking and exhaust plume direction
+        playerState.vx = (deltaX * 60f).coerceIn(-4000f, 4000f)
+        playerState.vy = (deltaY * 60f).coerceIn(-4000f, 4000f)
+
+        playerState.x = targetX
+        playerState.y = targetY
+
+        // Dynamic visual banking into turns
+        val targetBank = (playerState.vx / 800f).coerceIn(-1f, 1f) * 35f
+        playerState.bankAngle += (targetBank - playerState.bankAngle) * 0.45f
+    }
+
+    fun onDirectTouchUp() {
+        isDirectTouchActive = false
+    }
+
     var graphicsPreset: String = "ULTRA"
 
     fun startMission(
@@ -77,6 +137,9 @@ class GameEngine(
         isGameOver = false
         isVictory = false
         pendingPerkSelection = null
+        isDirectTouchActive = false
+        inputDirX = 0f
+        inputDirY = 0f
 
         // Apply upgrades to base specs
         val engLvl = savedUpgrades["engine"] ?: 0
@@ -136,7 +199,8 @@ class GameEngine(
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             baseSpeed = currentAircraftSpec.baseSpeed,
-            handling = currentAircraftSpec.baseHandling
+            handling = currentAircraftSpec.baseHandling,
+            isDirectTouch = isDirectTouchActive
         )
 
         // 2. Continuous Weapon Firing

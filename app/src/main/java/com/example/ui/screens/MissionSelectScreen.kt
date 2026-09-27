@@ -167,7 +167,35 @@ fun MissionSelectScreen(
         // Deploy Sortie Button
         Button(
             onClick = {
-                viewModel.gameEngine.currentBiome = selectedBiome
+                val profile = viewModel.playerProfile.value
+                val spec = com.example.game.model.AircraftCatalog.getById(profile.selectedAircraftId)
+                val allSaves = viewModel.allAircraft.value
+                val craftSave = allSaves.find { it.aircraftId == spec.id }
+                    ?: com.example.data.AircraftSaveEntity(aircraftId = spec.id)
+                val primary = com.example.game.model.WeaponCatalog.getById(craftSave.primaryWeaponId)
+                val secondary = com.example.game.model.WeaponCatalog.getById(craftSave.secondaryWeaponId)
+                val special = com.example.game.model.WeaponCatalog.getById(craftSave.specialAbilityId)
+                val paint = com.example.game.model.PaintCatalog.getById(craftSave.paintSchemeId)
+                val exhaust = com.example.game.model.ExhaustCatalog.getById(craftSave.exhaustColorId)
+                val upgrades = mapOf(
+                    "engine" to craftSave.engineUpgradeLevel,
+                    "weapon" to craftSave.weaponUpgradeLevel,
+                    "armor" to craftSave.armorUpgradeLevel,
+                    "shield" to craftSave.shieldUpgradeLevel,
+                    "avionics" to craftSave.avionicsUpgradeLevel
+                )
+                viewModel.gameEngine.startMission(
+                    aircraft = spec,
+                    primary = primary,
+                    secondary = secondary,
+                    special = special,
+                    biome = selectedBiome,
+                    paint = paint,
+                    exhaust = exhaust,
+                    screenWidth = 1080f,
+                    screenHeight = 2160f,
+                    savedUpgrades = upgrades
+                )
                 onLaunchMission()
             },
             modifier = Modifier

@@ -7,6 +7,7 @@ import com.example.data.*
 import com.example.game.audio.AudioHapticSystem
 import com.example.game.engine.GameEngine
 import com.example.game.model.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlin.math.max
@@ -121,6 +122,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     init {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.ensureInitialized()
+        }
         viewModelScope.launch {
             settings.collect { s ->
                 audioHaptics.hapticsEnabled = s.hapticsEnabled

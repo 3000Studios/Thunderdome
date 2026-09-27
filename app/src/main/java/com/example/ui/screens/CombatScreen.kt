@@ -5,6 +5,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -50,6 +52,16 @@ fun CombatScreen(
 
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     var lastNanoTime by remember { mutableLongStateOf(0L) }
+    var frameTick by remember { mutableLongStateOf(0L) }
+    var hudTick by remember { mutableLongStateOf(0L) }
+
+    // Throttle HUD recompositions to 15 Hz for blazing UI performance
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            kotlinx.coroutines.delay(66)
+            hudTick = System.currentTimeMillis()
+        }
+    }
 
     // Primary weapon auto-fire or touch-to-fire
     DisposableEffect(Unit) {
@@ -63,6 +75,10 @@ fun CombatScreen(
     // High performance 60-120fps Game Loop
     LaunchedEffect(canvasSize) {
         if (canvasSize.width == 0 || canvasSize.height == 0) return@LaunchedEffect
+        if (player.x <= 0f || player.x > canvasSize.width) {
+            player.x = canvasSize.width * 0.5f
+            player.y = canvasSize.height * 0.78f
+        }
         lastNanoTime = System.nanoTime()
 
         while (isActive) {
@@ -70,6 +86,7 @@ fun CombatScreen(
                 val dt = ((now - lastNanoTime) / 1_000_000_000f).coerceIn(0.001f, 0.05f)
                 lastNanoTime = now
                 engine.update(dt, canvasSize.width.toFloat(), canvasSize.height.toFloat())
+                frameTick = now
             }
         }
     }
@@ -80,50 +97,66 @@ fun CombatScreen(
             .background(DarkVoid)
             .onSizeChanged { canvasSize = it }
     ) {
-        // 1. Hardware-Accelerated Combat Canvas
+        // 1. Hardware-Accelerated Combat Canvas with High-Speed Touch Follow
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(settings.controlScheme) {
-                    when (settings.controlScheme) {
-                        "JOYSTICK" -> {
-                            detectDragGestures(
-                                onDragEnd = {
-                                    engine.inputDirX = 0f
-                                    engine.inputDirY = 0f
-                                },
-                                onDragCancel = {
-                                    engine.inputDirX = 0f
-                                    engine.inputDirY = 0f
-                                }
-                            ) { change, dragAmount ->
-                                change.consume()
-                                engine.inputDirX = (dragAmount.x * 0.15f * settings.touchSensitivity).coerceIn(-1f, 1f)
-                                engine.inputDirY = (dragAmount.y * 0.15f * settings.touchSensitivity).coerceIn(-1f, 1f)
+                .pointerInput(settings.controlScheme, settings.touchSensitivity) {
+                    if (settings.controlScheme == "JOYSTICK") {
+                        detectDragGestures(
+                            onDragEnd = {
+                                engine.inputDirX = 0f
+                                engine.inputDirY = 0f
+                            },
+                            onDragCancel = {
+                                engine.inputDirX = 0f
+                                engine.inputDirY = 0f
                             }
+                        ) { change, dragAmount ->
+                            change.consume()
+                            engine.inputDirX = (dragAmount.x * 0.2f * settings.touchSensitivity).coerceIn(-1f, 1f)
+                            engine.inputDirY = (dragAmount.y * 0.2f * settings.touchSensitivity).coerceIn(-1f, 1f)
                         }
-                        else -> {
-                            // Touch-follow relative drag
-                            detectDragGestures(
-                                onDragEnd = {
-                                    engine.inputDirX = 0f
-                                    engine.inputDirY = 0f
+                    } else {
+                        // Direct Finger Tracking: ship moves with finger wherever finger goes
+                        awaitEachGesture {
+                            val down = awaitFirstDown(requireUnconsumed = false)
+                            engine.onDirectTouchDown(
+                                touchX = down.position.x,
+                                touchY = down.position.y,
+                                screenWidth = size.width.toFloat(),
+                                screenHeight = size.height.toFloat()
+                            )
+                            down.consume()
+
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                val pointer = event.changes.firstOrNull { it.id == down.id } ?: break
+                                if (!pointer.pressed) {
+                                    engine.onDirectTouchUp()
+                                    break
                                 }
-                            ) { change, dragAmount ->
-                                change.consume()
-                                engine.inputDirX = (dragAmount.x * 0.18f * settings.touchSensitivity).coerceIn(-1f, 1f)
-                                engine.inputDirY = (dragAmount.y * 0.18f * settings.touchSensitivity).coerceIn(-1f, 1f)
+                                pointer.consume()
+                                engine.onDirectTouchMove(
+                                    touchX = pointer.position.x,
+                                    touchY = pointer.position.y,
+                                    screenWidth = size.width.toFloat(),
+                                    screenHeight = size.height.toFloat(),
+                                    sensitivity = settings.touchSensitivity
+                                )
                             }
                         }
                     }
                 }
         ) {
+            val _tick = frameTick
             GameRenderer.render(this, engine, size.width, size.height)
         }
 
         // 2. Futuristic Cockpit Holographic HUD
         CombatHudOverlay(
             engine = engine,
+            hudTick = hudTick,
             onPauseClick = { engine.isPaused = true },
             onBarrelRoll = { engine.physics.triggerBarrelRoll(player) },
             onSecondaryFire = {
@@ -204,6 +237,7 @@ fun CombatScreen(
 @Composable
 fun CombatHudOverlay(
     engine: GameEngine,
+    hudTick: Long,
     onPauseClick: () -> Unit,
     onBarrelRoll: () -> Unit,
     onSecondaryFire: () -> Unit,

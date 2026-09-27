@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -57,16 +58,7 @@ fun HangarScreen(
     val currentSpecial = WeaponCatalog.getById(currentSave.specialAbilityId)
 
     var currentTab by remember { mutableStateOf("OVERVIEW") }
-    var turntableRotation by remember { mutableFloatStateOf(0f) }
-
-    // Turntable animation
-    LaunchedEffect(Unit) {
-        while (true) {
-            withFrameNanos {
-                turntableRotation = (turntableRotation + 0.35f) % 360f
-            }
-        }
-    }
+    val isCraftUnlocked = currentSave.isUnlocked || (selectedAircraftSpec.unlockCostCredits == 0L)
 
     Column(
         modifier = Modifier
@@ -179,104 +171,13 @@ fun HangarScreen(
         }
 
         // 3D Hangar Turntable Interactive Preview
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(210.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(DarkSurfaceElevated, DarkSurface, DarkVoid),
-                        radius = 450f
-                    )
-                )
-                .border(1.dp, DarkSurfaceBorder, RoundedCornerShape(16.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val cx = size.width * 0.5f
-                val cy = size.height * 0.55f
-
-                // Turntable Rings
-                drawOval(
-                    color = DarkSurfaceBorder,
-                    topLeft = Offset(cx - 140f, cy - 35f),
-                    size = androidx.compose.ui.geometry.Size(280f, 70f),
-                    style = Stroke(width = 2f)
-                )
-                drawOval(
-                    color = AeroCyan.copy(alpha = 0.25f),
-                    topLeft = Offset(cx - 100f, cy - 25f),
-                    size = androidx.compose.ui.geometry.Size(200f, 50f),
-                    style = Stroke(width = 1.5f)
-                )
-
-                // Projected Aircraft on Turntable
-                val angleRad = (turntableRotation * PI / 180f).toFloat()
-                val scaleX = cos(angleRad).coerceIn(-1f, 1f)
-
-                // Jet body in 3D angled perspective
-                val bodyColor = currentPaint.bodyColor
-                val trimColor = currentPaint.trimColor
-
-                val jetPath = Path().apply {
-                    moveTo(cx, cy - 60f)
-                    lineTo(cx + 45f * scaleX, cy + 10f)
-                    lineTo(cx + 80f * scaleX, cy + 25f)
-                    lineTo(cx + 25f * scaleX, cy + 40f)
-                    lineTo(cx, cy + 30f)
-                    lineTo(cx - 25f * scaleX, cy + 40f)
-                    lineTo(cx - 80f * scaleX, cy + 25f)
-                    lineTo(cx - 45f * scaleX, cy + 10f)
-                    close()
-                }
-
-                drawPath(jetPath, color = bodyColor)
-                drawPath(jetPath, color = trimColor, style = Stroke(width = 2f))
-
-                // Engine exhaust glow on turntable
-                drawCircle(
-                    color = currentExhaust.outerColor.copy(alpha = 0.6f),
-                    radius = 18f,
-                    center = Offset(cx, cy + 35f)
-                )
-                drawCircle(
-                    color = currentExhaust.coreColor,
-                    radius = 8f,
-                    center = Offset(cx, cy + 35f)
-                )
-            }
-
-            // Lock Overlay if not purchased
-            if (!currentSave.isUnlocked && selectedAircraftSpec.unlockCostCredits > 0L) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.65f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            Icons.Default.Lock,
-                            contentDescription = "Locked",
-                            tint = AeroAmber,
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Button(
-                            onClick = { viewModel.unlockAircraft(selectedAircraftSpec) },
-                            colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid),
-                            modifier = Modifier.testTag("unlock_aircraft_button")
-                        ) {
-                            Text(
-                                "UNLOCK FOR ${selectedAircraftSpec.unlockCostCredits} CR + ${selectedAircraftSpec.unlockCostCores} CORES",
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        TurntablePreview(
+            spec = selectedAircraftSpec,
+            paint = currentPaint,
+            exhaust = currentExhaust,
+            isUnlocked = isCraftUnlocked,
+            onUnlock = { viewModel.unlockAircraft(selectedAircraftSpec) }
+        )
 
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -536,7 +437,7 @@ fun HangarScreen(
                 )
                 onLaunchMission()
             },
-            enabled = currentSave.isUnlocked,
+            enabled = isCraftUnlocked,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp)
@@ -631,6 +532,125 @@ fun UpgradeItem(
             }
         } else {
             Text("MAXED", color = AeroEmerald, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun TurntablePreview(
+    spec: AircraftSpec,
+    paint: PaintScheme,
+    exhaust: ExhaustFlame,
+    isUnlocked: Boolean,
+    onUnlock: () -> Unit
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "turntable_preview")
+    val turntableRotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 8000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "turntable_rotation"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(210.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                Brush.radialGradient(
+                    colors = listOf(DarkSurfaceElevated, DarkSurface, DarkVoid),
+                    radius = 450f
+                )
+            )
+            .border(1.dp, DarkSurfaceBorder, RoundedCornerShape(16.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val cx = size.width * 0.5f
+            val cy = size.height * 0.55f
+
+            // Turntable Rings
+            drawOval(
+                color = DarkSurfaceBorder,
+                topLeft = Offset(cx - 140f, cy - 35f),
+                size = androidx.compose.ui.geometry.Size(280f, 70f),
+                style = Stroke(width = 2f)
+            )
+            drawOval(
+                color = AeroCyan.copy(alpha = 0.25f),
+                topLeft = Offset(cx - 100f, cy - 25f),
+                size = androidx.compose.ui.geometry.Size(200f, 50f),
+                style = Stroke(width = 1.5f)
+            )
+
+            // Projected Aircraft on Turntable
+            val angleRad = (turntableRotation * PI / 180f).toFloat()
+            val scaleX = cos(angleRad).coerceIn(-1f, 1f)
+
+            // Jet body in 3D angled perspective
+            val bodyColor = paint.bodyColor
+            val trimColor = paint.trimColor
+
+            val jetPath = Path().apply {
+                moveTo(cx, cy - 60f)
+                lineTo(cx + 45f * scaleX, cy + 10f)
+                lineTo(cx + 80f * scaleX, cy + 25f)
+                lineTo(cx + 25f * scaleX, cy + 40f)
+                lineTo(cx, cy + 30f)
+                lineTo(cx - 25f * scaleX, cy + 40f)
+                lineTo(cx - 80f * scaleX, cy + 25f)
+                lineTo(cx - 45f * scaleX, cy + 10f)
+                close()
+            }
+
+            drawPath(jetPath, color = bodyColor)
+            drawPath(jetPath, color = trimColor, style = Stroke(width = 2f))
+
+            // Engine exhaust glow on turntable
+            drawCircle(
+                color = exhaust.outerColor.copy(alpha = 0.6f),
+                radius = 18f,
+                center = Offset(cx, cy + 35f)
+            )
+            drawCircle(
+                color = exhaust.coreColor,
+                radius = 8f,
+                center = Offset(cx, cy + 35f)
+            )
+        }
+
+        // Lock Overlay if not purchased
+        if (!isUnlocked && spec.unlockCostCredits > 0L) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.65f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Default.Lock,
+                        contentDescription = "Locked",
+                        tint = AeroAmber,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Button(
+                        onClick = onUnlock,
+                        colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid),
+                        modifier = Modifier.testTag("unlock_aircraft_button")
+                    ) {
+                        Text(
+                            "UNLOCK FOR ${spec.unlockCostCredits} CR + ${spec.unlockCostCores} CORES",
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
         }
     }
 }

@@ -50,40 +50,48 @@ class FlightPhysics {
         screenWidth: Float,
         screenHeight: Float,
         baseSpeed: Float,
-        handling: Float
+        handling: Float,
+        isDirectTouch: Boolean = false
     ) {
         // Boost multiplier
-        val speedMultiplier = if (player.isBoosting && player.boost > 0f) 1.65f else 1.0f
+        val speedMultiplier = if (player.isBoosting && player.boost > 0f) 1.8f else 1.0f
         val targetMaxSpeed = baseSpeed * speedMultiplier
 
-        // Acceleration Curves & Drag
-        val accelRate = handling * 2600f * (if (player.isBoosting) 1.4f else 1.0f)
-        val drag = 6.5f
+        if (!isDirectTouch) {
+            // Acceleration Curves & Drag for virtual stick / key controls
+            val accelRate = handling * 5500f * (if (player.isBoosting) 1.5f else 1.0f)
+            val drag = 8.5f
 
-        val targetVx = inputDirX * targetMaxSpeed
-        val targetVy = inputDirY * targetMaxSpeed
+            val targetVx = inputDirX * targetMaxSpeed
+            val targetVy = inputDirY * targetMaxSpeed
 
-        // Smooth physics response
-        player.vx += (targetVx - player.vx) * min(1f, dt * (accelRate / targetMaxSpeed))
-        player.vy += (targetVy - player.vy) * min(1f, dt * (accelRate / targetMaxSpeed))
+            // Smooth physics response
+            player.vx += (targetVx - player.vx) * min(1f, dt * (accelRate / targetMaxSpeed))
+            player.vy += (targetVy - player.vy) * min(1f, dt * (accelRate / targetMaxSpeed))
 
-        // Natural air resistance when no input
-        if (abs(inputDirX) < 0.05f) {
-            player.vx -= player.vx * drag * dt
+            // Natural air resistance when no input
+            if (abs(inputDirX) < 0.05f) {
+                player.vx -= player.vx * drag * dt
+            }
+            if (abs(inputDirY) < 0.05f) {
+                player.vy -= player.vy * drag * dt
+            }
+
+            // Apply recoil
+            if (player.recoilY > 0f) {
+                player.y += player.recoilY * dt * 60f
+                player.recoilY = max(0f, player.recoilY - dt * 25f)
+            }
+
+            // Move aircraft
+            player.x += player.vx * dt
+            player.y += player.vy * dt
+        } else {
+            // Direct finger tracking handles positioning directly.
+            // Bleed off velocity smoothly for banking & visual particle effects
+            player.vx -= player.vx * min(1f, dt * 8f)
+            player.vy -= player.vy * min(1f, dt * 8f)
         }
-        if (abs(inputDirY) < 0.05f) {
-            player.vy -= player.vy * drag * dt
-        }
-
-        // Apply recoil
-        if (player.recoilY > 0f) {
-            player.y += player.recoilY * dt * 60f
-            player.recoilY = max(0f, player.recoilY - dt * 25f)
-        }
-
-        // Move aircraft
-        player.x += player.vx * dt
-        player.y += player.vy * dt
 
         // Clamp inside screen bounds with padding
         val padX = 40f
@@ -105,12 +113,12 @@ class FlightPhysics {
         }
 
         // Visual Banking: Lean aircraft into turns
-        val targetBank = (player.vx / targetMaxSpeed) * 35f // -35 to +35 degrees
-        player.bankAngle += (targetBank - player.bankAngle) * min(1f, dt * 10f)
+        val targetBank = (player.vx / 800f).coerceIn(-1f, 1f) * 35f // -35 to +35 degrees
+        player.bankAngle += (targetBank - player.bankAngle) * min(1f, dt * 14f)
 
         // Pitch scale: compresses slightly when accelerating vertically
         val targetPitch = if (player.vy < -50f) 0.92f else 1.0f
-        player.pitchScale += (targetPitch - player.pitchScale) * min(1f, dt * 6f)
+        player.pitchScale += (targetPitch - player.pitchScale) * min(1f, dt * 8f)
 
         // Barrel Roll Evasive Maneuver Progress
         if (player.barrelRollProgress > 0f) {

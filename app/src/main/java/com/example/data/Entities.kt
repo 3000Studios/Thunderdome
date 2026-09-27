@@ -42,7 +42,7 @@ data class SettingsEntity(
     @PrimaryKey val id: Int = 1,
     val graphicsPreset: String = "ULTRA",
     val targetFps: Int = 60,
-    val controlScheme: String = "JOYSTICK",
+    val controlScheme: String = "TOUCH_FOLLOW",
     val touchSensitivity: Float = 1.0f,
     val hapticsEnabled: Boolean = true,
     val sfxVolume: Float = 0.9f,

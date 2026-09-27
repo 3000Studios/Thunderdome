@@ -12,6 +12,9 @@ interface AeroStrikeDao {
     @Query("SELECT * FROM player_profile WHERE id = 1")
     fun getPlayerProfile(): Flow<PlayerProfileEntity?>
 
+    @Query("SELECT * FROM player_profile WHERE id = 1")
+    suspend fun getProfileDirect(): PlayerProfileEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateProfile(profile: PlayerProfileEntity)
 
@@ -29,6 +32,9 @@ interface AeroStrikeDao {
 
     @Query("SELECT * FROM game_settings WHERE id = 1")
     fun getSettings(): Flow<SettingsEntity?>
+
+    @Query("SELECT * FROM game_settings WHERE id = 1")
+    suspend fun getSettingsDirect(): SettingsEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateSettings(settings: SettingsEntity)

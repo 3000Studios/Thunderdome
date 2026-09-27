@@ -53,53 +53,57 @@ abstract class AeroStrikeDatabase : RoomDatabase() {
             }
 
             suspend fun populateInitialData(dao: AeroStrikeDao) {
-                dao.insertOrUpdateProfile(PlayerProfileEntity())
-                dao.insertOrUpdateSettings(SettingsEntity())
-                dao.insertAllAircraft(
-                    listOf(
-                        AircraftSaveEntity(
-                            aircraftId = "apex_falcon",
-                            isUnlocked = true,
-                            level = 1,
-                            paintSchemeId = "stealth_black",
-                            exhaustColorId = "cyan_flame",
-                            primaryWeaponId = "plasma_gatling",
-                            secondaryWeaponId = "swarm_missiles",
-                            specialAbilityId = "chrono_overdrive"
-                        ),
-                        AircraftSaveEntity(
-                            aircraftId = "valkyrie_phantom",
-                            isUnlocked = true,
-                            level = 1,
-                            paintSchemeId = "cobalt_frost",
-                            exhaustColorId = "violet_flame",
-                            primaryWeaponId = "twin_laser",
-                            secondaryWeaponId = "emp_torpedo",
-                            specialAbilityId = "warp_dash"
-                        ),
-                        AircraftSaveEntity(
-                            aircraftId = "titan_dread",
-                            isUnlocked = false,
-                            level = 1,
-                            paintSchemeId = "crimson_war",
-                            exhaustColorId = "amber_flame",
-                            primaryWeaponId = "heavy_flak",
-                            secondaryWeaponId = "cluster_bombs",
-                            specialAbilityId = "hyper_shield"
-                        ),
-                        AircraftSaveEntity(
-                            aircraftId = "solaris_specter",
-                            isUnlocked = false,
-                            level = 1,
-                            paintSchemeId = "solar_flare",
-                            exhaustColorId = "emerald_flame",
-                            primaryWeaponId = "railgun",
-                            secondaryWeaponId = "hunter_drones",
-                            specialAbilityId = "nova_blast"
-                        )
+                AeroStrikeDatabase.populateInitialData(dao)
+            }
+        }
+
+        suspend fun populateInitialData(dao: AeroStrikeDao) {
+            dao.insertOrUpdateProfile(PlayerProfileEntity())
+            dao.insertOrUpdateSettings(SettingsEntity())
+            dao.insertAllAircraft(
+                listOf(
+                    AircraftSaveEntity(
+                        aircraftId = "apex_falcon",
+                        isUnlocked = true,
+                        level = 1,
+                        paintSchemeId = "stealth_black",
+                        exhaustColorId = "cyan_flame",
+                        primaryWeaponId = "plasma_gatling",
+                        secondaryWeaponId = "swarm_missiles",
+                        specialAbilityId = "chrono_overdrive"
+                    ),
+                    AircraftSaveEntity(
+                        aircraftId = "valkyrie_phantom",
+                        isUnlocked = true,
+                        level = 1,
+                        paintSchemeId = "cobalt_frost",
+                        exhaustColorId = "violet_flame",
+                        primaryWeaponId = "twin_laser",
+                        secondaryWeaponId = "emp_torpedo",
+                        specialAbilityId = "warp_dash"
+                    ),
+                    AircraftSaveEntity(
+                        aircraftId = "titan_dread",
+                        isUnlocked = false,
+                        level = 1,
+                        paintSchemeId = "crimson_war",
+                        exhaustColorId = "amber_flame",
+                        primaryWeaponId = "heavy_flak",
+                        secondaryWeaponId = "cluster_bombs",
+                        specialAbilityId = "hyper_shield"
+                    ),
+                    AircraftSaveEntity(
+                        aircraftId = "solaris_specter",
+                        isUnlocked = false,
+                        level = 1,
+                        paintSchemeId = "solar_flare",
+                        exhaustColorId = "emerald_flame",
+                        primaryWeaponId = "railgun",
+                        secondaryWeaponId = "hunter_drones",
+                        specialAbilityId = "nova_blast"
                     )
                 )
-            }
+            )
         }
     }
 }
@@ -108,6 +112,16 @@ class GameRepository(private val dao: AeroStrikeDao) {
     val playerProfile: Flow<PlayerProfileEntity?> = dao.getPlayerProfile()
     val allAircraft: Flow<List<AircraftSaveEntity>> = dao.getAllAircraft()
     val settings: Flow<SettingsEntity?> = dao.getSettings()
+
+    suspend fun ensureInitialized() {
+        if (dao.getProfileDirect() == null) {
+            AeroStrikeDatabase.populateInitialData(dao)
+        }
+        val currentSettings = dao.getSettingsDirect()
+        if (currentSettings != null && currentSettings.controlScheme == "JOYSTICK") {
+            dao.insertOrUpdateSettings(currentSettings.copy(controlScheme = "TOUCH_FOLLOW"))
+        }
+    }
 
     suspend fun updateProfile(profile: PlayerProfileEntity) = dao.insertOrUpdateProfile(profile)
     suspend fun updateAircraft(aircraft: AircraftSaveEntity) = dao.insertOrUpdateAircraft(aircraft)
