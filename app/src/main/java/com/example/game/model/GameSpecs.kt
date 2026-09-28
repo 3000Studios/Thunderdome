@@ -159,7 +159,7 @@ object AircraftCatalog {
         rosterCraft("cryospear", "Cryospear", "Sniper", "Ice Shot", "Ultra-long range armor-piercing shot.", "chrono_overdrive", Color(0xFFD4F3FF), AeroCyan, 860f, 920f, 28000L),
         rosterCraft("stormrider", "Stormrider", "Weather Dominator", "Thunder Field", "Calls down random lightning strikes.", "hyper_shield", Color(0xFF7865FF), AeroViolet, 980f, 890f, 31000L),
         rosterCraft("voidrunner", "Voidrunner", "Dimensional", "Portal Shift", "Creates a short-range teleport portal.", "warp_dash", Color(0xFF7624FF), AeroViolet, 820f, 1050f, 34000L),
-        rosterCraft("runhawk", "Runhawk", "Demolition", "Cluster Reign", "Drops explosive missile clusters.", "nova_blast", Color(0xFF858A96), AeroOrange, 1320f, 680f, 37000L),
+        rosterCraft("ruinhawk", "Ruinhawk", "Demolition", "Cluster Reign", "Drops multiple explosive missiles.", "nova_blast", Color(0xFF858A96), AeroOrange, 1320f, 680f, 37000L),
         rosterCraft("nebulus", "Nebulus", "Support Drone", "Drone Swarm", "Deploys a protective drone formation.", "hyper_shield", Color(0xFFE2B2FF), AeroViolet, 900f, 850f, 40000L),
         rosterCraft("helix", "Helix", "Adaptive", "Morph Mode", "Cycles between tactical configurations.", "chrono_overdrive", Color(0xFF54F5E6), AeroCyan, 960f, 900f, 44000L),
         rosterCraft("omegashard", "Omegashard", "Disruption", "System Break", "Disables enemy weapons temporarily.", "nova_blast", Color(0xFFE92C3E), AeroCrimson, 1080f, 860f, 48000L),
