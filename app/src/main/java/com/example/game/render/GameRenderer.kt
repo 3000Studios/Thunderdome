@@ -239,44 +239,14 @@ object GameRenderer {
                 }
             }
 
-            // 12. Particles (Explosions, Fireballs, Smoke, Sparks, Streaks)
-            for (pt in vfx.particles) {
-                when (pt.type) {
-                    ParticleType.SPEED_STREAK -> {
-                        drawLine(
-                            color = pt.color.copy(alpha = pt.alpha),
-                            start = Offset(pt.x, pt.y),
-                            end = Offset(pt.x, pt.y + 40f),
-                            strokeWidth = pt.size
-                        )
-                    }
-                    ParticleType.SMOKE -> {
-                        drawCircle(
-                            color = pt.color.copy(alpha = pt.alpha),
-                            radius = pt.size,
-                            center = Offset(pt.x, pt.y)
-                        )
-                    }
-                    ParticleType.FIREBALL, ParticleType.AFTERBURNER -> {
-                        drawCircle(
-                            color = pt.color.copy(alpha = pt.alpha),
-                            radius = pt.size,
-                            center = Offset(pt.x, pt.y)
-                        )
-                        drawCircle(
-                            color = Color.White.copy(alpha = pt.alpha * 0.7f),
-                            radius = pt.size * 0.4f,
-                            center = Offset(pt.x, pt.y)
-                        )
-                    }
-                    else -> {
-                        drawCircle(
-                            color = pt.color.copy(alpha = pt.alpha),
-                            radius = pt.size,
-                            center = Offset(pt.x, pt.y)
-                        )
-                    }
-                }
+            // 13. Bonus Vortex Black Hole Event Horizon (When Active)
+            if (engine.bonusVortexActive) {
+                drawBonusVortex(drawScope, engine.vortexX, engine.vortexY, engine.vortexRadius, engine.vortexRotation)
+            }
+
+            // 14. Glowing Warp Tunnel Overlay (When In Tunnel)
+            if (engine.isInBonusTunnel) {
+                drawBonusWarpTunnel(drawScope, engine, width, height)
             }
         }
     }
@@ -471,6 +441,130 @@ object GameRenderer {
                 start = Offset(boss.x, boss.y + 20f),
                 end = Offset(endX, endY),
                 strokeWidth = 4f
+            )
+        }
+    }
+
+    private fun drawBonusVortex(
+        scope: DrawScope,
+        vx: Float,
+        vy: Float,
+        radius: Float,
+        rotation: Float
+    ) {
+        // Outer Pulsating Accretion Glow Disk
+        scope.drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    AeroCyan.copy(alpha = 0.85f),
+                    AeroViolet.copy(alpha = 0.5f),
+                    AeroAmber.copy(alpha = 0.2f),
+                    Color.Transparent
+                ),
+                center = Offset(vx, vy),
+                radius = radius * 2.8f
+            ),
+            radius = radius * 2.8f,
+            center = Offset(vx, vy)
+        )
+
+        // Swirling Spiral Arms
+        scope.withTransform({
+            translate(vx, vy)
+            rotate(rotation)
+        }) {
+            for (i in 0 until 6) {
+                val angle = i * 60f
+                val armRad = angle * PI.toFloat() / 180f
+                val armX = cos(armRad) * radius * 1.5f
+                val armY = sin(armRad) * radius * 1.5f
+                drawLine(
+                    color = AeroCyan,
+                    start = Offset(0f, 0f),
+                    end = Offset(armX, armY),
+                    strokeWidth = 3.5f
+                )
+                drawCircle(
+                    color = AeroAmber,
+                    radius = 5f,
+                    center = Offset(armX, armY)
+                )
+            }
+        }
+
+        // Event Horizon Black Core
+        scope.drawCircle(
+            color = Color.Black,
+            radius = radius * 0.75f,
+            center = Offset(vx, vy)
+        )
+        scope.drawCircle(
+            color = AeroCyan,
+            radius = radius * 0.75f,
+            center = Offset(vx, vy),
+            style = Stroke(width = 3f)
+        )
+        scope.drawCircle(
+            color = Color.White,
+            radius = radius * 0.25f,
+            center = Offset(vx, vy)
+        )
+    }
+
+    private fun drawBonusWarpTunnel(
+        scope: DrawScope,
+        engine: GameEngine,
+        width: Float,
+        height: Float
+    ) {
+        val cx = width * 0.5f
+        val cy = height * 0.5f
+        val timer = engine.tunnelTimer
+        val speedMult = engine.tunnelSpeedMultiplier
+
+        // Neon Warp Tunnel Rings zooming toward screen
+        val ringCount = 12
+        for (i in 0 until ringCount) {
+            val z = ((timer * 1.8f * speedMult + i * (1.0f / ringCount)) % 1.0f)
+            val ringRadius = z * (width * 0.75f)
+            val alpha = (z * 1.2f).coerceIn(0f, 0.9f)
+
+            scope.drawCircle(
+                color = if (i % 2 == 0) AeroCyan.copy(alpha = alpha) else AeroViolet.copy(alpha = alpha),
+                radius = ringRadius.coerceAtLeast(10f),
+                center = Offset(cx, cy),
+                style = Stroke(width = (2f + z * 8f))
+            )
+        }
+
+        // Radial Hyper Streaks
+        val streakCount = 16
+        for (i in 0 until streakCount) {
+            val angle = i * (360f / streakCount) + timer * 90f
+            val rad = angle * PI.toFloat() / 180f
+            val innerR = 40f
+            val outerR = width * 0.8f
+            scope.drawLine(
+                color = ShieldBlue.copy(alpha = 0.45f),
+                start = Offset(cx + cos(rad) * innerR, cy + sin(rad) * innerR),
+                end = Offset(cx + cos(rad) * outerR, cy + sin(rad) * outerR),
+                strokeWidth = 2.5f
+            )
+        }
+
+        // Floating Golden Tunnel Bonus Coins
+        for (k in 0..4) {
+            val coinY = cy - 250f + k * 100f + ((timer * 400f * speedMult) % 500f)
+            val coinX = cx + sin((timer * 3f + k).toDouble()).toFloat() * 140f
+            scope.drawCircle(
+                color = Color(0xFFFFD700).copy(alpha = 0.9f),
+                radius = 14f,
+                center = Offset(coinX, coinY)
+            )
+            scope.drawCircle(
+                color = Color.White,
+                radius = 5f,
+                center = Offset(coinX, coinY)
             )
         }
     }

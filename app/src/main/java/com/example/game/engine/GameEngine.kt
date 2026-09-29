@@ -114,6 +114,28 @@ class GameEngine(
 
     var graphicsPreset: String = "ULTRA"
 
+    // Stage Progress & Distance Line Tracking
+    var stageDistanceCurrent: Float = 0f
+    val stageDistanceTotal: Float = 3000f // 3,000 meters stage length
+    var damageTakenThisStage: Float = 0f
+    var totalTargetsSpawned: Int = 0
+    var totalTargetsDestroyed: Int = 0
+
+    // Bonus Vortex & Tunnel State
+    var bonusVortexActive: Boolean = false
+    var vortexX: Float = 0f
+    var vortexY: Float = 0f
+    var vortexRadius: Float = 60f
+    var vortexRotation: Float = 0f
+
+    var isInBonusTunnel: Boolean = false
+    var tunnelTimer: Float = 0f
+    val tunnelDuration: Float = 14f // song section duration
+    var tunnelCoinsCollected: Int = 0
+    var tunnelBonusCredits: Long = 0L
+    var tunnelSpeedMultiplier: Float = 1.0f
+    private var tunnelMediaPlayer: android.media.MediaPlayer? = null
+
     fun startMission(
         aircraft: AircraftSpec,
         primary: WeaponSpec,
@@ -141,6 +163,19 @@ class GameEngine(
         isDirectTouchActive = false
         inputDirX = 0f
         inputDirY = 0f
+
+        // Reset stage distance & bonus vortex state
+        stageDistanceCurrent = 0f
+        damageTakenThisStage = 0f
+        totalTargetsSpawned = 0
+        totalTargetsDestroyed = 0
+        bonusVortexActive = false
+        isInBonusTunnel = false
+        tunnelTimer = 0f
+        tunnelCoinsCollected = 0
+        tunnelBonusCredits = 0L
+        tunnelSpeedMultiplier = 1.0f
+        stopTunnelMusic()
 
         // Apply upgrades to base specs
         val engLvl = savedUpgrades["engine"] ?: 0
@@ -287,11 +322,91 @@ class GameEngine(
         // 10. Update VFX & Particles
         vfx.update(clampedDt)
 
-        // 11. Update Combos
+        // 11. Update Combos & Stage Distance
         if (combatStats.comboTimer > 0f) {
             combatStats.comboTimer -= clampedDt
             if (combatStats.comboTimer <= 0f) {
                 combatStats.comboCount = 0
+            }
+        }
+
+        // 12. Stage Distance & Bonus Vortex Black Hole Logic
+        if (!isInBonusTunnel) {
+            // Advance stage distance (scaled by flight speed)
+            val speedFactor = if (playerState.isBoosting) 180f else 110f
+            stageDistanceCurrent = (stageDistanceCurrent + clampedDt * speedFactor).coerceAtMost(stageDistanceTotal)
+            val progressRatio = stageDistanceCurrent / stageDistanceTotal
+
+            // Check for Bonus Vortex Spawn at 90% Stage Progress
+            // Requirement: Reached 90%, 0 damage taken on stage, and destroyed targets
+            if (progressRatio >= 0.90f && !bonusVortexActive && damageTakenThisStage == 0f && combatStats.kills >= 3) {
+                bonusVortexActive = true
+                vortexX = screenWidth * 0.5f
+                vortexY = screenHeight * 0.32f
+                vfx.addText("⭐ PERFECT RUN! BONUS VORTEX DETECTED! ⭐", screenWidth * 0.5f, screenHeight * 0.22f, Color(0xFF00F0FF))
+                audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+            }
+
+            // Animate Active Vortex
+            if (bonusVortexActive) {
+                vortexRotation += clampedDt * 280f
+                // Check if player craft enters the vortex event horizon
+                val distToVortex = hypot(playerState.x - vortexX, playerState.y - vortexY)
+                if (distToVortex < vortexRadius + 35f) {
+                    // ENTER WARP TUNNEL!
+                    bonusVortexActive = false
+                    isInBonusTunnel = true
+                    tunnelTimer = 0f
+                    tunnelCoinsCollected = 0
+                    tunnelBonusCredits = 0L
+                    startTunnelMusic()
+                    vfx.addText("🌌 HYPER WARP TUNNEL ENGAGED! 🌌", screenWidth * 0.5f, screenHeight * 0.45f, Color(0xFF00F0FF))
+                    audioHaptics.triggerExplosionHaptic(true)
+                }
+            }
+        } else {
+            // ── INSIDE GLOWING BONUS WARP TUNNEL ──
+            tunnelTimer += clampedDt
+            val tunnelProgressRatio = (tunnelTimer / tunnelDuration).coerceIn(0f, 1f)
+
+            // Speed up in tunnel then slow down to sound of music
+            tunnelSpeedMultiplier = if (tunnelProgressRatio < 0.5f) {
+                1.0f + (tunnelProgressRatio / 0.5f) * 2.2f // Accelerate to 3.2x
+            } else {
+                3.2f - ((tunnelProgressRatio - 0.5f) / 0.5f) * 2.4f // Decelerate down to 0.8x
+            }
+
+            // Auto-collect bonus tunnel coins on every frame pulse
+            if ((tunnelTimer * 10f).toInt() > tunnelCoinsCollected) {
+                tunnelCoinsCollected++
+                combatStats.score += 800L
+                audioHaptics.playSound(AudioHapticSystem.SoundType.PLASMA_SHOT)
+                vfx.spawnExplosion(
+                    x = playerState.x + (Random.nextFloat() - 0.5f) * 120f,
+                    y = playerState.y - 100f + (Random.nextFloat() - 0.5f) * 80f,
+                    isHeavy = false,
+                    colorScheme = Color(0xFFFFD700)
+                )
+            }
+
+            // Tunnel Completion -> Warp Out to Boss Level Stage!
+            if (tunnelTimer >= tunnelDuration) {
+                isInBonusTunnel = false
+                stopTunnelMusic()
+
+                // Calculate +15% extra bonus coins/credits from stage total
+                val bonus15Percent = ((combatStats.creditsEarned + 1000L) * 0.15f).toLong().coerceAtLeast(450L)
+                combatStats.creditsEarned += bonus15Percent
+                tunnelBonusCredits = bonus15Percent
+
+                // Warp directly to 100% stage completion & trigger Boss encounter
+                stageDistanceCurrent = stageDistanceTotal
+                enemySystem.spawnBoss(screenWidth, screenHeight)
+                enemySystem.isBossWave = true
+
+                vfx.addText("⚡ WARP EXIT: BOSS LEVEL ENCOUNTER! +15% BONUS CR (${bonus15Percent} CR) ⚡", screenWidth * 0.5f, screenHeight * 0.35f, Color(0xFFFFD700))
+                audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+                audioHaptics.triggerExplosionHaptic(true)
             }
         }
     }
@@ -531,6 +646,7 @@ class GameEngine(
     }
 
     fun applyDamageToPlayer(amount: Float) {
+        damageTakenThisStage += amount
         playerState.shieldRechargeTimer = 3.5f
         audioHaptics.triggerDamageHaptic()
         physics.addTrauma(0.2f)
@@ -553,10 +669,32 @@ class GameEngine(
 
         if (playerState.health <= 0f) {
             isGameOver = true
+            stopTunnelMusic()
             vfx.spawnExplosion(playerState.x, playerState.y, isHeavy = true, colorScheme = Color(0xFFEF4444))
             audioHaptics.playSound(AudioHapticSystem.SoundType.EXPLOSION_HEAVY)
             audioHaptics.triggerExplosionHaptic(true)
             physics.addTrauma(0.6f)
         }
+    }
+
+    private fun startTunnelMusic() {
+        try {
+            stopTunnelMusic()
+            tunnelMediaPlayer = android.media.MediaPlayer.create(context, com.example.R.raw.bonus_vortex_tunnel)?.apply {
+                setVolume(1.0f, 1.0f)
+                isLooping = false
+                start()
+            }
+        } catch (_: Exception) {}
+    }
+
+    fun stopTunnelMusic() {
+        try {
+            tunnelMediaPlayer?.let {
+                if (it.isPlaying) it.stop()
+                it.release()
+            }
+        } catch (_: Exception) {}
+        tunnelMediaPlayer = null
     }
 }

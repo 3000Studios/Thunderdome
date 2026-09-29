@@ -68,6 +68,7 @@ fun CombatScreen(
         engine.isFireHeld = true
         onDispose {
             engine.isFireHeld = false
+            engine.stopTunnelMusic()
             viewModel.saveMissionFinish()
         }
     }
@@ -349,6 +350,69 @@ fun CombatHudOverlay(
                                 .background(heatColor)
                         )
                     }
+                }
+            }
+
+            // Stage Distance Progress Line Bar (Top Center)
+            val distRatio = (engine.stageDistanceCurrent / engine.stageDistanceTotal).coerceIn(0f, 1f)
+            val distRemaining = (engine.stageDistanceTotal - engine.stageDistanceCurrent).toInt().coerceAtLeast(0)
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 8.dp)
+            ) {
+                // Distance Text Banner
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Flag,
+                        contentDescription = "Boss Line",
+                        tint = if (distRatio >= 0.90f) AeroAmber else AeroCyan,
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = if (engine.isInBonusTunnel) "WARP TUNNEL: +15% BONUS COINS"
+                               else if (distRemaining == 0) "BOSS BATTLE ENGAGED"
+                               else "BOSS IN ${distRemaining}m",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (engine.isInBonusTunnel) AeroAmber else if (distRatio >= 0.90f) AeroAmber else AeroCyan,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(3.dp))
+
+                // Distance Progress Line Bar
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(DarkSurfaceBorder)
+                        .border(0.5.dp, DarkSurfaceBorder, RoundedCornerShape(4.dp))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(distRatio)
+                            .fillMaxHeight()
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(AeroCyan, ShieldBlue, AeroAmber)
+                                )
+                            )
+                    )
+                }
+
+                // Perfect Run Badge Indicator
+                if (engine.damageTakenThisStage == 0f && distRatio >= 0.3f) {
+                    Text(
+                        text = "⭐ PERFECT (0 DMG)",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = AeroEmerald,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 

@@ -22,10 +22,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.AircraftSaveEntity
@@ -33,8 +34,37 @@ import com.example.game.model.*
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.GameViewModel
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.random.Random
+
+// Animated starfield particles
+private data class StarParticle(
+    val x: Float, val y: Float,
+    val speed: Float, val size: Float,
+    val alpha: Float, val hue: Float
+)
+
+private fun generateStars(count: Int = 100): List<StarParticle> {
+    val rng = Random(42)
+    return List(count) {
+        StarParticle(
+            x = rng.nextFloat(), y = rng.nextFloat(),
+            speed = 0.15f + rng.nextFloat() * 0.85f,
+            size = 0.8f + rng.nextFloat() * 2.5f,
+            alpha = 0.15f + rng.nextFloat() * 0.65f,
+            hue = rng.nextFloat()
+        )
+    }
+}
+
+private fun starColor(hue: Float): Color = when {
+    hue < 0.35f -> AeroCyan.copy(alpha = 0.7f)
+    hue < 0.6f  -> ShieldBlue.copy(alpha = 0.5f)
+    hue < 0.85f -> AeroViolet.copy(alpha = 0.4f)
+    else        -> AeroAmber.copy(alpha = 0.35f)
+}
 
 @Composable
 fun HangarScreen(
@@ -63,487 +93,393 @@ fun HangarScreen(
     var currentTab by remember { mutableStateOf("OVERVIEW") }
     val isCraftUnlocked = currentSave.isUnlocked || (selectedAircraftSpec.unlockCostCredits == 0L)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkVoid)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        // Top Player Resource Bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = profile.callsign,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White
-                )
-                Text(
-                    text = "LEVEL ${profile.level} PILOT",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AeroCyan
-                )
-            }
+    // Animated starfield
+    val stars = remember { generateStars() }
+    val infiniteTransition = rememberInfiniteTransition(label = "hangar_bg")
+    val starDrift by infiniteTransition.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 30000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ), label = "star_drift"
+    )
+    val glowPulse by infiniteTransition.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 4000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "glow_pulse"
+    )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                // Credits
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.MonetizationOn,
-                        contentDescription = "Credits",
-                        tint = AeroEmerald,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${profile.credits}",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = Color.White
-                    )
-                }
-
-                // Plasma Cores
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Diamond,
-                        contentDescription = "Plasma Cores",
-                        tint = AeroViolet,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${profile.plasmaCores}",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = Color.White
-                    )
-                }
-            }
-        }
-
-        // Aircraft Selector Carousel
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(AircraftCatalog.ALL_AIRCRAFT) { spec ->
-                val isSelected = spec.id == selectedAircraftSpec.id
-                val craftSave = allSaves.find { it.aircraftId == spec.id }
-                val isUnlocked = craftSave?.isUnlocked ?: (spec.unlockCostCredits == 0L)
-
-                Card(
-                    modifier = Modifier
-                        .width(130.dp)
-                        .clickable {
-                            selectedAircraftSpec = spec
-                            if (isUnlocked) viewModel.selectAircraft(spec.id)
-                        }
-                        .testTag("aircraft_select_${spec.id}"),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (isSelected) DarkSurfaceElevated else DarkSurface
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    border = androidx.compose.foundation.BorderStroke(
-                        width = if (isSelected) 1.5.dp else 1.dp,
-                        color = if (isSelected) AeroCyan else DarkSurfaceBorder
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(10.dp)) {
-                        Text(
-                            text = spec.name,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = if (isSelected) AeroCyan else Color.White,
-                            maxLines = 1
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = if (isUnlocked) "READY" else "LOCKED",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (isUnlocked) AeroEmerald else DangerRed
-                        )
-                    }
-                }
-            }
-        }
-
-        // 3D Hangar Turntable Interactive Preview
-        TurntablePreview(
-            spec = selectedAircraftSpec,
-            paint = currentPaint,
-            exhaust = currentExhaust,
-            isUnlocked = isCraftUnlocked,
-            onUnlock = { viewModel.unlockAircraft(selectedAircraftSpec) }
-        )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Hangar Customization Tabs
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            listOf("OVERVIEW", "UPGRADES", "WEAPONS", "PAINT", "EXHAUST").forEach { tab ->
-                val active = currentTab == tab
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (active) AeroCyan else DarkSurfaceElevated)
-                        .clickable { currentTab = tab }
-                        .padding(vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = tab,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                        color = if (active) DarkVoid else TextSecondary,
-                        fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Tab Content
-        when (currentTab) {
-            "OVERVIEW" -> {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = DarkSurface),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
-                        Text(
-                            text = selectedAircraftSpec.name,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color.White
-                        )
-                        Text(
-                            text = selectedAircraftSpec.role,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = AeroCyan
-                        )
-                        if (selectedAircraftSpec.abilityName.isNotBlank()) {
-                            Text(
-                                text = "ABILITY // ${selectedAircraftSpec.abilityName}",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = AeroAmber,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
-                            Text(
-                                text = selectedAircraftSpec.abilityDescription,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = TextSecondary
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = selectedAircraftSpec.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
-                        )
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        // Aircraft Stats Comparison
-                        StatRow("HULL INTEGRITY", "${selectedAircraftSpec.baseHealth.toInt()}", selectedAircraftSpec.baseHealth / 1600f, HullGreen)
-                        StatRow("SHIELD STRENGTH", "${selectedAircraftSpec.baseShield.toInt()}", selectedAircraftSpec.baseShield / 1200f, ShieldBlue)
-                        StatRow("TOP SPEED", "${selectedAircraftSpec.baseSpeed.toInt()} km/h", selectedAircraftSpec.baseSpeed / 700f, AeroAmber)
-                        StatRow("MANEUVERABILITY", "${(selectedAircraftSpec.baseHandling * 100).toInt()}%", selectedAircraftSpec.baseHandling, AeroCyan)
-                        StatRow("CRITICAL RATE", "${(selectedAircraftSpec.baseCritChance * 100).toInt()}%", selectedAircraftSpec.baseCritChance / 0.35f, AeroViolet)
-                    }
-                }
-            }
-            "UPGRADES" -> {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = DarkSurface),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("SYSTEM UPGRADE MATRIX", style = MaterialTheme.typography.labelLarge, color = AeroCyan)
-
-                        UpgradeItem("Engine & Afterburners", currentSave.engineUpgradeLevel, "engine", profile.credits, viewModel, selectedAircraftSpec.id)
-                        UpgradeItem("Kinetic Shield Generator", currentSave.shieldUpgradeLevel, "shield", profile.credits, viewModel, selectedAircraftSpec.id)
-                        UpgradeItem("Reinforced Armor Plating", currentSave.armorUpgradeLevel, "armor", profile.credits, viewModel, selectedAircraftSpec.id)
-                        UpgradeItem("Weapon Cooling & Overdrive", currentSave.weaponUpgradeLevel, "weapon", profile.credits, viewModel, selectedAircraftSpec.id)
-                        UpgradeItem("Avionics & Radar Array", currentSave.avionicsUpgradeLevel, "avionics", profile.credits, viewModel, selectedAircraftSpec.id)
-                    }
-                }
-            }
-            "WEAPONS" -> {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = DarkSurface),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("LOADOUT MOUNTINGS", style = MaterialTheme.typography.labelLarge, color = AeroCyan)
-
-                        // Primary Selector
-                        Text("PRIMARY WEAPON", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            items(WeaponCatalog.ALL_PRIMARY) { wp ->
-                                val equipped = wp.id == currentPrimary.id
-                                Button(
-                                    onClick = { viewModel.equipCustomization(selectedAircraftSpec.id, primaryId = wp.id) },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (equipped) AeroCyan else DarkSurfaceElevated,
-                                        contentColor = if (equipped) DarkVoid else Color.White
-                                    ),
-                                    shape = RoundedCornerShape(8.dp)
-                                ) {
-                                    Text(wp.name, fontSize = 12.sp)
-                                }
-                            }
-                        }
-
-                        // Secondary Selector
-                        Text("SECONDARY WEAPON", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            items(WeaponCatalog.ALL_SECONDARY) { wp ->
-                                val equipped = wp.id == currentSecondary.id
-                                Button(
-                                    onClick = { viewModel.equipCustomization(selectedAircraftSpec.id, secondaryId = wp.id) },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (equipped) AeroCrimson else DarkSurfaceElevated,
-                                        contentColor = if (equipped) Color.White else Color.White
-                                    ),
-                                    shape = RoundedCornerShape(8.dp)
-                                ) {
-                                    Text(wp.name, fontSize = 12.sp)
-                                }
-                            }
-                        }
-
-                        // Special Ability Selector
-                        Text("TACTICAL SPECIAL ABILITY", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            items(WeaponCatalog.ALL_SPECIAL) { wp ->
-                                val equipped = wp.id == currentSpecial.id
-                                Button(
-                                    onClick = { viewModel.equipCustomization(selectedAircraftSpec.id, specialId = wp.id) },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (equipped) AeroViolet else DarkSurfaceElevated,
-                                        contentColor = if (equipped) Color.White else Color.White
-                                    ),
-                                    shape = RoundedCornerShape(8.dp)
-                                ) {
-                                    Text(wp.name, fontSize = 12.sp)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            "PAINT" -> {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = DarkSurface),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("AIRCRAFT LIVERY & FINISH", style = MaterialTheme.typography.labelLarge, color = AeroCyan)
-                        PaintCatalog.ALL.forEach { p ->
-                            val equipped = p.id == currentPaint.id
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (equipped) DarkSurfaceElevated else Color.Transparent)
-                                    .border(1.dp, if (equipped) AeroCyan else DarkSurfaceBorder, RoundedCornerShape(8.dp))
-                                    .clickable { viewModel.equipCustomization(selectedAircraftSpec.id, paintId = p.id) }
-                                    .padding(10.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .clip(CircleShape)
-                                            .background(p.bodyColor)
-                                            .border(2.dp, p.trimColor, CircleShape)
-                                    )
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Text(p.name, color = Color.White, style = MaterialTheme.typography.bodyMedium)
-                                }
-                                if (equipped) {
-                                    Text("EQUIPPED", color = AeroCyan, style = MaterialTheme.typography.labelSmall)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            "EXHAUST" -> {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = DarkSurface),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("AFTERBURNER PLUME COLOR", style = MaterialTheme.typography.labelLarge, color = AeroCyan)
-                        ExhaustCatalog.ALL.forEach { ex ->
-                            val equipped = ex.id == currentExhaust.id
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (equipped) DarkSurfaceElevated else Color.Transparent)
-                                    .border(1.dp, if (equipped) AeroOrange else DarkSurfaceBorder, RoundedCornerShape(8.dp))
-                                    .clickable { viewModel.equipCustomization(selectedAircraftSpec.id, exhaustId = ex.id) }
-                                    .padding(10.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .clip(CircleShape)
-                                            .background(ex.coreColor)
-                                            .border(2.dp, ex.outerColor, CircleShape)
-                                    )
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Text(ex.name, color = Color.White, style = MaterialTheme.typography.bodyMedium)
-                                }
-                                if (equipped) {
-                                    Text("ACTIVE", color = AeroOrange, style = MaterialTheme.typography.labelSmall)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Launch Sortie Button
-        Button(
-            onClick = {
-                // Initialize engine for mission
-                val upgrades = mapOf(
-                    "engine" to currentSave.engineUpgradeLevel,
-                    "weapon" to currentSave.weaponUpgradeLevel,
-                    "armor" to currentSave.armorUpgradeLevel,
-                    "shield" to currentSave.shieldUpgradeLevel,
-                    "avionics" to currentSave.avionicsUpgradeLevel
-                )
-                viewModel.gameEngine.startMission(
-                    aircraft = selectedAircraftSpec,
-                    primary = currentPrimary,
-                    secondary = currentSecondary,
-                    special = currentSpecial,
-                    biome = BiomeCatalog.NEO_TOKYO,
-                    paint = currentPaint,
-                    exhaust = currentExhaust,
-                    screenWidth = 1080f,
-                    screenHeight = 2160f,
-                    savedUpgrades = upgrades
-                )
-                onLaunchMission()
-            },
-            enabled = isCraftUnlocked,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(54.dp)
-                .testTag("launch_sortie_button"),
-            colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Icon(Icons.Default.FlightTakeoff, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                "LAUNCH COMBAT SORTIE",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+    Box(modifier = Modifier.fillMaxSize()) {
+        // ANIMATED LIVE WALLPAPER BACKGROUND
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawRect(brush = Brush.verticalGradient(
+                colors = listOf(Color(0xFF030610), Color(0xFF0A0F25), Color(0xFF050B1A), Color(0xFF020408))
+            ))
+            val nebulaAlpha = 0.04f + glowPulse * 0.03f
+            drawCircle(
+                brush = Brush.radialGradient(listOf(AeroCyan.copy(alpha = nebulaAlpha), Color.Transparent), radius = size.width * 0.6f),
+                center = Offset(size.width * 0.2f, size.height * 0.15f), radius = size.width * 0.5f
             )
+            drawCircle(
+                brush = Brush.radialGradient(listOf(AeroViolet.copy(alpha = nebulaAlpha * 0.7f), Color.Transparent), radius = size.width * 0.5f),
+                center = Offset(size.width * 0.85f, size.height * 0.7f), radius = size.width * 0.45f
+            )
+            stars.forEach { star ->
+                val dy = ((star.y + starDrift * star.speed) % 1.05f)
+                val twinkle = (0.5f + 0.5f * sin((starDrift * 6.283f * star.speed + star.x * 10f).toDouble())).toFloat()
+                drawCircle(
+                    color = starColor(star.hue).copy(alpha = star.alpha * twinkle),
+                    radius = star.size, center = Offset(star.x * size.width, dy * size.height)
+                )
+            }
+            val gridAlpha = 0.015f + glowPulse * 0.01f
+            for (i in 0 until (size.height / 60f).toInt()) {
+                drawLine(AeroCyan.copy(alpha = gridAlpha), Offset(0f, i * 60f), Offset(size.width, i * 60f), 0.5f)
+            }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        // SCROLLABLE CONTENT
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp).verticalScroll(rememberScrollState())
+        ) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // TOP RESOURCE BAR
+            Row(
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                    .background(DarkSurface.copy(alpha = 0.7f)).padding(horizontal = 14.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(profile.callsign, style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("LEVEL ${profile.level} PILOT", style = MaterialTheme.typography.labelSmall, color = AeroCyan, letterSpacing = 1.5.sp)
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(DarkSurfaceElevated.copy(alpha = 0.6f)).padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Icon(Icons.Default.MonetizationOn, "Credits", tint = AeroEmerald, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("${profile.credits}", style = MaterialTheme.typography.labelLarge, color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(DarkSurfaceElevated.copy(alpha = 0.6f)).padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Icon(Icons.Default.Diamond, "Plasma Cores", tint = AeroViolet, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("${profile.plasmaCores}", style = MaterialTheme.typography.labelLarge, color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // AIRCRAFT SELECTOR with visible plane previews
+            Text("SELECT WARBIRD", style = MaterialTheme.typography.labelSmall, color = TextSecondary, letterSpacing = 2.sp, modifier = Modifier.padding(bottom = 6.dp))
+
+            LazyRow(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(end = 8.dp)
+            ) {
+                items(AircraftCatalog.ALL_AIRCRAFT) { spec ->
+                    val isSelected = spec.id == selectedAircraftSpec.id
+                    val craftSave = allSaves.find { it.aircraftId == spec.id }
+                    val isUnlocked = craftSave?.isUnlocked ?: (spec.unlockCostCredits == 0L)
+
+                    Card(
+                        modifier = Modifier.width(140.dp).height(140.dp)
+                            .clickable { selectedAircraftSpec = spec; if (isUnlocked) viewModel.selectAircraft(spec.id) }
+                            .testTag("aircraft_select_${spec.id}"),
+                        colors = CardDefaults.cardColors(containerColor = if (isSelected) DarkSurfaceElevated.copy(alpha = 0.9f) else DarkSurface.copy(alpha = 0.7f)),
+                        shape = RoundedCornerShape(12.dp),
+                        border = androidx.compose.foundation.BorderStroke(
+                            if (isSelected) 2.dp else 1.dp,
+                            if (isSelected) AeroCyan else if (!isUnlocked) DangerRed.copy(alpha = 0.3f) else DarkSurfaceBorder
+                        )
+                    ) {
+                        Column(Modifier.fillMaxSize().padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Canvas(Modifier.fillMaxWidth().height(72.dp)) {
+                                drawMiniAircraft(spec, isUnlocked, isSelected)
+                            }
+                            Spacer(Modifier.height(4.dp))
+                            Text(spec.name, style = MaterialTheme.typography.labelMedium, color = if (isSelected) AeroCyan else Color.White,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Bold)
+                            Text(if (isUnlocked) spec.role else "\uD83D\uDD12 LOCKED",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                color = if (isUnlocked) AeroEmerald else DangerRed, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            // TURNTABLE PREVIEW
+            TurntablePreview(spec = selectedAircraftSpec, paint = currentPaint, exhaust = currentExhaust,
+                isUnlocked = isCraftUnlocked, onUnlock = { viewModel.unlockAircraft(selectedAircraftSpec) })
+
+            Spacer(Modifier.height(14.dp))
+
+            // CUSTOMIZATION TABS
+            Row(
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(DarkSurface.copy(alpha = 0.5f)).padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                listOf("OVERVIEW", "UPGRADES", "WEAPONS", "PAINT", "EXHAUST").forEach { tab ->
+                    val active = currentTab == tab
+                    Box(
+                        modifier = Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
+                            .background(if (active) AeroCyan else Color.Transparent)
+                            .clickable { currentTab = tab }.padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(if (tab == "OVERVIEW") "INFO" else tab,
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                            color = if (active) DarkVoid else TextSecondary,
+                            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal, maxLines = 1)
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // TAB CONTENT
+            when (currentTab) {
+                "OVERVIEW" -> {
+                    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = DarkSurface.copy(alpha = 0.75f)),
+                        shape = RoundedCornerShape(12.dp), border = androidx.compose.foundation.BorderStroke(1.dp, DarkSurfaceBorder)) {
+                        Column(Modifier.padding(14.dp)) {
+                            Text(selectedAircraftSpec.name, style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold)
+                            Text(selectedAircraftSpec.role, style = MaterialTheme.typography.labelSmall, color = AeroCyan, letterSpacing = 1.sp)
+                            if (selectedAircraftSpec.abilityName.isNotBlank()) {
+                                Spacer(Modifier.height(8.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.AutoAwesome, null, tint = AeroAmber, modifier = Modifier.size(14.dp))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(selectedAircraftSpec.abilityName, style = MaterialTheme.typography.labelMedium, color = AeroAmber, fontWeight = FontWeight.Bold)
+                                }
+                                Text(selectedAircraftSpec.abilityDescription, style = MaterialTheme.typography.bodySmall, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
+                            }
+                            Spacer(Modifier.height(6.dp))
+                            Text(selectedAircraftSpec.description, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                            Spacer(Modifier.height(14.dp))
+                            StatRow("HULL INTEGRITY", "${selectedAircraftSpec.baseHealth.toInt()}", selectedAircraftSpec.baseHealth / 1600f, HullGreen)
+                            StatRow("SHIELD STRENGTH", "${selectedAircraftSpec.baseShield.toInt()}", selectedAircraftSpec.baseShield / 1200f, ShieldBlue)
+                            StatRow("TOP SPEED", "${selectedAircraftSpec.baseSpeed.toInt()} km/h", selectedAircraftSpec.baseSpeed / 700f, AeroAmber)
+                            StatRow("MANEUVERABILITY", "${(selectedAircraftSpec.baseHandling * 100).toInt()}%", selectedAircraftSpec.baseHandling, AeroCyan)
+                            StatRow("CRITICAL RATE", "${(selectedAircraftSpec.baseCritChance * 100).toInt()}%", selectedAircraftSpec.baseCritChance / 0.35f, AeroViolet)
+                        }
+                    }
+                }
+                "UPGRADES" -> {
+                    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = DarkSurface.copy(alpha = 0.75f)),
+                        shape = RoundedCornerShape(12.dp), border = androidx.compose.foundation.BorderStroke(1.dp, DarkSurfaceBorder)) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("SYSTEM UPGRADE MATRIX", style = MaterialTheme.typography.labelLarge, color = AeroCyan)
+                            UpgradeItem("Engine & Afterburners", currentSave.engineUpgradeLevel, "engine", profile.credits, viewModel, selectedAircraftSpec.id)
+                            UpgradeItem("Kinetic Shield Generator", currentSave.shieldUpgradeLevel, "shield", profile.credits, viewModel, selectedAircraftSpec.id)
+                            UpgradeItem("Reinforced Armor Plating", currentSave.armorUpgradeLevel, "armor", profile.credits, viewModel, selectedAircraftSpec.id)
+                            UpgradeItem("Weapon Cooling & Overdrive", currentSave.weaponUpgradeLevel, "weapon", profile.credits, viewModel, selectedAircraftSpec.id)
+                            UpgradeItem("Avionics & Radar Array", currentSave.avionicsUpgradeLevel, "avionics", profile.credits, viewModel, selectedAircraftSpec.id)
+                        }
+                    }
+                }
+                "WEAPONS" -> {
+                    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = DarkSurface.copy(alpha = 0.75f)),
+                        shape = RoundedCornerShape(12.dp), border = androidx.compose.foundation.BorderStroke(1.dp, DarkSurfaceBorder)) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("LOADOUT MOUNTINGS", style = MaterialTheme.typography.labelLarge, color = AeroCyan)
+                            Text("PRIMARY WEAPON", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(WeaponCatalog.ALL_PRIMARY) { wp ->
+                                    val eq = wp.id == currentPrimary.id
+                                    Button(onClick = { viewModel.equipCustomization(selectedAircraftSpec.id, primaryId = wp.id) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = if (eq) AeroCyan else DarkSurfaceElevated, contentColor = if (eq) DarkVoid else Color.White),
+                                        shape = RoundedCornerShape(8.dp)) { Text(wp.name, fontSize = 12.sp) }
+                                }
+                            }
+                            Text("SECONDARY WEAPON", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(WeaponCatalog.ALL_SECONDARY) { wp ->
+                                    val eq = wp.id == currentSecondary.id
+                                    Button(onClick = { viewModel.equipCustomization(selectedAircraftSpec.id, secondaryId = wp.id) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = if (eq) AeroCrimson else DarkSurfaceElevated, contentColor = Color.White),
+                                        shape = RoundedCornerShape(8.dp)) { Text(wp.name, fontSize = 12.sp) }
+                                }
+                            }
+                            Text("TACTICAL SPECIAL ABILITY", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(WeaponCatalog.ALL_SPECIAL) { wp ->
+                                    val eq = wp.id == currentSpecial.id
+                                    Button(onClick = { viewModel.equipCustomization(selectedAircraftSpec.id, specialId = wp.id) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = if (eq) AeroViolet else DarkSurfaceElevated, contentColor = Color.White),
+                                        shape = RoundedCornerShape(8.dp)) { Text(wp.name, fontSize = 12.sp) }
+                                }
+                            }
+                        }
+                    }
+                }
+                "PAINT" -> {
+                    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = DarkSurface.copy(alpha = 0.75f)),
+                        shape = RoundedCornerShape(12.dp), border = androidx.compose.foundation.BorderStroke(1.dp, DarkSurfaceBorder)) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("AIRCRAFT LIVERY & FINISH", style = MaterialTheme.typography.labelLarge, color = AeroCyan)
+                            PaintCatalog.ALL.forEach { p ->
+                                val eq = p.id == currentPaint.id
+                                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
+                                    .background(if (eq) DarkSurfaceElevated else Color.Transparent)
+                                    .border(1.dp, if (eq) AeroCyan else DarkSurfaceBorder, RoundedCornerShape(8.dp))
+                                    .clickable { viewModel.equipCustomization(selectedAircraftSpec.id, paintId = p.id) }.padding(10.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(Modifier.size(24.dp).clip(CircleShape).background(p.bodyColor).border(2.dp, p.trimColor, CircleShape))
+                                        Spacer(Modifier.width(10.dp))
+                                        Text(p.name, color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                                    }
+                                    if (eq) Text("EQUIPPED", color = AeroCyan, style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
+                        }
+                    }
+                }
+                "EXHAUST" -> {
+                    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = DarkSurface.copy(alpha = 0.75f)),
+                        shape = RoundedCornerShape(12.dp), border = androidx.compose.foundation.BorderStroke(1.dp, DarkSurfaceBorder)) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("AFTERBURNER PLUME COLOR", style = MaterialTheme.typography.labelLarge, color = AeroCyan)
+                            ExhaustCatalog.ALL.forEach { ex ->
+                                val eq = ex.id == currentExhaust.id
+                                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
+                                    .background(if (eq) DarkSurfaceElevated else Color.Transparent)
+                                    .border(1.dp, if (eq) AeroOrange else DarkSurfaceBorder, RoundedCornerShape(8.dp))
+                                    .clickable { viewModel.equipCustomization(selectedAircraftSpec.id, exhaustId = ex.id) }.padding(10.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(Modifier.size(24.dp).clip(CircleShape).background(ex.coreColor).border(2.dp, ex.outerColor, CircleShape))
+                                        Spacer(Modifier.width(10.dp))
+                                        Text(ex.name, color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                                    }
+                                    if (eq) Text("ACTIVE", color = AeroOrange, style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(20.dp))
+
+            // LAUNCH BUTTON
+            Button(
+                onClick = {
+                    val upgrades = mapOf("engine" to currentSave.engineUpgradeLevel, "weapon" to currentSave.weaponUpgradeLevel,
+                        "armor" to currentSave.armorUpgradeLevel, "shield" to currentSave.shieldUpgradeLevel, "avionics" to currentSave.avionicsUpgradeLevel)
+                    viewModel.gameEngine.startMission(aircraft = selectedAircraftSpec, primary = currentPrimary, secondary = currentSecondary,
+                        special = currentSpecial, biome = BiomeCatalog.NEO_TOKYO, paint = currentPaint, exhaust = currentExhaust,
+                        screenWidth = 1080f, screenHeight = 2160f, savedUpgrades = upgrades)
+                    onLaunchMission()
+                },
+                enabled = isCraftUnlocked,
+                modifier = Modifier.fillMaxWidth().height(56.dp).testTag("launch_sortie_button"),
+                colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid,
+                    disabledContainerColor = DarkSurfaceBorder, disabledContentColor = TextMuted),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Icon(Icons.Default.FlightTakeoff, null, Modifier.size(22.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("LAUNCH COMBAT SORTIE", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(Modifier.height(24.dp))
+        }
     }
+}
+
+// Draw unique mini aircraft silhouette per spec
+private fun DrawScope.drawMiniAircraft(spec: AircraftSpec, isUnlocked: Boolean, isSelected: Boolean) {
+    val cx = size.width * 0.5f
+    val cy = size.height * 0.5f
+    val hash = spec.id.hashCode()
+    val wingSpan = 0.55f + (abs(hash % 30) / 100f)
+    val noseLen = 0.30f + (abs(hash % 20) / 100f)
+    val tailWidth = 0.15f + (abs(hash % 15) / 100f)
+    val swept = (hash and 0x4) != 0
+
+    val bodyColor = if (isUnlocked) spec.primaryColor else Color.Gray
+    val trimColor = if (isUnlocked) spec.accentColor else DarkSurfaceBorder
+
+    val w = size.width * wingSpan
+    val n = size.height * noseLen
+    val tw = size.width * tailWidth
+
+    val path = Path().apply {
+        moveTo(cx, cy - n)
+        if (swept) {
+            lineTo(cx + 8f, cy - n * 0.3f); lineTo(cx + w * 0.5f, cy + 2f)
+            lineTo(cx + w * 0.3f, cy + n * 0.4f)
+        } else {
+            lineTo(cx + 6f, cy - n * 0.4f); lineTo(cx + w * 0.5f, cy - n * 0.05f)
+            lineTo(cx + w * 0.45f, cy + n * 0.1f); lineTo(cx + 8f, cy + n * 0.15f)
+        }
+        lineTo(cx + tw, cy + n * 0.7f); lineTo(cx + tw * 1.3f, cy + n * 0.85f)
+        lineTo(cx + 4f, cy + n * 0.6f); lineTo(cx, cy + n * 0.65f)
+        lineTo(cx - 4f, cy + n * 0.6f); lineTo(cx - tw * 1.3f, cy + n * 0.85f)
+        lineTo(cx - tw, cy + n * 0.7f)
+        if (swept) {
+            lineTo(cx - w * 0.3f, cy + n * 0.4f); lineTo(cx - w * 0.5f, cy + 2f)
+            lineTo(cx - 8f, cy - n * 0.3f)
+        } else {
+            lineTo(cx - 8f, cy + n * 0.15f); lineTo(cx - w * 0.45f, cy + n * 0.1f)
+            lineTo(cx - w * 0.5f, cy - n * 0.05f); lineTo(cx - 6f, cy - n * 0.4f)
+        }
+        close()
+    }
+
+    if (isSelected) {
+        drawCircle(brush = Brush.radialGradient(listOf(trimColor.copy(alpha = 0.2f), Color.Transparent), radius = size.width * 0.5f),
+            center = Offset(cx, cy), radius = size.width * 0.45f)
+    }
+    drawPath(path, color = bodyColor)
+    drawPath(path, color = trimColor, style = Stroke(width = 1.5f))
+    drawCircle(color = if (isUnlocked) AeroAmber.copy(alpha = 0.7f) else Color.Gray.copy(alpha = 0.3f), radius = 4f, center = Offset(cx, cy + n * 0.55f))
+    if (!isUnlocked) drawCircle(Color.Black.copy(alpha = 0.4f), size.width * 0.35f, Offset(cx, cy))
 }
 
 @Composable
 fun StatRow(label: String, valueStr: String, ratio: Float, barColor: Color) {
-    Column(modifier = Modifier.padding(vertical = 3.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+    Column(Modifier.padding(vertical = 3.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(label, color = TextSecondary, style = MaterialTheme.typography.labelSmall)
-            Text(valueStr, color = Color.White, style = MaterialTheme.typography.labelSmall)
+            Text(valueStr, color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
         }
-        Spacer(modifier = Modifier.height(3.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(DarkSurfaceBorder)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(ratio.coerceIn(0f, 1f))
-                    .fillMaxHeight()
-                    .background(barColor)
-            )
+        Spacer(Modifier.height(3.dp))
+        Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(DarkSurfaceBorder)) {
+            Box(Modifier.fillMaxWidth(ratio.coerceIn(0f, 1f)).fillMaxHeight()
+                .background(Brush.horizontalGradient(listOf(barColor.copy(alpha = 0.6f), barColor))))
         }
     }
 }
 
 @Composable
-fun UpgradeItem(
-    title: String,
-    level: Int,
-    attrKey: String,
-    playerCredits: Long,
-    viewModel: GameViewModel,
-    aircraftId: String
-) {
+fun UpgradeItem(title: String, level: Int, attrKey: String, playerCredits: Long, viewModel: GameViewModel, aircraftId: String) {
     val cost = (level + 1) * 600L
     val canAfford = playerCredits >= cost && level < 10
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(DarkSurfaceElevated)
-            .padding(10.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(DarkSurfaceElevated.copy(alpha = 0.7f)).padding(10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
             Text(title, color = Color.White, style = MaterialTheme.typography.bodyMedium)
-            Text(
-                "LEVEL $level / 10",
-                color = AeroCyan,
-                style = MaterialTheme.typography.labelSmall
-            )
+            Text("LEVEL $level / 10", color = AeroCyan, style = MaterialTheme.typography.labelSmall)
         }
-
         if (level < 10) {
-            Button(
-                onClick = { viewModel.upgradeAircraftAttribute(aircraftId, attrKey) },
-                enabled = canAfford,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AeroCyan,
-                    contentColor = DarkVoid,
-                    disabledContainerColor = DarkSurfaceBorder
-                ),
-                shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-            ) {
+            Button(onClick = { viewModel.upgradeAircraftAttribute(aircraftId, attrKey) }, enabled = canAfford,
+                colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid, disabledContainerColor = DarkSurfaceBorder),
+                shape = RoundedCornerShape(6.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) {
                 Text("$cost CR", fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
         } else {
@@ -553,117 +489,82 @@ fun UpgradeItem(
 }
 
 @Composable
-fun TurntablePreview(
-    spec: AircraftSpec,
-    paint: PaintScheme,
-    exhaust: ExhaustFlame,
-    isUnlocked: Boolean,
-    onUnlock: () -> Unit
-) {
+fun TurntablePreview(spec: AircraftSpec, paint: PaintScheme, exhaust: ExhaustFlame, isUnlocked: Boolean, onUnlock: () -> Unit) {
     val infiniteTransition = rememberInfiniteTransition(label = "turntable_preview")
     val turntableRotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 8000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "turntable_rotation"
+        initialValue = 0f, targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(8000, easing = LinearEasing), RepeatMode.Restart), label = "turntable_rotation"
+    )
+    val enginePulse by infiniteTransition.animateFloat(
+        initialValue = 0.6f, targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(tween(1200, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "engine_pulse"
     )
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(210.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(DarkSurfaceElevated, DarkSurface, DarkVoid),
-                    radius = 450f
-                )
-            )
-            .border(1.dp, DarkSurfaceBorder, RoundedCornerShape(16.dp)),
+        modifier = Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(16.dp))
+            .background(Brush.radialGradient(listOf(DarkSurfaceElevated.copy(alpha = 0.8f), DarkSurface.copy(alpha = 0.6f), Color(0xFF030610)), radius = 500f))
+            .border(1.dp, DarkSurfaceBorder.copy(alpha = 0.6f), RoundedCornerShape(16.dp)),
         contentAlignment = Alignment.Center
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val cx = size.width * 0.5f
-            val cy = size.height * 0.55f
+        Canvas(Modifier.fillMaxSize()) {
+            val cx = size.width * 0.5f; val cy = size.height * 0.55f
+            drawOval(DarkSurfaceBorder.copy(alpha = 0.6f), Offset(cx - 150f, cy - 38f), androidx.compose.ui.geometry.Size(300f, 76f), style = Stroke(1.5f))
+            drawOval(AeroCyan.copy(alpha = 0.15f), Offset(cx - 105f, cy - 27f), androidx.compose.ui.geometry.Size(210f, 54f), style = Stroke(1f))
 
-            // Turntable Rings
-            drawOval(
-                color = DarkSurfaceBorder,
-                topLeft = Offset(cx - 140f, cy - 35f),
-                size = androidx.compose.ui.geometry.Size(280f, 70f),
-                style = Stroke(width = 2f)
-            )
-            drawOval(
-                color = AeroCyan.copy(alpha = 0.25f),
-                topLeft = Offset(cx - 100f, cy - 25f),
-                size = androidx.compose.ui.geometry.Size(200f, 50f),
-                style = Stroke(width = 1.5f)
-            )
-
-            // Projected Aircraft on Turntable
             val angleRad = (turntableRotation * PI / 180f).toFloat()
             val scaleX = cos(angleRad).coerceIn(-1f, 1f)
-
-            // Jet body in 3D angled perspective
-            val bodyColor = paint.bodyColor
-            val trimColor = paint.trimColor
+            val hash = spec.id.hashCode()
+            val wingSpread = 80f + (abs(hash % 30)); val noseLen = 60f + (abs(hash % 20))
+            val swept = (hash and 0x4) != 0
 
             val jetPath = Path().apply {
-                moveTo(cx, cy - 60f)
-                lineTo(cx + 45f * scaleX, cy + 10f)
-                lineTo(cx + 80f * scaleX, cy + 25f)
-                lineTo(cx + 25f * scaleX, cy + 40f)
-                lineTo(cx, cy + 30f)
-                lineTo(cx - 25f * scaleX, cy + 40f)
-                lineTo(cx - 80f * scaleX, cy + 25f)
-                lineTo(cx - 45f * scaleX, cy + 10f)
+                moveTo(cx, cy - noseLen)
+                if (swept) {
+                    lineTo(cx + 12f * scaleX, cy - noseLen * 0.3f); lineTo(cx + wingSpread * scaleX, cy + 5f)
+                    lineTo(cx + wingSpread * 0.4f * scaleX, cy + 20f); lineTo(cx + 30f * scaleX, cy + 35f)
+                    lineTo(cx + 40f * scaleX, cy + 45f); lineTo(cx + 6f * scaleX, cy + 35f)
+                    lineTo(cx, cy + 30f); lineTo(cx - 6f * scaleX, cy + 35f)
+                    lineTo(cx - 40f * scaleX, cy + 45f); lineTo(cx - 30f * scaleX, cy + 35f)
+                    lineTo(cx - wingSpread * 0.4f * scaleX, cy + 20f); lineTo(cx - wingSpread * scaleX, cy + 5f)
+                    lineTo(cx - 12f * scaleX, cy - noseLen * 0.3f)
+                } else {
+                    lineTo(cx + 10f * scaleX, cy - noseLen * 0.4f); lineTo(cx + wingSpread * scaleX, cy - 5f)
+                    lineTo(cx + wingSpread * 0.9f * scaleX, cy + 8f); lineTo(cx + 12f * scaleX, cy + 12f)
+                    lineTo(cx + 25f * scaleX, cy + 38f); lineTo(cx + 35f * scaleX, cy + 45f)
+                    lineTo(cx + 6f * scaleX, cy + 32f); lineTo(cx, cy + 30f)
+                    lineTo(cx - 6f * scaleX, cy + 32f); lineTo(cx - 35f * scaleX, cy + 45f)
+                    lineTo(cx - 25f * scaleX, cy + 38f); lineTo(cx - 12f * scaleX, cy + 12f)
+                    lineTo(cx - wingSpread * 0.9f * scaleX, cy + 8f); lineTo(cx - wingSpread * scaleX, cy - 5f)
+                    lineTo(cx - 10f * scaleX, cy - noseLen * 0.4f)
+                }
                 close()
             }
-
-            drawPath(jetPath, color = bodyColor)
-            drawPath(jetPath, color = trimColor, style = Stroke(width = 2f))
-
-            // Engine exhaust glow on turntable
-            drawCircle(
-                color = exhaust.outerColor.copy(alpha = 0.6f),
-                radius = 18f,
-                center = Offset(cx, cy + 35f)
-            )
-            drawCircle(
-                color = exhaust.coreColor,
-                radius = 8f,
-                center = Offset(cx, cy + 35f)
-            )
+            drawPath(jetPath, color = paint.bodyColor)
+            drawPath(jetPath, color = paint.trimColor, style = Stroke(2f))
+            drawOval(AeroCyan.copy(alpha = 0.3f), Offset(cx - 6f * abs(scaleX), cy - noseLen * 0.5f), androidx.compose.ui.geometry.Size(12f * abs(scaleX), 14f))
+            val er = 18f * enginePulse
+            drawCircle(brush = Brush.radialGradient(listOf(exhaust.coreColor.copy(alpha = 0.9f * enginePulse), exhaust.outerColor.copy(alpha = 0.4f * enginePulse), Color.Transparent), radius = er * 2),
+                radius = er * 2, center = Offset(cx, cy + 38f))
+            drawCircle(exhaust.coreColor, 6f * enginePulse, Offset(cx, cy + 38f))
         }
 
-        // Lock Overlay if not purchased
+        // Name plate
+        Box(Modifier.align(Alignment.TopStart).padding(12.dp)) {
+            Column {
+                Text(spec.name.uppercase(), style = MaterialTheme.typography.labelMedium, color = AeroCyan, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                Text(spec.role, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = TextSecondary, letterSpacing = 1.sp)
+            }
+        }
+
+        // Lock overlay
         if (!isUnlocked && spec.unlockCostCredits > 0L) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.65f)),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.65f)), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.Lock,
-                        contentDescription = "Locked",
-                        tint = AeroAmber,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Button(
-                        onClick = onUnlock,
-                        colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid),
-                        modifier = Modifier.testTag("unlock_aircraft_button")
-                    ) {
-                        Text(
-                            "UNLOCK FOR ${spec.unlockCostCredits} CR + ${spec.unlockCostCores} CORES",
-                            fontWeight = FontWeight.Bold
-                        )
+                    Icon(Icons.Default.Lock, "Locked", tint = AeroAmber, modifier = Modifier.size(32.dp))
+                    Spacer(Modifier.height(6.dp))
+                    Button(onClick = onUnlock, colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid),
+                        modifier = Modifier.testTag("unlock_aircraft_button")) {
+                        Text("UNLOCK FOR ${spec.unlockCostCredits} CR + ${spec.unlockCostCores} CORES", fontWeight = FontWeight.Bold)
                     }
                 }
             }

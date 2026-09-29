@@ -38,17 +38,33 @@ fun VideoSplashScreen(
     val context = LocalContext.current
     var isVideoReady by remember { mutableStateOf(false) }
 
-    // Combine Video with the 3000 Studios "Welcome to Thunder Dome" announcer audio
+    // Track both completions — only transition when BOTH are done
+    var videoCompleted by remember { mutableStateOf(false) }
+    var audioCompleted by remember { mutableStateOf(false) }
+    var hasNavigated by remember { mutableStateOf(false) }
+
+    // When both finish, transition
+    LaunchedEffect(videoCompleted, audioCompleted) {
+        if (videoCompleted && audioCompleted && !hasNavigated) {
+            hasNavigated = true
+            onSplashFinished()
+        }
+    }
+
+    // Announcer audio — plays full clip independently of video
     DisposableEffect(Unit) {
-        val announcerPlayer = MediaPlayer.create(context, R.raw.welcome_to_thunder_dome).apply {
+        val announcerPlayer = MediaPlayer.create(context, R.raw.welcome_to_thunder_dome)?.apply {
             setVolume(1.0f, 1.0f)
+            setOnCompletionListener { audioCompleted = true }
             start()
         }
 
         onDispose {
             try {
-                if (announcerPlayer.isPlaying) announcerPlayer.stop()
-                announcerPlayer.release()
+                announcerPlayer?.let {
+                    if (it.isPlaying) it.stop()
+                    it.release()
+                }
             } catch (_: Exception) {}
         }
     }
@@ -57,7 +73,6 @@ fun VideoSplashScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .clickable { onSplashFinished() }
             .testTag("video_splash_screen")
     ) {
         AndroidView(
@@ -72,15 +87,17 @@ fun VideoSplashScreen(
                     setVideoURI(videoUri)
                     setOnPreparedListener { mp ->
                         mp.isLooping = false
-                        mp.setVolume(0.4f, 0.4f)
+                        // Mute video's own audio so announcer is clear
+                        mp.setVolume(0f, 0f)
                         isVideoReady = true
                         start()
                     }
                     setOnCompletionListener {
-                        onSplashFinished()
+                        videoCompleted = true
                     }
                     setOnErrorListener { _, _, _ ->
-                        onSplashFinished()
+                        videoCompleted = true
+                        audioCompleted = true
                         true
                     }
                 }
@@ -94,9 +111,10 @@ fun VideoSplashScreen(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.5f),
+                            Color.Black.copy(alpha = 0.4f),
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.7f)
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.6f)
                         )
                     )
                 )
@@ -128,7 +146,12 @@ fun VideoSplashScreen(
             }
 
             Button(
-                onClick = onSplashFinished,
+                onClick = {
+                    if (!hasNavigated) {
+                        hasNavigated = true
+                        onSplashFinished()
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = DarkSurfaceElevated.copy(alpha = 0.85f),
                     contentColor = Color.White
