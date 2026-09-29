@@ -30,6 +30,7 @@ class GameEngine(
     val environment = EnvironmentSystem()
     val enemySystem = EnemySystem()
     val weaponSystem = WeaponSystem(audioHaptics, vfx)
+    val multiplayerManager = com.example.game.multiplayer.MultiplayerManager()
 
     val playerState = PlayerAircraftState()
     val combatStats = GameCombatStats()
@@ -408,6 +409,21 @@ class GameEngine(
                 audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
                 audioHaptics.triggerExplosionHaptic(true)
             }
+        }
+
+        // 13. Send Real-Time Multiplayer Telemetry (30 Hz sync)
+        if (multiplayerManager.status.value == com.example.game.multiplayer.MultiplayerStatus.CONNECTED_DOGFIGHT) {
+            multiplayerManager.sendLocalState(
+                x = playerState.x,
+                y = playerState.y,
+                vx = playerState.vx,
+                vy = playerState.vy,
+                bankAngle = playerState.bankAngle,
+                health = playerState.health,
+                shield = playerState.shield,
+                isFiring = isFireHeld,
+                isBoosting = playerState.isBoosting
+            )
         }
     }
 

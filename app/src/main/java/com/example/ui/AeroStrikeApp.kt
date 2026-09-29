@@ -16,6 +16,7 @@ import com.example.ui.theme.*
 import com.example.ui.viewmodel.GameViewModel
 
 enum class MainNavTab(val title: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    TITLE("Home", Icons.Default.Home),
     HANGAR("Hangar", Icons.Default.Flight),
     MISSIONS("Missions", Icons.Default.Public),
     BATTLE_PASS("Pass", Icons.Default.MilitaryTech),
@@ -27,7 +28,7 @@ enum class MainNavTab(val title: String, val icon: androidx.compose.ui.graphics.
 fun AeroStrikeApp(viewModel: GameViewModel) {
     var showSplash by remember { mutableStateOf(true) }
     var inCombatMode by remember { mutableStateOf(false) }
-    var currentTab by remember { mutableStateOf(MainNavTab.HANGAR) }
+    var currentTab by remember { mutableStateOf(MainNavTab.TITLE) }
 
     if (showSplash) {
         VideoSplashScreen(
@@ -74,6 +75,13 @@ fun AeroStrikeApp(viewModel: GameViewModel) {
                     .padding(paddingValues)
             ) {
                 when (currentTab) {
+                    MainNavTab.TITLE -> TitleScreen(
+                        viewModel = viewModel,
+                        onStartCampaign = { inCombatMode = true },
+                        onStartMultiplayer = { inCombatMode = true },
+                        onOpenHangar = { currentTab = MainNavTab.HANGAR },
+                        onOpenBattlePass = { currentTab = MainNavTab.BATTLE_PASS }
+                    )
                     MainNavTab.HANGAR -> HangarScreen(
                         viewModel = viewModel,
                         onLaunchMission = { inCombatMode = true }

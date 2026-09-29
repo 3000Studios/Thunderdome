@@ -193,7 +193,24 @@ fun CombatScreen(
         // 4. Pause Menu Modal
         if (engine.isPaused) {
             PauseModal(
+                engine = engine,
                 onResume = { engine.isPaused = false },
+                onRestart = {
+                    engine.isPaused = false
+                    val w = canvasSize.width.toFloat()
+                    val h = canvasSize.height.toFloat()
+                    engine.startMission(
+                        aircraft = engine.currentAircraftSpec,
+                        primary = engine.currentPrimarySpec,
+                        secondary = engine.currentSecondarySpec,
+                        special = engine.currentSpecialSpec,
+                        biome = engine.currentBiome,
+                        paint = engine.currentPaint,
+                        exhaust = engine.currentExhaust,
+                        screenWidth = w,
+                        screenHeight = h
+                    )
+                },
                 onQuit = {
                     viewModel.saveMissionFinish()
                     onExitMission()
@@ -704,45 +721,184 @@ fun RoguelitePerkModal(
 
 @Composable
 fun PauseModal(
+    engine: GameEngine,
     onResume: () -> Unit,
+    onRestart: () -> Unit,
     onQuit: () -> Unit
 ) {
+    var pauseTab by remember { mutableStateOf("SYSTEMS") }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.85f)),
+            .background(Color.Black.copy(alpha = 0.88f)),
         contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
-                .width(280.dp)
+                .fillMaxWidth(0.90f)
                 .clip(RoundedCornerShape(16.dp))
                 .background(DarkSurface)
-                .border(1.dp, DarkSurfaceBorder, RoundedCornerShape(16.dp))
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .border(1.5.dp, AeroCyan, RoundedCornerShape(16.dp))
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "MISSION SUSPENDED",
+                "MISSION SUSPENDED // PAUSE MATRIX",
                 style = MaterialTheme.typography.titleMedium,
-                color = AeroCyan
+                color = AeroCyan,
+                fontWeight = FontWeight.Bold
             )
+            Spacer(modifier = Modifier.height(10.dp))
 
-            Button(
-                onClick = onResume,
-                modifier = Modifier.fillMaxWidth().testTag("pause_resume_button"),
-                colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid)
+            // Pause Tab Navigation
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(DarkSurfaceElevated)
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text("RESUME COMBAT", fontWeight = FontWeight.Bold)
+                listOf("SYSTEMS", "TACTICAL", "AUDIO").forEach { tab ->
+                    val active = pauseTab == tab
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (active) AeroCyan else Color.Transparent)
+                            .clickable { pauseTab = tab }
+                            .padding(vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = tab,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (active) DarkVoid else TextSecondary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
 
-            OutlinedButton(
-                onClick = onQuit,
-                modifier = Modifier.fillMaxWidth().testTag("pause_quit_button"),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = DangerRed)
-            ) {
-                Text("ABORT MISSION")
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Tab Content
+            when (pauseTab) {
+                "SYSTEMS" -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("CONTROL SCHEME", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                            Text("DIRECT TOUCH", color = AeroCyan, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("GRAPHICS QUALITY", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                            Text("ULTRA (60 FPS)", color = AeroEmerald, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("WARP TUNNEL STATUS", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                            Text(if (engine.isInBonusTunnel) "ACTIVE" else "READY (90% STAGE)", color = AeroAmber, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                "TACTICAL" -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("HULL INTEGRITY", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                            Text("${engine.playerState.health.toInt()} / ${engine.playerState.maxHealth.toInt()}", color = HullGreen, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("SHIELD STRENGTH", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                            Text("${engine.playerState.shield.toInt()} / ${engine.playerState.maxShield.toInt()}", color = ShieldBlue, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("STAGE DISTANCE", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                            Text("${engine.stageDistanceCurrent.toInt()}m / ${engine.stageDistanceTotal.toInt()}m", color = AeroCyan, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("HOSTILE TARGETS KILLED", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                            Text("${engine.combatStats.kills} KILLS", color = AeroAmber, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                "AUDIO" -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("3000 STUDIOS TRACKS", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                            Text("ENABLED (100%)", color = AeroCyan, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("HAPTIC VIBRATIONS", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                            Text("TACTICAL ON", color = AeroEmerald, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // Action Buttons Matrix
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(
+                    onClick = onResume,
+                    modifier = Modifier.fillMaxWidth().height(48.dp).testTag("pause_resume_button"),
+                    colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("RESUME COMBAT", fontWeight = FontWeight.Bold)
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onRestart,
+                        modifier = Modifier.weight(1f).height(44.dp).testTag("pause_restart_button"),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = AeroAmber),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("RESTART", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    OutlinedButton(
+                        onClick = onQuit,
+                        modifier = Modifier.weight(1f).height(44.dp).testTag("pause_quit_button"),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = DangerRed),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Icon(Icons.Default.ExitToApp, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("ABORT", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
