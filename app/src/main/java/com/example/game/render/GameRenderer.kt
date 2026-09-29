@@ -164,9 +164,62 @@ object GameRenderer {
                 drawBossDreadnought(drawScope, boss)
             }
 
-            // 10. Combat Projectiles & Glowing Trails
+            // 4b. Speed Gates (3D Glowing Acceleration Rings)
+            for (sg in env.speedGates) {
+                if (!sg.isTriggered) {
+                    val pulse = 0.8f + 0.2f * sin((env.scrollOffset * 0.05f + sg.id).toDouble()).toFloat()
+                    drawOval(
+                        color = AeroCyan.copy(alpha = 0.35f * pulse),
+                        topLeft = Offset(sg.x - sg.width * 0.5f, sg.y - sg.height * 0.5f),
+                        size = Size(sg.width, sg.height)
+                    )
+                    drawOval(
+                        color = AeroCyan,
+                        topLeft = Offset(sg.x - sg.width * 0.5f, sg.y - sg.height * 0.5f),
+                        size = Size(sg.width, sg.height),
+                        style = Stroke(width = 3.5f)
+                    )
+                    // Inner energy pulse
+                    drawOval(
+                        color = AeroAmber,
+                        topLeft = Offset(sg.x - sg.width * 0.3f, sg.y - sg.height * 0.3f),
+                        size = Size(sg.width * 0.6f, sg.height * 0.6f),
+                        style = Stroke(width = 1.8f)
+                    )
+                }
+            }
+
+            // 4c. Course Obstacles (3D Laser Barricades & Asteroid Pillars)
+            for (co in env.courseObstacles) {
+                if (!co.isDestroyed) {
+                    if (co.type == "LASER_BARRIER") {
+                        // Left & Right Emitter Posts
+                        drawRect(Color(0xFF64748B), Offset(co.x - co.width * 0.5f, co.y - 15f), Size(18f, 30f))
+                        drawRect(Color(0xFF64748B), Offset(co.x + co.width * 0.5f - 18f, co.y - 15f), Size(18f, 30f))
+                        // Pulsating Laser Beam
+                        drawLine(
+                            color = DangerRed.copy(alpha = 0.85f),
+                            start = Offset(co.x - co.width * 0.5f + 18f, co.y),
+                            end = Offset(co.x + co.width * 0.5f - 18f, co.y),
+                            strokeWidth = 6f
+                        )
+                        drawLine(
+                            color = Color.White,
+                            start = Offset(co.x - co.width * 0.5f + 18f, co.y),
+                            end = Offset(co.x + co.width * 0.5f - 18f, co.y),
+                            strokeWidth = 2f
+                        )
+                    } else {
+                        // Asteroid Pillar
+                        drawCircle(Color(0xFF475569), co.width * 0.45f, Offset(co.x, co.y))
+                        drawCircle(Color(0xFF334155), co.width * 0.40f, Offset(co.x + 3f, co.y + 3f))
+                        drawCircle(Color(0xFF1E293B), co.width * 0.20f, Offset(co.x - 5f, co.y - 5f))
+                    }
+                }
+            }
+
+            // 10. Combat Projectiles & Upgraded Evolving Bullet Graphics
             for (p in engine.weaponSystem.projectiles) {
-                // Draw trailing path
                 if (p.trail.size > 1) {
                     val trailPoints = p.trail.toList()
                     for (i in 0 until trailPoints.size - 1) {
@@ -176,28 +229,31 @@ object GameRenderer {
                             color = p.glowColor.copy(alpha = p1.alpha * 0.7f),
                             start = Offset(p1.x, p1.y),
                             end = Offset(p2.x, p2.y),
-                            strokeWidth = p.size * 1.8f * p1.alpha,
+                            strokeWidth = p.size * 2.2f * p1.alpha,
                             cap = StrokeCap.Round
                         )
                     }
                 }
 
-                // Projectile Core
-                drawCircle(
-                    color = p.glowColor,
-                    radius = p.size * 1.6f,
-                    center = Offset(p.x, p.y)
-                )
-                drawCircle(
-                    color = p.color,
-                    radius = p.size,
-                    center = Offset(p.x, p.y)
-                )
-                drawCircle(
-                    color = Color.White,
-                    radius = p.size * 0.45f,
-                    center = Offset(p.x, p.y)
-                )
+                // Upgraded Evolving Bullet Graphics
+                val level = engine.combatStats.currentLevel
+                if (p.isPlayer && level >= 3) {
+                    // Level 3+: Multi-Ring Energy Plasma Orb
+                    drawCircle(color = AeroCyan.copy(alpha = 0.4f), radius = p.size * 2.5f, center = Offset(p.x, p.y))
+                    drawCircle(color = p.glowColor, radius = p.size * 1.8f, center = Offset(p.x, p.y))
+                    drawCircle(color = p.color, radius = p.size * 1.2f, center = Offset(p.x, p.y))
+                    drawCircle(color = Color.White, radius = p.size * 0.5f, center = Offset(p.x, p.y))
+                } else if (p.isPlayer && level >= 2) {
+                    // Level 2: Dual Energy Arc Bolt
+                    drawCircle(color = p.glowColor, radius = p.size * 1.8f, center = Offset(p.x, p.y))
+                    drawCircle(color = p.color, radius = p.size * 1.1f, center = Offset(p.x, p.y))
+                    drawCircle(color = Color.White, radius = p.size * 0.45f, center = Offset(p.x, p.y))
+                } else {
+                    // Level 1: Standard Kinetic Plasma Bolt
+                    drawCircle(color = p.glowColor, radius = p.size * 1.6f, center = Offset(p.x, p.y))
+                    drawCircle(color = p.color, radius = p.size, center = Offset(p.x, p.y))
+                    drawCircle(color = Color.White, radius = p.size * 0.45f, center = Offset(p.x, p.y))
+                }
             }
 
             // 11. Player Aircraft

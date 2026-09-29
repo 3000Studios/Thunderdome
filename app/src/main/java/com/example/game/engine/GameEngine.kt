@@ -557,6 +557,21 @@ class GameEngine(
         }
     }
 
+    // Radio Track Switcher
+    var radioTrackIndex: Int = 0
+    val radioTrackNames = listOf(
+        "3000 STUDIOS // WELCOME TO THUNDER DOME",
+        "3000 STUDIOS // CYBER WARP VORTEX",
+        "3000 STUDIOS // NEON DOGFIGHT PROTOCOL",
+        "3000 STUDIOS // HYPERSPACE RECKONING"
+    )
+
+    fun nextRadioTrack() {
+        radioTrackIndex = (radioTrackIndex + 1) % radioTrackNames.size
+        audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+        vfx.addText("📻 ${radioTrackNames[radioTrackIndex]}", playerState.x, playerState.y - 50f, Color(0xFF00F0FF))
+    }
+
     private fun checkPowerUpCollisions() {
         val puIter = weaponSystem.powerUps.iterator()
         while (puIter.hasNext()) {
@@ -570,16 +585,19 @@ class GameEngine(
                 when (pu.type) {
                     PowerUpType.SHIELD_REFILL -> {
                         playerState.shield = playerState.maxShield
-                        vfx.addText("SHIELDS RESTORED!", playerState.x, playerState.y - 30f, Color(0xFF38BDF8))
+                        combatStats.score += 500L
+                        vfx.addText("📢 SHIELDS RESTORED! (+500 PTS)", playerState.x, playerState.y - 30f, Color(0xFF38BDF8))
                     }
                     PowerUpType.REPAIR_NANO -> {
                         playerState.health = min(playerState.maxHealth, playerState.health + playerState.maxHealth * 0.35f)
-                        vfx.addText("HULL REPAIRED!", playerState.x, playerState.y - 30f, Color(0xFF22C55E))
+                        combatStats.score += 750L
+                        vfx.addText("📢 NANO REPAIR ACTIVE! (+750 PTS)", playerState.x, playerState.y - 30f, Color(0xFF22C55E))
                     }
                     PowerUpType.WEAPON_OVERDRIVE -> {
                         playerState.heat = 0f
                         playerState.isOverheated = false
-                        vfx.addText("HEAT FLUSHED!", playerState.x, playerState.y - 30f, Color(0xFFF59E0B))
+                        combatStats.score += 600L
+                        vfx.addText("📢 WEAPON OVERDRIVE! (+600 PTS)", playerState.x, playerState.y - 30f, Color(0xFFF59E0B))
                     }
                     PowerUpType.MEGA_BOMB -> {
                         weaponSystem.projectiles.removeAll { !it.isPlayer }
@@ -587,17 +605,47 @@ class GameEngine(
                             e.health -= 350f
                             vfx.spawnExplosion(e.x, e.y, isHeavy = false, colorScheme = Color(0xFFFF2200))
                         }
-                        vfx.addText("MEGA NUKE CLEARED!", playerState.x, playerState.y - 30f, Color(0xFFEF4444))
+                        combatStats.score += 1000L
+                        vfx.addText("📢 MEGA NUKE CLEARED! (+1000 PTS)", playerState.x, playerState.y - 30f, Color(0xFFEF4444))
                     }
                     PowerUpType.BOOST_INFINITY -> {
                         playerState.boost = playerState.maxBoost
-                        vfx.addText("BOOST RECHARGED!", playerState.x, playerState.y - 30f, Color(0xFF00F0FF))
+                        combatStats.score += 500L
+                        vfx.addText("📢 SPEED BURST! (+500 PTS)", playerState.x, playerState.y - 30f, Color(0xFF00F0FF))
                     }
                     PowerUpType.TECH_CORE -> {
                         combatStats.plasmaCoresEarned += 1
-                        vfx.addText("+1 PLASMA CORE!", playerState.x, playerState.y - 30f, Color(0xFFA855F7))
+                        combatStats.score += 1200L
+                        vfx.addText("📢 +1 PLASMA CORE! (+1200 PTS)", playerState.x, playerState.y - 30f, Color(0xFFA855F7))
                     }
                 }
+            }
+        }
+
+        // Speed Gates Collisions (Fly through acceleration gate)
+        for (sg in environment.speedGates) {
+            if (!sg.isTriggered && playerState.x in (sg.x - sg.width * 0.5f)..(sg.x + sg.width * 0.5f) &&
+                playerState.y in (sg.y - 25f)..(sg.y + 25f)
+            ) {
+                sg.isTriggered = true
+                playerState.boost = playerState.maxBoost
+                playerState.isBoosting = true
+                combatStats.score += 500L
+                audioHaptics.playSound(AudioHapticSystem.SoundType.BOOST_BURST)
+                vfx.addText("⚡ SPEED GATE BOOST! (+500 PTS)", playerState.x, playerState.y - 40f, Color(0xFF00F0FF))
+            }
+        }
+
+        // Course Obstacle Collisions (Laser Barricades & Asteroids)
+        for (co in environment.courseObstacles) {
+            if (!co.isDestroyed && playerState.x in (co.x - co.width * 0.45f)..(co.x + co.width * 0.45f) &&
+                playerState.y in (co.y - co.height * 0.45f)..(co.y + co.height * 0.45f) &&
+                playerState.invulnerableTimer <= 0f
+            ) {
+                co.isDestroyed = true
+                applyDamageToPlayer(80f)
+                vfx.spawnExplosion(co.x, co.y, isHeavy = true, colorScheme = Color(0xFFFF2A4D))
+                vfx.addText("⚠️ HAZARD COLLISION (-80 HP)!", playerState.x, playerState.y - 40f, Color(0xFFEF4444))
             }
         }
     }

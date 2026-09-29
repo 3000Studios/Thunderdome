@@ -461,7 +461,7 @@ fun CombatHudOverlay(
             }
         }
 
-        // Bottom Action Controls: Boost, Barrel Roll, Secondary Missile, Special Ability
+        // Bottom Action Controls: Boost, Barrel Roll, Radio, Secondary Missile, Special Ability
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -510,6 +510,30 @@ fun CombatHudOverlay(
                     shape = CircleShape
                 ) {
                     Icon(Icons.Default.Refresh, contentDescription = "Evasive Barrel Roll")
+                }
+            }
+
+            // Center: Radio Track Selector Widget
+            Card(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable { engine.nextRadioTrack() }
+                    .padding(bottom = 6.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkSurfaceElevated.copy(alpha = 0.85f)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, AeroCyan.copy(alpha = 0.6f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Radio, contentDescription = "Radio", tint = AeroCyan, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "RADIO ${engine.radioTrackIndex + 1}/4",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 

@@ -25,6 +25,26 @@ data class CityBuilding(
     var holoColor: Color = Color(0xFF00F0FF)
 )
 
+data class SpeedGate(
+    var id: Long,
+    var x: Float,
+    var y: Float,
+    var width: Float = 140f,
+    var height: Float = 36f,
+    var isTriggered: Boolean = false,
+    var rotation: Float = 0f
+)
+
+data class CourseObstacle(
+    var id: Long,
+    var x: Float,
+    var y: Float,
+    var width: Float = 90f,
+    var height: Float = 90f,
+    var type: String = "LASER_BARRIER", // "LASER_BARRIER", "ASTEROID_PILLAR"
+    var isDestroyed: Boolean = false
+)
+
 data class WeatherDrop(
     var x: Float,
     var y: Float,
@@ -39,6 +59,8 @@ class EnvironmentSystem {
     val buildings = ArrayList<CityBuilding>(24)
     val structures = ArrayList<EnvironmentalStructure>(8)
     val weatherDrops = ArrayList<WeatherDrop>(60)
+    val speedGates = ArrayList<SpeedGate>(6)
+    val courseObstacles = ArrayList<CourseObstacle>(6)
 
     private var structureIdCounter = 1000L
 
@@ -98,6 +120,16 @@ class EnvironmentSystem {
         // Spawn first environmental destructible structures
         spawnStructure(screenWidth * 0.25f, -120f, "FUEL_DEPOT")
         spawnStructure(screenWidth * 0.75f, -480f, "RADAR_STATION")
+
+        // Spawn initial Speed Gates & Course Obstacles
+        speedGates.clear()
+        courseObstacles.clear()
+
+        speedGates.add(SpeedGate(id = 1L, x = screenWidth * 0.5f, y = -300f))
+        speedGates.add(SpeedGate(id = 2L, x = screenWidth * 0.3f, y = -850f))
+
+        courseObstacles.add(CourseObstacle(id = 10L, x = screenWidth * 0.7f, y = -500f, type = "LASER_BARRIER"))
+        courseObstacles.add(CourseObstacle(id = 11L, x = screenWidth * 0.4f, y = -1100f, type = "ASTEROID_PILLAR"))
     }
 
     fun spawnStructure(x: Float, y: Float, type: String) {
@@ -153,6 +185,50 @@ class EnvironmentSystem {
             if (s.y > screenHeight + 200f) {
                 sIter.remove()
             }
+        }
+
+        // Update Speed Gates
+        val sgIter = speedGates.iterator()
+        while (sgIter.hasNext()) {
+            val sg = sgIter.next()
+            sg.y += dt * baseSpeed
+            sg.rotation += dt * 90f
+            if (sg.y > screenHeight + 100f) {
+                sgIter.remove()
+            }
+        }
+
+        // Spawn Speed Gates periodically
+        if (speedGates.size < 2 && Random.nextFloat() < dt * 0.3f) {
+            speedGates.add(
+                SpeedGate(
+                    id = System.currentTimeMillis(),
+                    x = 100f + Random.nextFloat() * (screenWidth - 200f),
+                    y = -150f
+                )
+            )
+        }
+
+        // Update Course Obstacles
+        val coIter = courseObstacles.iterator()
+        while (coIter.hasNext()) {
+            val co = coIter.next()
+            co.y += dt * baseSpeed
+            if (co.y > screenHeight + 150f) {
+                coIter.remove()
+            }
+        }
+
+        // Spawn Course Obstacles periodically
+        if (courseObstacles.size < 3 && Random.nextFloat() < dt * 0.35f) {
+            courseObstacles.add(
+                CourseObstacle(
+                    id = System.currentTimeMillis(),
+                    x = 80f + Random.nextFloat() * (screenWidth - 160f),
+                    y = -180f,
+                    type = if (Random.nextBoolean()) "LASER_BARRIER" else "ASTEROID_PILLAR"
+                )
+            )
         }
 
         // Chance to spawn new ground structures

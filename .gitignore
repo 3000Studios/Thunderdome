@@ -16,3 +16,5 @@
 local.properties
 .env
 debug.keystore
+# Local cross-agent coordination state
+AGENT_HANDOFF.md
