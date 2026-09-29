@@ -61,28 +61,22 @@ class GameEngine(
         touchY: Float,
         screenWidth: Float,
         screenHeight: Float,
-        touchOffsetY: Float = 55f
+        touchOffsetY: Float = 75f
     ) {
         isDirectTouchActive = true
-        val dx = touchX - playerState.x
-        val dy = touchY - playerState.y
-        val dist = kotlin.math.hypot(dx, dy)
+        // Set standard finger window offset: plane floats gracefully ahead of player thumb so action is 100% visible
+        fingerOffsetX = 0f
+        fingerOffsetY = touchOffsetY.coerceAtLeast(65f)
 
-        if (dist < 180f) {
-            // Finger touched on or near the aircraft: preserve exact relative offset
-            fingerOffsetX = dx
-            fingerOffsetY = dy
-        } else {
-            // Finger touched elsewhere on screen: snap aircraft directly to finger
-            fingerOffsetX = 0f
-            fingerOffsetY = touchOffsetY
-            val padX = 40f
-            val padY = 90f
-            playerState.x = touchX.coerceIn(padX, screenWidth - padX)
-            playerState.y = (touchY - touchOffsetY).coerceIn(padY, screenHeight - padY)
-            playerState.vx = 0f
-            playerState.vy = 0f
-        }
+        val padX = 35f
+        val padY = 80f
+        val targetX = touchX.coerceIn(padX, screenWidth - padX)
+        val targetY = (touchY - fingerOffsetY).coerceIn(padY, screenHeight - padY)
+
+        playerState.x = targetX
+        playerState.y = targetY
+        playerState.vx = 0f
+        playerState.vy = 0f
     }
 
     fun onDirectTouchMove(
@@ -93,10 +87,10 @@ class GameEngine(
         sensitivity: Float = 1.0f
     ) {
         isDirectTouchActive = true
-        val padX = 40f
-        val padY = 90f
+        val padX = 35f
+        val padY = 80f
 
-        val targetX = (touchX - fingerOffsetX).coerceIn(padX, screenWidth - padX)
+        val targetX = touchX.coerceIn(padX, screenWidth - padX)
         val targetY = (touchY - fingerOffsetY).coerceIn(padY, screenHeight - padY)
 
         val deltaX = targetX - playerState.x

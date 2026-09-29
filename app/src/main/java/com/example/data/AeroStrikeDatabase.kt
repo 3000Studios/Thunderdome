@@ -78,50 +78,19 @@ abstract class AeroStrikeDatabase : RoomDatabase() {
         suspend fun populateInitialData(dao: AeroStrikeDao) {
             dao.insertOrUpdateProfile(PlayerProfileEntity())
             dao.insertOrUpdateSettings(SettingsEntity())
-            dao.insertAllAircraft(
-                listOf(
-                    AircraftSaveEntity(
-                        aircraftId = "apex_falcon",
-                        isUnlocked = true,
-                        level = 1,
-                        paintSchemeId = "stealth_black",
-                        exhaustColorId = "cyan_flame",
-                        primaryWeaponId = "plasma_gatling",
-                        secondaryWeaponId = "swarm_missiles",
-                        specialAbilityId = "chrono_overdrive"
-                    ),
-                    AircraftSaveEntity(
-                        aircraftId = "valkyrie_phantom",
-                        isUnlocked = true,
-                        level = 1,
-                        paintSchemeId = "cobalt_frost",
-                        exhaustColorId = "violet_flame",
-                        primaryWeaponId = "twin_laser",
-                        secondaryWeaponId = "emp_torpedo",
-                        specialAbilityId = "warp_dash"
-                    ),
-                    AircraftSaveEntity(
-                        aircraftId = "titan_dread",
-                        isUnlocked = false,
-                        level = 1,
-                        paintSchemeId = "crimson_war",
-                        exhaustColorId = "amber_flame",
-                        primaryWeaponId = "heavy_flak",
-                        secondaryWeaponId = "cluster_bombs",
-                        specialAbilityId = "hyper_shield"
-                    ),
-                    AircraftSaveEntity(
-                        aircraftId = "solaris_specter",
-                        isUnlocked = false,
-                        level = 1,
-                        paintSchemeId = "solar_flare",
-                        exhaustColorId = "emerald_flame",
-                        primaryWeaponId = "railgun",
-                        secondaryWeaponId = "hunter_drones",
-                        specialAbilityId = "nova_blast"
-                    )
+            val initialSaves = com.example.game.model.AircraftCatalog.ALL_AIRCRAFT.map { spec ->
+                AircraftSaveEntity(
+                    aircraftId = spec.id,
+                    isUnlocked = spec.unlockCostCredits == 0L,
+                    level = 1,
+                    paintSchemeId = "stealth_black",
+                    exhaustColorId = "cyan_flame",
+                    primaryWeaponId = "plasma_gatling",
+                    secondaryWeaponId = "swarm_missiles",
+                    specialAbilityId = spec.defaultSpecialAbilityId
                 )
-            )
+            }
+            dao.insertAllAircraft(initialSaves)
         }
     }
 }
@@ -134,6 +103,21 @@ class GameRepository(private val dao: AeroStrikeDao) {
     suspend fun ensureInitialized() {
         if (dao.getProfileDirect() == null) {
             AeroStrikeDatabase.populateInitialData(dao)
+        } else {
+            // Guarantee all 24 aircraft exist in database for existing saves
+            val existingSaves = com.example.game.model.AircraftCatalog.ALL_AIRCRAFT.map { spec ->
+                AircraftSaveEntity(
+                    aircraftId = spec.id,
+                    isUnlocked = spec.unlockCostCredits == 0L,
+                    level = 1,
+                    paintSchemeId = "stealth_black",
+                    exhaustColorId = "cyan_flame",
+                    primaryWeaponId = "plasma_gatling",
+                    secondaryWeaponId = "swarm_missiles",
+                    specialAbilityId = spec.defaultSpecialAbilityId
+                )
+            }
+            dao.insertAllAircraft(existingSaves)
         }
         val currentSettings = dao.getSettingsDirect()
         if (currentSettings != null && currentSettings.controlScheme == "JOYSTICK") {

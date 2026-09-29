@@ -29,7 +29,7 @@ fun MissionSelectScreen(
     viewModel: GameViewModel,
     onLaunchMission: () -> Unit
 ) {
-    var selectedBiome by remember { mutableStateOf(BiomeCatalog.NEO_TOKYO) }
+    var selectedBiome by remember { mutableStateOf<BiomeSpec>(BiomeCatalog.THEATER_01) }
     var selectedMode by remember { mutableStateOf("CAMPAIGN") }
 
     Column(

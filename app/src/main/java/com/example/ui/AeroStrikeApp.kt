@@ -25,10 +25,15 @@ enum class MainNavTab(val title: String, val icon: androidx.compose.ui.graphics.
 
 @Composable
 fun AeroStrikeApp(viewModel: GameViewModel) {
+    var showSplash by remember { mutableStateOf(true) }
     var inCombatMode by remember { mutableStateOf(false) }
     var currentTab by remember { mutableStateOf(MainNavTab.HANGAR) }
 
-    if (inCombatMode) {
+    if (showSplash) {
+        VideoSplashScreen(
+            onSplashFinished = { showSplash = false }
+        )
+    } else if (inCombatMode) {
         CombatScreen(
             viewModel = viewModel,
             onExitMission = { inCombatMode = false }

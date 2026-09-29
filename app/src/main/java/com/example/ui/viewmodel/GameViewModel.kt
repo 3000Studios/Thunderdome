@@ -245,6 +245,19 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun claimPromoBundle() {
+        val prof = playerProfile.value
+        viewModelScope.launch {
+            val updated = prof.copy(
+                credits = prof.credits + 5000L,
+                plasmaCores = prof.plasmaCores + 25,
+                vanguardPassTier = (prof.vanguardPassTier + 5).coerceAtMost(15)
+            )
+            repository.updateProfile(updated)
+            audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+        }
+    }
+
     fun updateSettings(
         preset: String? = null,
         fps: Int? = null,

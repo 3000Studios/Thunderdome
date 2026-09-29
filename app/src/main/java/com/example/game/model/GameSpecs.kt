@@ -553,38 +553,43 @@ data class BiomeSpec(
 )
 
 object BiomeCatalog {
-    val NEO_TOKYO = BiomeSpec(
-        id = "neo_tokyo",
-        name = "Neo-Tokyo Megacity",
-        description = "Dense vertical cybernetic metropolis illuminated by neon holograms, aerial traffic lanes, and towering megastructures.",
-        skyColorTop = Color(0xFF050814),
-        skyColorBottom = Color(0xFF0F1A30),
-        groundColor = Color(0xFF101928),
-        weatherType = "NEON_RAIN",
-        difficultyMultiplier = 1.0f
+    // 24 Tactical Mission Theaters from the 3000 Studios Master Sheet
+    val THEATER_01 = BiomeSpec("neon_outpost", "01. Neon Outpost", "City defense, neon corridors & automated anti-air artillery.", Color(0xFF050814), Color(0xFF0F1A30), Color(0xFF101928), "NEON_RAIN", 1.0f)
+    val THEATER_02 = BiomeSpec("asteroid_belt", "02. Asteroid Belt", "Drifting dense asteroids, magnetic proximity mines & rock fields.", Color(0xFF100C08), Color(0xFF24160A), Color(0xFF1F140A), "SPACE_DUST", 1.05f)
+    val THEATER_03 = BiomeSpec("void_gate", "03. Void Gate", "Dimensional rift gate with portal ambushes and localized gravity shears.", Color(0xFF1A0A2E), Color(0xFF2B094C), Color(0xFF160627), "VOID_WARP", 1.1f)
+    val THEATER_04 = BiomeSpec("toxic_sector", "04. Toxic Sector", "Caustic green gas clouds that slowly dissolve kinetic shields.", Color(0xFF061A0C), Color(0xFF0A3016), Color(0xFF082410), "TOXIC_MIST", 1.15f)
+    val THEATER_05 = BiomeSpec("ice_fortress", "05. Ice Fortress", "Sub-zero glacial citadels with freezing blizzard crosswinds.", Color(0xFF0A1826), Color(0xFF132F4C), Color(0xFF0E2238), "BLIZZARD", 1.2f)
+    val THEATER_06 = BiomeSpec("solar_core", "06. Solar Core", "Intense stellar proximity, blinding solar flares & thermal radiation.", Color(0xFF2E1304), Color(0xFF5C2405), Color(0xFF3D1804), "SOLAR_FLARES", 1.25f)
+    val THEATER_07 = BiomeSpec("cyber_city", "07. Cyber City", "Mega-skyscrapers, holographic ads & dense low-altitude trench runs.", Color(0xFF0A0F24), Color(0xFF141F48), Color(0xFF0D1430), "NEON_RAIN", 1.3f)
+    val THEATER_08 = BiomeSpec("junkyard", "08. Junkyard", "Kilometers of decaying capital hulls, debris fields & scavenger ambushes.", Color(0xFF1C130B), Color(0xFF332010), Color(0xFF24170C), "RUST_STORM", 1.35f)
+    val THEATER_09 = BiomeSpec("black_hole", "09. Black Hole", "Supermassive singularity edge pulling craft inward with extreme gravity.", Color(0xFF170024), Color(0xFF2A0342), Color(0xFF11001A), "GRAVITY_PULL", 1.4f)
+    val THEATER_10 = BiomeSpec("lava_planet", "10. Lava Planet", "Geothermal volcanic lakes, bursting magma bombs & heat haze.", Color(0xFF260502), Color(0xFF4C0A04), Color(0xFF330703), "LAVA_RAIN", 1.45f)
+    val THEATER_11 = BiomeSpec("orbital_array", "11. Orbital Array", "Planetary defense satellite grid with sweeping automated lasers.", Color(0xFF030A17), Color(0xFF081838), Color(0xFF050F24), "ION_DUST", 1.5f)
+    val THEATER_12 = BiomeSpec("sand_wastes", "12. Sand Wastes", "Alien desert dunes swept by blinding electromagnetic sandstorms.", Color(0xFF261D0C), Color(0xFF4A3816), Color(0xFF33260F), "SAND_STORM", 1.55f)
+    val THEATER_13 = BiomeSpec("bio_labs", "13. Bio Labs", "Abandoned genetic chambers releasing virulent mutagens and spores.", Color(0xFF051C0A), Color(0xFF0D3D16), Color(0xFF08260E), "BIO_SPORES", 1.6f)
+    val THEATER_14 = BiomeSpec("underwater_ruins", "14. Underwater Ruins", "Sub-oceanic abyssal trench lighting, geysers & sonar disruption.", Color(0xFF02131C), Color(0xFF06293D), Color(0xFF031A26), "HYDRO_STREAM", 1.65f)
+    val THEATER_15 = BiomeSpec("sky_temple", "15. Sky Temple", "Floating crystalline islands amidst swirling high-altitude cloud towers.", Color(0xFF0D2038), Color(0xFF1A3E6D), Color(0xFF122C4D), "AURA_BREEZE", 1.7f)
+    val THEATER_16 = BiomeSpec("machine_world", "16. Machine World", "Planetary automated factory fortress with blast furnace vents.", Color(0xFF1F0C0C), Color(0xFF3D1616), Color(0xFF290E0E), "SMELTER_ASH", 1.75f)
+    val THEATER_17 = BiomeSpec("crystal_caverns", "17. Crystal Caverns", "Subterranean cavern system with laser-refracting crystal formations.", Color(0xFF1B072B), Color(0xFF390F5C), Color(0xFF240A3B), "CRYSTAL_DUST", 1.8f)
+    val THEATER_18 = BiomeSpec("storm_front", "18. Storm Front", "Continuous atmospheric lightning strikes, EMP discharges & squalls.", Color(0xFF070B1F), Color(0xFF101947), Color(0xFF0B1130), "LIGHTNING", 1.85f)
+    val THEATER_19 = BiomeSpec("alien_jungle", "19. Alien Jungle", "Bioluminescent canopy choke points with predatory bio-creatures.", Color(0xFF091C08), Color(0xFF143B11), Color(0xFF0D260B), "NEURO_MIST", 1.9f)
+    val THEATER_20 = BiomeSpec("space_graveyard", "20. Space Graveyard", "Wrecked alien battle fleets offering tactical cover and sniper corridors.", Color(0xFF080D14), Color(0xFF121C2B), Color(0xFF0C131F), "DEBRIS_HAZARD", 1.95f)
+    val THEATER_21 = BiomeSpec("dimension_rift", "21. Dimension Rift", "Fractured space-time corridor with phase anomalies & reality shifts.", Color(0xFF210538), Color(0xFF450A75), Color(0xFF2D074D), "PHASE_SHIFT", 2.0f)
+    val THEATER_22 = BiomeSpec("the_citadel", "22. The Citadel", "Grand fortress outer defense rings, heavy flak walls & command spires.", Color(0xFF240608), Color(0xFF4A0C10), Color(0xFF30080B), "FLAK_BURSTS", 2.1f)
+    val THEATER_23 = BiomeSpec("final_approach", "23. Final Approach", "The vanguard battle line — flagship armadas and dreadnought escorts.", Color(0xFF2B0810), Color(0xFF571020), Color(0xFF380A15), "WAR_HAZE", 2.25f)
+    val THEATER_24 = BiomeSpec("thunder_dome", "24. Thunder Dome", "The Apex Colosseum: 1v1 Arena against the Nexus Obliterator.", Color(0xFF291B03), Color(0xFF543606), Color(0xFF3B2704), "COLOSSEUM_LIGHTNING", 2.5f)
+
+    // Backward-compatible aliases
+    val NEO_TOKYO = THEATER_01
+    val CETI_CANYON = THEATER_12
+    val ORBITAL_DOCK = THEATER_11
+
+    val ALL_BIOMES = listOf(
+        THEATER_01, THEATER_02, THEATER_03, THEATER_04, THEATER_05, THEATER_06,
+        THEATER_07, THEATER_08, THEATER_09, THEATER_10, THEATER_11, THEATER_12,
+        THEATER_13, THEATER_14, THEATER_15, THEATER_16, THEATER_17, THEATER_18,
+        THEATER_19, THEATER_20, THEATER_21, THEATER_22, THEATER_23, THEATER_24
     )
 
-    val CETI_CANYON = BiomeSpec(
-        id = "ceti_canyon",
-        name = "Ceti Red Canyons",
-        description = "Hazardous alien canyon trench with high-speed low-altitude dogfights, geothermal vents, and military radar stations.",
-        skyColorTop = Color(0xFF1A0A08),
-        skyColorBottom = Color(0xFF3B1510),
-        groundColor = Color(0xFF2E110D),
-        weatherType = "SAND_STORM",
-        difficultyMultiplier = 1.25f
-    )
-
-    val ORBITAL_DOCK = BiomeSpec(
-        id = "orbital_dock",
-        name = "Orbital Defense Station",
-        description = "Sub-orbital combat above the planetary curve with asteroid fields, solar arrays, and deep vacuum lighting.",
-        skyColorTop = Color(0xFF02040A),
-        skyColorBottom = Color(0xFF071226),
-        groundColor = Color(0xFF0A1320),
-        weatherType = "ION_DUST",
-        difficultyMultiplier = 1.5f
-    )
-
-    val ALL_BIOMES = listOf(NEO_TOKYO, CETI_CANYON, ORBITAL_DOCK)
+    fun getById(id: String): BiomeSpec = ALL_BIOMES.firstOrNull { it.id == id } ?: THEATER_01
 }

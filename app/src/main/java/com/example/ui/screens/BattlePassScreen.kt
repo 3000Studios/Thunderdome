@@ -63,6 +63,40 @@ fun BattlePassScreen(viewModel: GameViewModel) {
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary
                 )
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            "PILOT PROMO: BUNDLE 4 GET 5TH FREE",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = AeroAmber,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "Instant +5 Pass Tiers + 5,000 Plasma Credits",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary
+                        )
+                    }
+                    Button(
+                        onClick = { viewModel.claimPromoBundle() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AeroAmber,
+                            contentColor = DarkVoid
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        modifier = Modifier.testTag("buy_promo_pass_button")
+                    ) {
+                        Icon(Icons.Default.ShoppingBag, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("CLAIM PROMO", fontSize = 11.sp, fontWeight = FontWeight.Black)
+                    }
+                }
             }
         }
 
