@@ -244,8 +244,11 @@ class GameEngine(
         holoBossProfile = BossProfileCatalog.getForBiome(biome.id)
         holoCurrentTaunt = holoBossProfile?.taunts?.trigger1 ?: ""
 
-        // Start stage soundtrack
-        val stageSongIdx = abs(biome.id.hashCode()) % allSoundtracks.size
+        // Start stage soundtrack (Stage 03 "void_gate" launches Am I Wrong)
+        val stageSongIdx = when (biome.id) {
+            "void_gate" -> allSoundtracks.indexOfFirst { it.rawResId == com.example.R.raw.track_stage_03_am_i_wrong }.takeIf { it >= 0 } ?: 0
+            else -> abs(biome.id.hashCode()) % allSoundtracks.size
+        }
         playRadioTrack(stageSongIdx)
     }
 
@@ -605,7 +608,7 @@ class GameEngine(
         SoundTrack("Subwoofer Pressure", com.example.R.raw.track_subwoofer_pressure),
         SoundTrack("Subwoofer From Hell", com.example.R.raw.track_subwoofer_from_hell),
         SoundTrack("Floor Ya", com.example.R.raw.track_floor_ya),
-        SoundTrack("Am I Wrong", com.example.R.raw.track_am_i_wrong),
+        SoundTrack("Am I Wrong (Stage 03 - Void Gate)", com.example.R.raw.track_stage_03_am_i_wrong),
         SoundTrack("Always Feel Like", com.example.R.raw.track_always_feel_like),
         SoundTrack("Go The Other Way", com.example.R.raw.track_go_the_other_way_player),
         SoundTrack("Tropical Bass Land", com.example.R.raw.track_tropical_bass_land),
