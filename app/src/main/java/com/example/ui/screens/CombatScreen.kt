@@ -69,6 +69,7 @@ fun CombatScreen(
         onDispose {
             engine.isFireHeld = false
             engine.stopTunnelMusic()
+            engine.stopRadioMusic()
             viewModel.saveMissionFinish()
         }
     }
@@ -160,7 +161,10 @@ fun CombatScreen(
         CombatHudOverlay(
             engine = engine,
             hudTick = hudTick,
-            onPauseClick = { engine.isPaused = true },
+            onPauseClick = { 
+                engine.isPaused = true
+                engine.pauseRadioMusic()
+            },
             onBarrelRoll = { engine.physics.triggerBarrelRoll(player) },
             onSecondaryFire = {
                 engine.weaponSystem.fireSecondary(
@@ -194,7 +198,10 @@ fun CombatScreen(
         if (engine.isPaused) {
             PauseModal(
                 engine = engine,
-                onResume = { engine.isPaused = false },
+                onResume = { 
+                    engine.isPaused = false
+                    engine.resumeRadioMusic()
+                },
                 onRestart = {
                     engine.isPaused = false
                     val w = canvasSize.width.toFloat()
@@ -513,27 +520,53 @@ fun CombatHudOverlay(
                 }
             }
 
-            // Center: Radio Track Selector Widget
+            // Center: Radio Track Selector & Tactical Audio Controller
+            val currentTrack = engine.allSoundtracks.getOrNull(engine.radioTrackIndex)
+            val currentTitle = currentTrack?.title ?: "OFFLINE"
             Card(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .clickable { engine.nextRadioTrack() }
-                    .padding(bottom = 6.dp),
-                colors = CardDefaults.cardColors(containerColor = DarkSurfaceElevated.copy(alpha = 0.85f)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, AeroCyan.copy(alpha = 0.6f))
+                    .clip(RoundedCornerShape(16.dp))
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = { engine.nextRadioTrack() },
+                            onLongPress = { engine.toggleMuteAllSounds() }
+                        )
+                    }
+                    .padding(bottom = 6.dp)
+                    .testTag("radio_hud_widget"),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (engine.isSoundMuted) DangerRed.copy(alpha = 0.85f) else DarkSurfaceElevated.copy(alpha = 0.88f)
+                ),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    if (engine.isSoundMuted) DangerRed else AeroCyan.copy(alpha = 0.7f)
+                )
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Radio, contentDescription = "Radio", tint = AeroCyan, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "RADIO ${engine.radioTrackIndex + 1}/4",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
+                    Icon(
+                        imageVector = if (engine.isSoundMuted) Icons.Default.VolumeOff else Icons.Default.Radio,
+                        contentDescription = "Radio Player (Tap: Next, Hold: Mute)",
+                        tint = if (engine.isSoundMuted) Color.White else AeroCyan,
+                        modifier = Modifier.size(16.dp)
                     )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Column {
+                        Text(
+                            text = if (engine.isSoundMuted) "MUTED (HOLD UNMUTE)" else "RADIO [${engine.radioTrackIndex + 1}/${engine.allSoundtracks.size}]",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                            color = if (engine.isSoundMuted) Color.White else AeroCyan,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = if (engine.isSoundMuted) "SOUND OFF" else currentTitle.take(18),
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
 

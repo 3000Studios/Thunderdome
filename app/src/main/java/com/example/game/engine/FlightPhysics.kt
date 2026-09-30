@@ -129,7 +129,7 @@ class FlightPhysics {
         }
 
         // Boost Energy Consumption & Recharge
-        if (player.isBoosting && (abs(inputDirX) > 0.1f || abs(inputDirY) > 0.1f)) {
+        if (player.isBoosting) {
             player.boost = max(0f, player.boost - dt * 32f)
             if (player.boost <= 0f) {
                 player.isBoosting = false

@@ -8,10 +8,16 @@ import com.example.game.engine.GameEngine
 import com.example.game.model.*
 import com.example.ui.theme.*
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
 object GameRenderer {
+    private val textPaint = android.graphics.Paint().apply {
+        isAntiAlias = true
+        typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+        textAlign = android.graphics.Paint.Align.CENTER
+    }
 
     fun render(
         drawScope: DrawScope,
@@ -334,6 +340,51 @@ object GameRenderer {
             if (engine.isInBonusTunnel) {
                 drawBonusWarpTunnel(drawScope, engine, width, height)
             }
+
+            // 15. Particle Engine (Fireballs, Exhaust, Sparks, Speed Streaks)
+            for (pt in vfx.particles) {
+                val pColor = pt.color.copy(alpha = pt.alpha)
+                when (pt.type) {
+                    ParticleType.FIREBALL -> {
+                        drawCircle(color = pColor, radius = pt.size * 0.5f, center = Offset(pt.x, pt.y))
+                        drawCircle(color = Color.White.copy(alpha = pt.alpha * 0.8f), radius = pt.size * 0.22f, center = Offset(pt.x, pt.y))
+                    }
+                    ParticleType.SPARK -> {
+                        drawCircle(color = pColor, radius = pt.size * 0.4f, center = Offset(pt.x, pt.y))
+                    }
+                    ParticleType.AFTERBURNER -> {
+                        drawCircle(color = pColor, radius = pt.size * 0.6f, center = Offset(pt.x, pt.y))
+                    }
+                    ParticleType.SMOKE -> {
+                        drawCircle(color = pColor, radius = pt.size * 0.5f, center = Offset(pt.x, pt.y))
+                    }
+                    ParticleType.SPEED_STREAK -> {
+                        drawLine(
+                            color = pColor,
+                            start = Offset(pt.x, pt.y),
+                            end = Offset(pt.x, pt.y + pt.size * 2f),
+                            strokeWidth = 2.5f
+                        )
+                    }
+                    else -> {
+                        drawCircle(color = pColor, radius = pt.size * 0.5f, center = Offset(pt.x, pt.y))
+                    }
+                }
+            }
+
+            // 16. Floating Combat Text (Damage numbers, radio announcements, powerups)
+            if (vfx.floatingTexts.isNotEmpty()) {
+                val nativeCanvas = drawContext.canvas.nativeCanvas
+                for (ft in vfx.floatingTexts) {
+                    textPaint.textSize = (14f * ft.scale).coerceAtLeast(10f)
+                    val r = (ft.color.red * 255).toInt()
+                    val g = (ft.color.green * 255).toInt()
+                    val b = (ft.color.blue * 255).toInt()
+                    val a = (ft.alpha.coerceIn(0f, 1f) * 255).toInt()
+                    textPaint.setARGB(a, r, g, b)
+                    nativeCanvas.drawText(ft.text, ft.x, ft.y, textPaint)
+                }
+            }
         }
     }
 
@@ -347,48 +398,65 @@ object GameRenderer {
         val bodyColor = if (isInvulnerable) Color.White else paint.bodyColor
         val trimColor = paint.trimColor
 
-        val silhouette = Math.floorMod(spec.id.hashCode(), 4)
-        val wingSpan = when (silhouette) {
-            0 -> 38f
-            1 -> 46f
-            2 -> 30f
-            else -> 52f
-        }
-        val wingSweep = when (silhouette) {
-            0 -> 18f
-            1 -> 10f
-            2 -> 26f
-            else -> 14f
-        }
+        val hash = spec.id.hashCode()
+        val wingSpan = 32f + (abs(hash % 24))
+        val noseLen = 32f + (abs(hash % 16))
+        val swept = (hash and 0x4) != 0
 
-        // Procedural silhouettes keep each roster role visually distinct without external sprite sheets.
         val path = Path().apply {
-            moveTo(0f, -34f) // Nose
-            lineTo(8f, -12f)
-            lineTo(18f, 2f)
-            lineTo(wingSpan, wingSweep) // Right wingtip
-            lineTo(wingSpan - 4f, wingSweep + 7f)
-            lineTo(14f, 20f)
-            lineTo(10f, if (silhouette == 2) 36f else 30f) // Right engine
-            lineTo(0f, 26f)
-            lineTo(-10f, if (silhouette == 2) 36f else 30f) // Left engine
-            lineTo(-14f, 20f)
-            lineTo(-wingSpan + 4f, wingSweep + 7f)
-            lineTo(-wingSpan, wingSweep) // Left wingtip
-            lineTo(-18f, 2f)
-            lineTo(-8f, -12f)
+            moveTo(0f, -noseLen)
+            if (swept) {
+                lineTo(8f, -noseLen * 0.35f)
+                lineTo(wingSpan, 4f)
+                lineTo(wingSpan * 0.45f, 18f)
+                lineTo(18f, 26f)
+                lineTo(14f, 32f) // Right engine
+                lineTo(0f, 24f)
+                lineTo(-14f, 32f) // Left engine
+                lineTo(-18f, 26f)
+                lineTo(-wingSpan * 0.45f, 18f)
+                lineTo(-wingSpan, 4f)
+                lineTo(-8f, -noseLen * 0.35f)
+            } else {
+                lineTo(7f, -noseLen * 0.4f)
+                lineTo(wingSpan, -4f)
+                lineTo(wingSpan * 0.9f, 8f)
+                lineTo(14f, 14f)
+                lineTo(16f, 30f) // Right engine
+                lineTo(0f, 24f)
+                lineTo(-16f, 30f) // Left engine
+                lineTo(-14f, 14f)
+                lineTo(-wingSpan * 0.9f, 8f)
+                lineTo(-wingSpan, -4f)
+                lineTo(-7f, -noseLen * 0.4f)
+            }
             close()
         }
 
+        // Draw dynamic afterburner plume from engine nozzles
+        val flameLen = if (isBoosting) 38f else 18f
+        val flameWidth = if (isBoosting) 12f else 6f
+        val flameColor = if (isBoosting) AeroOrange else AeroCyan
+        scope.drawOval(
+            brush = Brush.verticalGradient(listOf(Color.White, flameColor, Color.Transparent)),
+            topLeft = Offset(-flameWidth * 0.5f - 14f, 28f),
+            size = Size(flameWidth, flameLen)
+        )
+        scope.drawOval(
+            brush = Brush.verticalGradient(listOf(Color.White, flameColor, Color.Transparent)),
+            topLeft = Offset(-flameWidth * 0.5f + 14f, 28f),
+            size = Size(flameWidth, flameLen)
+        )
+
         scope.drawPath(path, color = bodyColor)
-        scope.drawPath(path, color = trimColor, style = Stroke(width = 2.2f))
+        scope.drawPath(path, color = trimColor, style = Stroke(width = 2.4f))
 
         // Canopy (Glass reflection glow)
         val canopyPath = Path().apply {
-            moveTo(0f, -18f)
-            lineTo(5f, -2f)
-            lineTo(0f, 8f)
-            lineTo(-5f, -2f)
+            moveTo(0f, -noseLen * 0.55f)
+            lineTo(5f, -noseLen * 0.1f)
+            lineTo(0f, noseLen * 0.2f)
+            lineTo(-5f, -noseLen * 0.1f)
             close()
         }
         scope.drawPath(
@@ -398,9 +466,10 @@ object GameRenderer {
             )
         )
 
-        // Wingtip energy lights
-        scope.drawCircle(color = trimColor, radius = 2.5f, center = Offset(-wingSpan + 2f, wingSweep))
-        scope.drawCircle(color = trimColor, radius = 2.5f, center = Offset(wingSpan - 2f, wingSweep))
+        // Wingtip navigation energy lights
+        val tipY = if (swept) 4f else -4f
+        scope.drawCircle(color = trimColor, radius = 3f, center = Offset(-wingSpan, tipY))
+        scope.drawCircle(color = trimColor, radius = 3f, center = Offset(wingSpan, tipY))
     }
 
     private fun drawEnemyCraft(

@@ -137,6 +137,11 @@ class GameEngine(
     var tunnelSpeedMultiplier: Float = 1.0f
     private var tunnelMediaPlayer: android.media.MediaPlayer? = null
 
+    // Background Soundtrack & Radio Player
+    var musicVolume: Float = 1.0f
+    var isSoundMuted: Boolean = false
+    private var musicMediaPlayer: android.media.MediaPlayer? = null
+
     fun startMission(
         aircraft: AircraftSpec,
         primary: WeaponSpec,
@@ -220,6 +225,10 @@ class GameEngine(
         weaponSystem.clear()
         enemySystem.reset()
         environment.initWorld(screenWidth, screenHeight, biome)
+
+        // Start stage soundtrack
+        val stageSongIdx = abs(biome.id.hashCode()) % allSoundtracks.size
+        playRadioTrack(stageSongIdx)
     }
 
     fun update(dt: Float, screenWidth: Float, screenHeight: Float) {
@@ -557,19 +566,109 @@ class GameEngine(
         }
     }
 
-    // Radio Track Switcher
-    var radioTrackIndex: Int = 0
-    val radioTrackNames = listOf(
-        "3000 STUDIOS // WELCOME TO THUNDER DOME",
-        "3000 STUDIOS // CYBER WARP VORTEX",
-        "3000 STUDIOS // NEON DOGFIGHT PROTOCOL",
-        "3000 STUDIOS // HYPERSPACE RECKONING"
+    // Radio Track Switcher & Real Soundtrack Playlist
+    data class SoundTrack(val title: String, val rawResId: Int)
+
+    val allSoundtracks = listOf(
+        SoundTrack("Electric Skies", com.example.R.raw.track_3000_studios_electric_skies),
+        SoundTrack("Creek Road Lantern", com.example.R.raw.track_3000_studios_creek_road_lantern),
+        SoundTrack("Die In A Fire Remix", com.example.R.raw.track_3000_studios_lick_my_balls_and_die_in_a_fire_remix),
+        SoundTrack("3000 Studios Podcast", com.example.R.raw.track_3000_studios_podcast),
+        SoundTrack("Burn Up The Bass", com.example.R.raw.track_burn_up_the_bass),
+        SoundTrack("Cruise Voltage", com.example.R.raw.track_cruise_voltage),
+        SoundTrack("Code Red", com.example.R.raw.track_code_red),
+        SoundTrack("Room Goes Cold", com.example.R.raw.track_room_goes_cold),
+        SoundTrack("Subwoofer Pressure", com.example.R.raw.track_subwoofer_pressure),
+        SoundTrack("Subwoofer From Hell", com.example.R.raw.track_subwoofer_from_hell),
+        SoundTrack("Floor Ya", com.example.R.raw.track_floor_ya),
+        SoundTrack("Am I Wrong", com.example.R.raw.track_am_i_wrong),
+        SoundTrack("Always Feel Like", com.example.R.raw.track_always_feel_like),
+        SoundTrack("Go The Other Way", com.example.R.raw.track_go_the_other_way_player),
+        SoundTrack("Tropical Bass Land", com.example.R.raw.track_tropical_bass_land),
+        SoundTrack("Still Learning", com.example.R.raw.track_still_learning),
+        SoundTrack("So Fresh Tribute", com.example.R.raw.track_so_fresh_tribute),
+        SoundTrack("Not Giving Up Tonight", com.example.R.raw.track_not_giving_up_tonight),
+        SoundTrack("Pressure Has A Name", com.example.R.raw.track_pressure_has_a_name),
+        SoundTrack("Quarter Goblin", com.example.R.raw.track_quarter_goblin),
+        SoundTrack("The Mailman Is A Spy", com.example.R.raw.track_the_mailman_is_a_spy),
+        SoundTrack("The Peepers", com.example.R.raw.track_the_peepers),
+        SoundTrack("Microwave Cowboy", com.example.R.raw.track_microwave_cowboy),
+        SoundTrack("Motel Television", com.example.R.raw.track_motel_television),
+        SoundTrack("Crabs N Aidas", com.example.R.raw.track_crabs_n_aidas),
+        SoundTrack("Taqueesha", com.example.R.raw.track_taqueesha_cant_never_get_right),
+        SoundTrack("Why Do I Not Like My Songs", com.example.R.raw.track_why_do_i_not_like_my_songs),
+        SoundTrack("Bonus Stage Trippy", com.example.R.raw.track_bonus_stage_trippy)
     )
 
+    var radioTrackIndex: Int = 0
+
+    fun playRadioTrack(index: Int) {
+        radioTrackIndex = ((index % allSoundtracks.size) + allSoundtracks.size) % allSoundtracks.size
+        val track = allSoundtracks[radioTrackIndex]
+        try {
+            stopRadioMusic()
+            if (!isSoundMuted && musicVolume > 0.01f) {
+                musicMediaPlayer = android.media.MediaPlayer.create(context, track.rawResId)?.apply {
+                    val vol = musicVolume.coerceIn(0f, 1f)
+                    setVolume(vol, vol)
+                    isLooping = true
+                    start()
+                }
+            }
+        } catch (_: Exception) {}
+        vfx.addText("📻 ${track.title.uppercase()}", playerState.x, playerState.y - 50f, Color(0xFF00F0FF))
+    }
+
     fun nextRadioTrack() {
-        radioTrackIndex = (radioTrackIndex + 1) % radioTrackNames.size
+        playRadioTrack(radioTrackIndex + 1)
         audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
-        vfx.addText("📻 ${radioTrackNames[radioTrackIndex]}", playerState.x, playerState.y - 50f, Color(0xFF00F0FF))
+    }
+
+    fun toggleMuteAllSounds() {
+        isSoundMuted = !isSoundMuted
+        if (isSoundMuted) {
+            audioHaptics.sfxVolume = 0f
+            musicMediaPlayer?.setVolume(0f, 0f)
+            vfx.addText("🔇 ALL SOUND MUTED", playerState.x, playerState.y - 50f, Color(0xFFEF4444))
+        } else {
+            audioHaptics.sfxVolume = 1.0f
+            val vol = musicVolume.coerceIn(0f, 1f)
+            musicMediaPlayer?.setVolume(vol, vol)
+            if (musicMediaPlayer == null || !musicMediaPlayer!!.isPlaying) {
+                playRadioTrack(radioTrackIndex)
+            }
+            vfx.addText("🔊 SOUND UNMUTED", playerState.x, playerState.y - 50f, Color(0xFF22C55E))
+        }
+    }
+
+    fun stopRadioMusic() {
+        try {
+            musicMediaPlayer?.let {
+                if (it.isPlaying) it.stop()
+                it.release()
+            }
+        } catch (_: Exception) {}
+        musicMediaPlayer = null
+    }
+
+    fun pauseRadioMusic() {
+        try {
+            if (musicMediaPlayer?.isPlaying == true) {
+                musicMediaPlayer?.pause()
+            }
+        } catch (_: Exception) {}
+    }
+
+    fun resumeRadioMusic() {
+        try {
+            if (!isSoundMuted && musicVolume > 0.01f) {
+                if (musicMediaPlayer != null) {
+                    musicMediaPlayer?.start()
+                } else {
+                    playRadioTrack(radioTrackIndex)
+                }
+            }
+        } catch (_: Exception) {}
     }
 
     private fun checkPowerUpCollisions() {
@@ -734,6 +833,7 @@ class GameEngine(
         if (playerState.health <= 0f) {
             isGameOver = true
             stopTunnelMusic()
+            stopRadioMusic()
             vfx.spawnExplosion(playerState.x, playerState.y, isHeavy = true, colorScheme = Color(0xFFEF4444))
             audioHaptics.playSound(AudioHapticSystem.SoundType.EXPLOSION_HEAVY)
             audioHaptics.triggerExplosionHaptic(true)

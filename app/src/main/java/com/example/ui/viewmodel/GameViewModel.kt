@@ -129,6 +129,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             settings.collect { s ->
                 audioHaptics.hapticsEnabled = s.hapticsEnabled
                 audioHaptics.sfxVolume = if (s.soundEnabled) s.sfxVolume else 0f
+                gameEngine.musicVolume = if (s.soundEnabled) s.musicVolume else 0f
+                gameEngine.isSoundMuted = !s.soundEnabled
                 gameEngine.graphicsPreset = s.graphicsPreset
             }
         }
