@@ -134,6 +134,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 gameEngine.musicVolume = if (s.soundEnabled) s.musicVolume else 0f
                 gameEngine.isSoundMuted = !s.soundEnabled
                 gameEngine.graphicsPreset = s.graphicsPreset
+                gameEngine.cameraViewMode = s.cameraViewMode
+                gameEngine.screenSizeScale = s.screenSizeScale
                 updateMenuMusicVolume(if (s.soundEnabled) s.musicVolume else 0f)
             }
         }
@@ -357,7 +359,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         soundEnabled: Boolean? = null,
         sfx: Float? = null,
         music: Float? = null,
-        sensitivity: Float? = null
+        sensitivity: Float? = null,
+        cameraViewMode: String? = null,
+        screenSizeScale: String? = null
     ) {
         val current = settings.value
         viewModelScope.launch {
@@ -371,10 +375,32 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 soundEnabled = soundEnabled ?: current.soundEnabled,
                 sfxVolume = sfx ?: current.sfxVolume,
                 musicVolume = music ?: current.musicVolume,
-                touchSensitivity = sensitivity ?: current.touchSensitivity
+                touchSensitivity = sensitivity ?: current.touchSensitivity,
+                cameraViewMode = cameraViewMode ?: current.cameraViewMode,
+                screenSizeScale = screenSizeScale ?: current.screenSizeScale
             )
             repository.updateSettings(updated)
         }
+    }
+
+    fun toggleCameraViewMode() {
+        val nextMode = when (settings.value.cameraViewMode) {
+            "FOLLOW_3RD" -> "COCKPIT_1ST"
+            "COCKPIT_1ST" -> "TOP_DOWN_CHASE"
+            else -> "FOLLOW_3RD"
+        }
+        updateSettings(cameraViewMode = nextMode)
+        audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+    }
+
+    fun setCameraViewMode(mode: String) {
+        updateSettings(cameraViewMode = mode)
+        audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+    }
+
+    fun setScreenSizeScale(scale: String) {
+        updateSettings(screenSizeScale = scale)
+        audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
     }
 
     fun optimizeAllSettingsToBest() {
@@ -389,7 +415,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 hapticsEnabled = true,
                 soundEnabled = true,
                 sfxVolume = 1.0f,
-                musicVolume = 1.0f
+                musicVolume = 1.0f,
+                cameraViewMode = "FOLLOW_3RD",
+                screenSizeScale = "MAX_IMMERSIVE"
             )
             repository.updateSettings(best)
             audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)

@@ -31,9 +31,26 @@ object GameRenderer {
         val player = engine.playerState
         val biome = engine.currentBiome
 
-        // Apply dynamic camera shake and lag
+        val scaleFactor = when (engine.screenSizeScale) {
+            "COMPACT" -> 0.90f
+            "MAX_IMMERSIVE" -> 1.15f
+            else -> 1.0f
+        }
+
+        val isCockpit = engine.cameraViewMode == "COCKPIT_1ST"
+        val isTopDown = engine.cameraViewMode == "TOP_DOWN_CHASE"
+
+        // Apply dynamic camera shake, lag, and display scale
         drawScope.withTransform({
-            translate(physics.cameraShakeX + physics.cameraLagX, physics.cameraShakeY + physics.cameraLagY)
+            scale(scaleFactor, scaleFactor, pivot = Offset(width * 0.5f, height * 0.5f))
+            if (isCockpit) {
+                translate(
+                    physics.cameraShakeX * 1.2f + physics.cameraLagX * 0.35f,
+                    physics.cameraShakeY * 1.2f + physics.cameraLagY * 0.35f
+                )
+            } else {
+                translate(physics.cameraShakeX + physics.cameraLagX, physics.cameraShakeY + physics.cameraLagY)
+            }
         }) {
             // 1. Layer 1: Background Gradient & Atmospheric Sky
             drawRect(
@@ -306,40 +323,50 @@ object GameRenderer {
 
             // 11. Player Aircraft
             if (!engine.isGameOver) {
-                drawScope.withTransform({
-                    translate(player.x, player.y)
-                    // Visual Banking & Barrel Roll
-                    val rollAngle = if (player.barrelRollProgress > 0f) {
-                        player.barrelRollProgress * 360f
-                    } else {
-                        player.bankAngle
+                if (!isCockpit) {
+                    drawScope.withTransform({
+                        translate(player.x, player.y)
+                        // Visual Banking & Barrel Roll
+                        val rollAngle = if (player.barrelRollProgress > 0f) {
+                            player.barrelRollProgress * 360f
+                        } else {
+                            player.bankAngle
+                        }
+                        rotate(rollAngle)
+                        scale(scaleX = cos(player.barrelRollProgress * 2 * PI.toFloat()).coerceAtLeast(0.35f), scaleY = player.pitchScale)
+                    }) {
+                        drawPlayerAircraft(
+                            this,
+                            engine.currentAircraftSpec,
+                            engine.currentPaint,
+                            player.isBoosting,
+                            player.invulnerableTimer > 0f
+                        )
                     }
-                    rotate(rollAngle)
-                    scale(scaleX = cos(player.barrelRollProgress * 2 * PI.toFloat()).coerceAtLeast(0.35f), scaleY = player.pitchScale)
-                }) {
-                    drawPlayerAircraft(
-                        this,
-                        engine.currentAircraftSpec,
-                        engine.currentPaint,
-                        player.isBoosting,
-                        player.invulnerableTimer > 0f
-                    )
-                }
 
-                // Player Shield Shimmer Bubble
-                if (player.shield > 0f) {
-                    val shieldPercent = player.shield / player.maxShield
-                    drawCircle(
-                        color = ShieldBlue.copy(alpha = 0.15f * shieldPercent),
-                        radius = 42f,
-                        center = Offset(player.x, player.y)
-                    )
-                    drawCircle(
-                        color = ShieldBlue.copy(alpha = 0.45f * shieldPercent),
-                        radius = 42f,
-                        center = Offset(player.x, player.y),
-                        style = Stroke(width = 1.8f)
-                    )
+                    // Player Shield Shimmer Bubble
+                    if (player.shield > 0f) {
+                        val shieldPercent = player.shield / player.maxShield
+                        drawCircle(
+                            color = ShieldBlue.copy(alpha = 0.15f * shieldPercent),
+                            radius = 42f,
+                            center = Offset(player.x, player.y)
+                        )
+                        drawCircle(
+                            color = ShieldBlue.copy(alpha = 0.45f * shieldPercent),
+                            radius = 42f,
+                            center = Offset(player.x, player.y),
+                            style = Stroke(width = 1.8f)
+                        )
+                    }
+                } else {
+                    // In Cockpit View: draw sleek fighter nose cone at the bottom of the viewport
+                    drawScope.withTransform({
+                        translate(player.x, player.y + 40f)
+                        rotate(player.bankAngle * 0.4f)
+                    }) {
+                        drawCockpitNoseTip(this, engine.currentAircraftSpec, engine.currentPaint)
+                    }
                 }
             }
 
@@ -427,6 +454,13 @@ object GameRenderer {
                     nativeCanvas.drawText(ft.text, ft.x, ft.y, textPaint)
                 }
             }
+        }
+
+        // 17. High-Res 1st-Person Cockpit Interior & HUD Glass System
+        if (isCockpit && !engine.isGameOver) {
+            drawFirstPersonCockpit(drawScope, engine, width, height)
+        } else if (isTopDown && !engine.isGameOver) {
+            drawTopDownChaseHud(drawScope, engine, width, height)
         }
     }
 
@@ -825,5 +859,416 @@ object GameRenderer {
                 center = Offset(coinX, coinY)
             )
         }
+    }
+
+    private fun drawCockpitNoseTip(
+        scope: DrawScope,
+        spec: AircraftSpec,
+        paint: PaintScheme
+    ) {
+        val path = Path().apply {
+            moveTo(0f, -40f)
+            lineTo(22f, 30f)
+            lineTo(14f, 45f)
+            lineTo(-14f, 45f)
+            lineTo(-22f, 30f)
+            close()
+        }
+        scope.drawPath(path, color = paint.bodyColor)
+        scope.drawPath(path, color = paint.trimColor, style = Stroke(width = 2.5f))
+
+        // Pitot Probe & Sensor Needle
+        scope.drawLine(
+            color = Color.White,
+            start = Offset(0f, -40f),
+            end = Offset(0f, -58f),
+            strokeWidth = 2.5f
+        )
+        scope.drawCircle(color = AeroCyan, radius = 3f, center = Offset(0f, -58f))
+    }
+
+    private fun drawFirstPersonCockpit(
+        scope: DrawScope,
+        engine: GameEngine,
+        width: Float,
+        height: Float
+    ) {
+        val player = engine.playerState
+        val stats = engine.combatStats
+        val nativeCanvas = scope.drawContext.canvas.nativeCanvas
+
+        val cx = width * 0.5f
+        val cy = height * 0.48f
+
+        // ── 1. CANOPY STRUCTURAL STRUTS & TITANIUM FRAME ──
+        val frameDark = Color(0xFF0D121D)
+        val frameBorder = Color(0xFF1E293B)
+        val frameHighlight = Color(0xFF334155)
+
+        // Left Canopy Pillar
+        val leftPillar = Path().apply {
+            moveTo(0f, height)
+            lineTo(0f, 0f)
+            lineTo(width * 0.16f, 0f)
+            lineTo(width * 0.22f, height * 0.38f)
+            lineTo(width * 0.10f, height)
+            close()
+        }
+        scope.drawPath(leftPillar, color = frameDark)
+        scope.drawPath(leftPillar, color = frameBorder, style = Stroke(width = 3f))
+
+        // Right Canopy Pillar
+        val rightPillar = Path().apply {
+            moveTo(width, height)
+            lineTo(width, 0f)
+            lineTo(width * 0.84f, 0f)
+            lineTo(width * 0.78f, height * 0.38f)
+            lineTo(width * 0.90f, height)
+            close()
+        }
+        scope.drawPath(rightPillar, color = frameDark)
+        scope.drawPath(rightPillar, color = frameBorder, style = Stroke(width = 3f))
+
+        // Top Canopy Arch Sill
+        val topArch = Path().apply {
+            moveTo(width * 0.16f, 0f)
+            lineTo(width * 0.84f, 0f)
+            lineTo(width * 0.76f, height * 0.08f)
+            lineTo(width * 0.24f, height * 0.08f)
+            close()
+        }
+        scope.drawPath(topArch, color = frameDark)
+        scope.drawPath(topArch, color = frameHighlight, style = Stroke(width = 2f))
+
+        // Rivets on Canopy Pillars
+        for (i in 1..8) {
+            val t = i / 9f
+            scope.drawCircle(Color(0xFF64748B), 3f, Offset(width * (0.04f + t * 0.10f), height * (0.1f + t * 0.8f)))
+            scope.drawCircle(Color(0xFF64748B), 3f, Offset(width * (0.96f - t * 0.10f), height * (0.1f + t * 0.8f)))
+        }
+
+        // Canopy Glass Tint & Optical Anti-Glare Sheen
+        scope.drawRect(
+            brush = Brush.verticalGradient(
+                listOf(
+                    AeroCyan.copy(alpha = 0.04f),
+                    Color.Transparent,
+                    AeroViolet.copy(alpha = 0.03f)
+                )
+            ),
+            size = Size(width, height)
+        )
+        // Diagonal Glare Reflection Streaks
+        scope.drawLine(
+            color = Color.White.copy(alpha = 0.09f),
+            start = Offset(width * 0.25f, height * 0.08f),
+            end = Offset(width * 0.40f, height * 0.85f),
+            strokeWidth = 35f
+        )
+        scope.drawLine(
+            color = Color.White.copy(alpha = 0.05f),
+            start = Offset(width * 0.30f, height * 0.08f),
+            end = Offset(width * 0.45f, height * 0.85f),
+            strokeWidth = 12f
+        )
+
+        // ── 2. COLLIMATED HOLOGRAPHIC HUD COMBINER GLASS ──
+        val hudLeft = width * 0.18f
+        val hudRight = width * 0.82f
+        val hudTop = height * 0.10f
+        val hudBottom = height * 0.76f
+        val hudW = hudRight - hudLeft
+        val hudH = hudBottom - hudTop
+
+        // HUD Glass Bezel
+        scope.drawRoundRect(
+            color = AeroCyan.copy(alpha = 0.12f),
+            topLeft = Offset(hudLeft, hudTop),
+            size = Size(hudW, hudH),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(16f, 16f),
+            style = Stroke(width = 1.8f)
+        )
+        // Glass Mount Brackets at corners
+        scope.drawRect(Color(0xFF475569), Offset(hudLeft - 4f, hudTop + 20f), Size(8f, 24f))
+        scope.drawRect(Color(0xFF475569), Offset(hudRight - 4f, hudTop + 20f), Size(8f, 24f))
+        scope.drawRect(Color(0xFF475569), Offset(hudLeft - 4f, hudBottom - 44f), Size(8f, 24f))
+        scope.drawRect(Color(0xFF475569), Offset(hudRight - 4f, hudBottom - 44f), Size(8f, 24f))
+
+        val hudColor = AeroEmerald
+        val hudGlow = AeroEmerald.copy(alpha = 0.4f)
+
+        // ── 3. ARTIFICIAL HORIZON & PITCH LADDER ──
+        scope.withTransform({
+            translate(cx, cy)
+            rotate(player.bankAngle)
+        }) {
+            // Main Boresight Horizon Line
+            drawLine(
+                color = hudColor,
+                start = Offset(-70f, 0f),
+                end = Offset(-20f, 0f),
+                strokeWidth = 2.2f
+            )
+            drawLine(
+                color = hudColor,
+                start = Offset(20f, 0f),
+                end = Offset(70f, 0f),
+                strokeWidth = 2.2f
+            )
+            // Center Flight Path Marker (Boresight Circle)
+            drawCircle(color = hudColor, radius = 6f, center = Offset(0f, 0f), style = Stroke(width = 2f))
+            drawLine(color = hudColor, start = Offset(0f, -10f), end = Offset(0f, -6f), strokeWidth = 2f)
+            drawLine(color = hudColor, start = Offset(-10f, 0f), end = Offset(-6f, 0f), strokeWidth = 2f)
+            drawLine(color = hudColor, start = Offset(6f, 0f), end = Offset(10f, 0f), strokeWidth = 2f)
+
+            // Pitch Rungs (+10°, +20°, -10°, -20°)
+            for (p in listOf(-50f to "+10", -100f to "+20", 50f to "-10", 100f to "-20")) {
+                val py = p.first
+                drawLine(color = hudGlow, start = Offset(-45f, py), end = Offset(-18f, py), strokeWidth = 1.5f)
+                drawLine(color = hudGlow, start = Offset(18f, py), end = Offset(45f, py), strokeWidth = 1.5f)
+                drawLine(color = hudGlow, start = Offset(-45f, py), end = Offset(-45f, py + 8f), strokeWidth = 1.5f)
+                drawLine(color = hudGlow, start = Offset(45f, py), end = Offset(45f, py + 8f), strokeWidth = 1.5f)
+            }
+        }
+
+        // ── 4. TARGET LOCK-ON BOX & LEAD RETICLE ──
+        val closestEnemy = engine.enemySystem.enemies.minByOrNull {
+            kotlin.math.hypot(it.x - player.x, it.y - player.y)
+        } ?: engine.enemySystem.currentBoss?.let {
+            EnemyEntity(id = 8888L, type = EnemyType.HEAVY_GUNSHIP, x = it.x, y = it.y, health = it.health, maxHealth = it.maxHealth)
+        }
+
+        if (closestEnemy != null) {
+            val dist = kotlin.math.hypot(closestEnemy.x - player.x, closestEnemy.y - player.y)
+            val distKm = String.format("%.2f KM", dist / 800f)
+
+            // Target Box
+            scope.drawRect(
+                color = AeroCrimson,
+                topLeft = Offset(closestEnemy.x - 24f, closestEnemy.y - 24f),
+                size = Size(48f, 48f),
+                style = Stroke(width = 2f)
+            )
+            // Diamond Lead Pip
+            scope.drawCircle(
+                color = AeroCyan,
+                radius = 8f,
+                center = Offset(closestEnemy.x, closestEnemy.y),
+                style = Stroke(width = 1.5f)
+            )
+
+            textPaint.textSize = 12f
+            textPaint.color = android.graphics.Color.argb(255, 255, 75, 75)
+            nativeCanvas.drawText("LOCK // $distKm", closestEnemy.x, closestEnemy.y - 30f, textPaint)
+        }
+
+        // ── 5. LEFT AIRSPEED TAPE & RIGHT ALTIMETER TAPE ──
+        // Left Airspeed Indicator
+        val speedKts = 750 + (player.vy * -0.2f).toInt()
+        val mach = String.format("M %.2f", (speedKts / 660f))
+        scope.drawRoundRect(
+            color = Color(0xFF0F172A).copy(alpha = 0.7f),
+            topLeft = Offset(hudLeft + 8f, cy - 80f),
+            size = Size(64f, 160f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f)
+        )
+        scope.drawRoundRect(
+            color = hudColor.copy(alpha = 0.5f),
+            topLeft = Offset(hudLeft + 8f, cy - 80f),
+            size = Size(64f, 160f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f),
+            style = Stroke(width = 1.5f)
+        )
+        textPaint.textSize = 13f
+        textPaint.color = android.graphics.Color.argb(255, 74, 222, 128)
+        nativeCanvas.drawText("SPD", hudLeft + 40f, cy - 60f, textPaint)
+        textPaint.textSize = 16f
+        nativeCanvas.drawText("$speedKts", hudLeft + 40f, cy, textPaint)
+        textPaint.textSize = 11f
+        nativeCanvas.drawText(mach, hudLeft + 40f, cy + 25f, textPaint)
+
+        // Right Altitude Tape
+        val altMeters = (2500f + engine.stageDistanceCurrent * 1.5f).toInt()
+        scope.drawRoundRect(
+            color = Color(0xFF0F172A).copy(alpha = 0.7f),
+            topLeft = Offset(hudRight - 72f, cy - 80f),
+            size = Size(64f, 160f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f)
+        )
+        scope.drawRoundRect(
+            color = hudColor.copy(alpha = 0.5f),
+            topLeft = Offset(hudRight - 72f, cy - 80f),
+            size = Size(64f, 160f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f),
+            style = Stroke(width = 1.5f)
+        )
+        textPaint.textSize = 13f
+        nativeCanvas.drawText("ALT", hudRight - 40f, cy - 60f, textPaint)
+        textPaint.textSize = 15f
+        nativeCanvas.drawText("$altMeters", hudRight - 40f, cy, textPaint)
+        textPaint.textSize = 11f
+        nativeCanvas.drawText("R-ALT", hudRight - 40f, cy + 25f, textPaint)
+
+        // ── 6. TOP HEADING COMPASS TAPE ──
+        val headingVal = (360 + ((player.x / width) * 60f).toInt()) % 360
+        scope.drawRoundRect(
+            color = Color(0xFF0F172A).copy(alpha = 0.8f),
+            topLeft = Offset(cx - 90f, hudTop + 10f),
+            size = Size(180f, 32f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f)
+        )
+        scope.drawRoundRect(
+            color = hudColor.copy(alpha = 0.6f),
+            topLeft = Offset(cx - 90f, hudTop + 10f),
+            size = Size(180f, 32f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f),
+            style = Stroke(width = 1.5f)
+        )
+        textPaint.textSize = 13f
+        nativeCanvas.drawText("HDG: ${headingVal}° N", cx, hudTop + 32f, textPaint)
+
+        // ── 7. LOWER COCKPIT MFDs (MULTI-FUNCTION DISPLAYS) ──
+        val mfdY = height - 120f
+        val mfdSize = 100f
+
+        // Left MFD: 3D Tactical Radar Scanner
+        val mfdLeftX = width * 0.08f
+        scope.drawRoundRect(
+            color = Color(0xFF020617),
+            topLeft = Offset(mfdLeftX, mfdY),
+            size = Size(mfdSize, mfdSize),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(8f, 8f)
+        )
+        scope.drawRoundRect(
+            color = AeroCyan,
+            topLeft = Offset(mfdLeftX, mfdY),
+            size = Size(mfdSize, mfdSize),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(8f, 8f),
+            style = Stroke(width = 2f)
+        )
+        val radarCenter = Offset(mfdLeftX + mfdSize * 0.5f, mfdY + mfdSize * 0.5f)
+        scope.drawCircle(AeroCyan.copy(alpha = 0.3f), 38f, radarCenter, style = Stroke(width = 1f))
+        scope.drawCircle(AeroCyan.copy(alpha = 0.5f), 20f, radarCenter, style = Stroke(width = 1f))
+        // Rotating Radar Sweep
+        val sweepAngle = (System.currentTimeMillis() % 2000L) / 2000f * 2 * PI.toFloat()
+        scope.drawLine(
+            color = AeroCyan,
+            start = radarCenter,
+            end = Offset(radarCenter.x + cos(sweepAngle) * 38f, radarCenter.y + sin(sweepAngle) * 38f),
+            strokeWidth = 2f
+        )
+        // Draw enemy radar pings
+        for (e in engine.enemySystem.enemies.take(6)) {
+            val rx = radarCenter.x + ((e.x - player.x) / width) * 35f
+            val ry = radarCenter.y + ((e.y - player.y) / height) * 35f
+            scope.drawCircle(DangerRed, 3f, Offset(rx, ry))
+        }
+        textPaint.textSize = 9f
+        textPaint.color = android.graphics.Color.argb(255, 0, 229, 255)
+        nativeCanvas.drawText("RADAR TWS", mfdLeftX + mfdSize * 0.5f, mfdY + 14f, textPaint)
+
+        // Right MFD: Systems & Defense Telemetry
+        val mfdRightX = width * 0.92f - mfdSize
+        scope.drawRoundRect(
+            color = Color(0xFF020617),
+            topLeft = Offset(mfdRightX, mfdY),
+            size = Size(mfdSize, mfdSize),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(8f, 8f)
+        )
+        scope.drawRoundRect(
+            color = AeroViolet,
+            topLeft = Offset(mfdRightX, mfdY),
+            size = Size(mfdSize, mfdSize),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(8f, 8f),
+            style = Stroke(width = 2f)
+        )
+        textPaint.textSize = 9f
+        textPaint.color = android.graphics.Color.argb(255, 192, 132, 252)
+        nativeCanvas.drawText("DIAGNOSTICS", mfdRightX + mfdSize * 0.5f, mfdY + 14f, textPaint)
+
+        // System Gauges (Shield %, Hull %, Heat %)
+        val shdPct = (player.shield / player.maxShield).coerceIn(0f, 1f)
+        val hpPct = (player.health / player.maxHealth).coerceIn(0f, 1f)
+        val heatPct = (player.heat / 100f).coerceIn(0f, 1f)
+
+        // Shield bar
+        scope.drawRect(Color(0xFF1E293B), Offset(mfdRightX + 12f, mfdY + 26f), Size(76f, 8f))
+        scope.drawRect(ShieldBlue, Offset(mfdRightX + 12f, mfdY + 26f), Size(76f * shdPct, 8f))
+
+        // Hull bar
+        scope.drawRect(Color(0xFF1E293B), Offset(mfdRightX + 12f, mfdY + 42f), Size(76f, 8f))
+        scope.drawRect(AeroEmerald, Offset(mfdRightX + 12f, mfdY + 42f), Size(76f * hpPct, 8f))
+
+        // Heat bar
+        scope.drawRect(Color(0xFF1E293B), Offset(mfdRightX + 12f, mfdY + 58f), Size(76f, 8f))
+        scope.drawRect(if (player.isOverheated) DangerRed else AeroAmber, Offset(mfdRightX + 12f, mfdY + 58f), Size(76f * heatPct, 8f))
+
+        textPaint.textSize = 8f
+        textPaint.color = android.graphics.Color.WHITE
+        nativeCanvas.drawText("SHD ${(shdPct * 100).toInt()}%", mfdRightX + 50f, mfdY + 34f, textPaint)
+        nativeCanvas.drawText("HUL ${(hpPct * 100).toInt()}%", mfdRightX + 50f, mfdY + 50f, textPaint)
+        nativeCanvas.drawText("HEAT ${(heatPct * 100).toInt()}%", mfdRightX + 50f, mfdY + 66f, textPaint)
+
+        // Cockpit Master Indicator Badge
+        scope.drawRoundRect(
+            color = AeroAmber.copy(alpha = 0.85f),
+            topLeft = Offset(cx - 65f, height - 42f),
+            size = Size(130f, 26f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4f, 4f)
+        )
+        textPaint.textSize = 11f
+        textPaint.color = android.graphics.Color.BLACK
+        nativeCanvas.drawText("COCKPIT 1ST VIEW", cx, height - 25f, textPaint)
+    }
+
+    private fun drawTopDownChaseHud(
+        scope: DrawScope,
+        engine: GameEngine,
+        width: Float,
+        height: Float
+    ) {
+        val player = engine.playerState
+        val nativeCanvas = scope.drawContext.canvas.nativeCanvas
+
+        // Tactical Airspace Grid
+        val gridStep = 80f
+        val gridAlpha = 0.08f
+        for (x in 0..(width / gridStep).toInt()) {
+            scope.drawLine(
+                color = AeroCyan.copy(alpha = gridAlpha),
+                start = Offset(x * gridStep, 0f),
+                end = Offset(x * gridStep, height),
+                strokeWidth = 1f
+            )
+        }
+        for (y in 0..(height / gridStep).toInt()) {
+            scope.drawLine(
+                color = AeroCyan.copy(alpha = gridAlpha),
+                start = Offset(0f, y * gridStep),
+                end = Offset(width, y * gridStep),
+                strokeWidth = 1f
+            )
+        }
+
+        // Concentric Tactical Distance Rings around Player
+        for (r in listOf(120f, 240f, 360f)) {
+            scope.drawCircle(
+                color = AeroCyan.copy(alpha = 0.18f),
+                radius = r,
+                center = Offset(player.x, player.y),
+                style = Stroke(width = 1.2f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f))
+            )
+        }
+
+        // View Mode Indicator Badge
+        scope.drawRoundRect(
+            color = AeroViolet.copy(alpha = 0.85f),
+            topLeft = Offset(width * 0.5f - 65f, height - 42f),
+            size = Size(130f, 26f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4f, 4f)
+        )
+        textPaint.textSize = 11f
+        textPaint.color = android.graphics.Color.WHITE
+        nativeCanvas.drawText("TOP-DOWN CHASE", width * 0.5f, height - 25f, textPaint)
     }
 }

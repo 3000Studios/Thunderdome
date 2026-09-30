@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
         AircraftSaveEntity::class,
         SettingsEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AeroStrikeDatabase : RoomDatabase() {
@@ -34,7 +34,7 @@ abstract class AeroStrikeDatabase : RoomDatabase() {
                     AeroStrikeDatabase::class.java,
                     "aerostrike_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .addCallback(DatabaseCallback(scope))
                     .build()
                 INSTANCE = instance
@@ -62,6 +62,13 @@ abstract class AeroStrikeDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE player_profile ADD COLUMN hasClaimedPromoBundle INTEGER NOT NULL DEFAULT 0")
                 database.execSQL("ALTER TABLE player_profile ADD COLUMN claimedPassTiers TEXT NOT NULL DEFAULT '1,2'")
+            }
+        }
+
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE game_settings ADD COLUMN cameraViewMode TEXT NOT NULL DEFAULT 'FOLLOW_3RD'")
+                database.execSQL("ALTER TABLE game_settings ADD COLUMN screenSizeScale TEXT NOT NULL DEFAULT 'MAX_IMMERSIVE'")
             }
         }
 

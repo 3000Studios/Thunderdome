@@ -52,5 +52,7 @@ data class SettingsEntity(
     val hapticsEnabled: Boolean = true,
     val soundEnabled: Boolean = true,
     val sfxVolume: Float = 1.0f,
-    val musicVolume: Float = 1.0f
+    val musicVolume: Float = 1.0f,
+    val cameraViewMode: String = "FOLLOW_3RD", // "COCKPIT_1ST", "FOLLOW_3RD", "TOP_DOWN_CHASE"
+    val screenSizeScale: String = "MAX_IMMERSIVE" // "COMPACT", "STANDARD", "MAX_IMMERSIVE"
 )

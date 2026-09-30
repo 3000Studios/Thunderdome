@@ -48,6 +48,10 @@ class GameEngine(
     var isVictory: Boolean = false
     var pendingPerkSelection: List<RoguelitePerk>? = null
 
+    // Camera Perspective & Display Scaling Modes
+    var cameraViewMode: String = "FOLLOW_3RD" // "COCKPIT_1ST", "FOLLOW_3RD", "TOP_DOWN_CHASE"
+    var screenSizeScale: String = "MAX_IMMERSIVE" // "COMPACT", "STANDARD", "MAX_IMMERSIVE"
+
     // Environmental Hazards & Handling Modifiers
     var activeGooSlowTimer: Float = 0f
     var activeWindForceX: Float = 0f

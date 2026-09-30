@@ -165,6 +165,9 @@ fun CombatScreen(
                 engine.isPaused = true
                 engine.pauseRadioMusic()
             },
+            onToggleCamera = {
+                viewModel.toggleCameraViewMode()
+            },
             onBarrelRoll = { engine.physics.triggerBarrelRoll(player) },
             onSecondaryFire = {
                 engine.weaponSystem.fireSecondary(
@@ -290,6 +293,7 @@ fun CombatHudOverlay(
     engine: GameEngine,
     hudTick: Long,
     onPauseClick: () -> Unit,
+    onToggleCamera: () -> Unit,
     onBarrelRoll: () -> Unit,
     onSecondaryFire: () -> Unit,
     onSpecialFire: () -> Unit,
@@ -488,13 +492,39 @@ fun CombatHudOverlay(
                     )
                 }
 
-                IconButton(
-                    onClick = onPauseClick,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .testTag("combat_pause_button")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Pause, contentDescription = "Pause", tint = TextSecondary)
+                    IconButton(
+                        onClick = onToggleCamera,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .testTag("combat_camera_toggle_button")
+                    ) {
+                        Icon(
+                            imageVector = when (engine.cameraViewMode) {
+                                "COCKPIT_1ST" -> Icons.Default.Visibility
+                                "TOP_DOWN_CHASE" -> Icons.Default.TravelExplore
+                                else -> Icons.Default.Videocam
+                            },
+                            contentDescription = "Camera View",
+                            tint = when (engine.cameraViewMode) {
+                                "COCKPIT_1ST" -> AeroEmerald
+                                "TOP_DOWN_CHASE" -> AeroViolet
+                                else -> AeroCyan
+                            }
+                        )
+                    }
+
+                    IconButton(
+                        onClick = onPauseClick,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .testTag("combat_pause_button")
+                    ) {
+                        Icon(Icons.Default.Pause, contentDescription = "Pause", tint = TextSecondary)
+                    }
                 }
             }
         }

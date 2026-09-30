@@ -216,6 +216,78 @@ fun SettingsScreen(viewModel: GameViewModel) {
 
         Spacer(modifier = Modifier.height(18.dp))
 
+        // Combat Camera View Perspective
+        Text("COMBAT CAMERA VIEW PERSPECTIVE", style = MaterialTheme.typography.labelLarge, color = Color.White)
+        Text("Switch between 1st-person cockpit, 3rd-person follow, or tactical top-down", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf(
+                "FOLLOW_3RD" to "🚀 3rd Follow",
+                "COCKPIT_1ST" to "👁️ 1st Cockpit",
+                "TOP_DOWN_CHASE" to "🛰️ Top-Down"
+            ).forEach { (mode, title) ->
+                val active = settings.cameraViewMode == mode
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (active) AeroCyan else DarkSurfaceElevated)
+                        .clickable { viewModel.setCameraViewMode(mode) }
+                        .padding(vertical = 10.dp)
+                        .testTag("camera_mode_$mode"),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (active) DarkVoid else Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        // Combat Screen Viewport Scaling
+        Text("COMBAT SCREEN VIEWPORT SCALING", style = MaterialTheme.typography.labelLarge, color = Color.White)
+        Text("Scale combat arena size and field of view", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf(
+                "MAX_IMMERSIVE" to "115% Max (Ultra-Wide)",
+                "STANDARD" to "100% Standard",
+                "COMPACT" to "90% Compact"
+            ).forEach { (scale, title) ->
+                val active = settings.screenSizeScale == scale
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (active) AeroAmber else DarkSurfaceElevated)
+                        .clickable { viewModel.setScreenSizeScale(scale) }
+                        .padding(vertical = 10.dp)
+                        .testTag("screen_scale_$scale"),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (active) DarkVoid else Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
         // Audio & Haptics Toggles
         Card(
             modifier = Modifier.fillMaxWidth(),
