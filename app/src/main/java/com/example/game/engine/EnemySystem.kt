@@ -44,7 +44,8 @@ class EnemySystem {
                     isBossWave = true
                 } else {
                     spawnWaveFormation(screenWidth)
-                    waveSpawnTimer = 3.8f + Random.nextFloat() * 1.5f
+                    waveNumber++
+                    waveSpawnTimer = 4.2f + Random.nextFloat() * 1.5f
                 }
             }
         }
@@ -340,6 +341,10 @@ class EnemySystem {
         val count = 3 + (waveNumber / 2).coerceAtMost(5)
         val formationType = Random.nextInt(3)
 
+        val sectorProfile = SectorSupportCatalog.getForBiome(activeBiomeId)
+        val miniEnemies = sectorProfile?.miniEnemies ?: emptyList()
+        val miniSpec = miniEnemies.randomOrNull()
+
         when (formationType) {
             0 -> {
                 // V-Formation Interceptors
@@ -352,7 +357,9 @@ class EnemySystem {
                             id = enemyIdCounter++,
                             type = EnemyType.FAST_INTERCEPTOR,
                             x = leaderX + xOffset,
-                            y = yOffset
+                            y = yOffset,
+                            customName = miniSpec?.name,
+                            customColor = miniSpec?.color
                         )
                     )
                 }
@@ -365,7 +372,9 @@ class EnemySystem {
                         id = enemyIdCounter++,
                         type = EnemyType.HEAVY_GUNSHIP,
                         x = gunshipX,
-                        y = -100f
+                        y = -100f,
+                        customName = miniEnemies.getOrNull(0)?.name,
+                        customColor = miniEnemies.getOrNull(0)?.color
                     )
                 )
                 enemies.add(
@@ -373,7 +382,9 @@ class EnemySystem {
                         id = enemyIdCounter++,
                         type = EnemyType.SCOUT_DRONE,
                         x = gunshipX - 70f,
-                        y = -70f
+                        y = -70f,
+                        customName = miniEnemies.getOrNull(1)?.name,
+                        customColor = miniEnemies.getOrNull(1)?.color
                     )
                 )
                 enemies.add(
@@ -381,7 +392,9 @@ class EnemySystem {
                         id = enemyIdCounter++,
                         type = EnemyType.SCOUT_DRONE,
                         x = gunshipX + 70f,
-                        y = -70f
+                        y = -70f,
+                        customName = miniEnemies.getOrNull(2)?.name,
+                        customColor = miniEnemies.getOrNull(2)?.color
                     )
                 )
             }
@@ -392,7 +405,9 @@ class EnemySystem {
                         id = enemyIdCounter++,
                         type = EnemyType.STEALTH_RAIDER,
                         x = screenWidth * 0.3f,
-                        y = -90f
+                        y = -90f,
+                        customName = miniEnemies.getOrNull(0)?.name,
+                        customColor = miniEnemies.getOrNull(0)?.color
                     )
                 )
                 enemies.add(
@@ -400,7 +415,9 @@ class EnemySystem {
                         id = enemyIdCounter++,
                         type = EnemyType.MISSILE_CORVETTE,
                         x = screenWidth * 0.7f,
-                        y = -110f
+                        y = -110f,
+                        customName = miniEnemies.getOrNull(1)?.name,
+                        customColor = miniEnemies.getOrNull(1)?.color
                     )
                 )
             }

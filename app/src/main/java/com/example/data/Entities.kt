@@ -17,7 +17,9 @@ data class PlayerProfileEntity(
     val bossesDefeated: Int = 0,
     val missionsCompleted: Int = 0,
     val vanguardPassTier: Int = 1,
-    val vanguardPassXp: Int = 0
+    val vanguardPassXp: Int = 0,
+    val hasClaimedPromoBundle: Boolean = false,
+    val claimedPassTiers: String = "1,2"
 )
 
 @Entity(tableName = "aircraft_saves")

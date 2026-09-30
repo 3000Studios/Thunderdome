@@ -121,7 +121,7 @@ fun SettingsScreen(viewModel: GameViewModel) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // Graphics Scalability Profiles
-        Text("GRAPHICS PROFILE (VULKAN RENDERING)", style = MaterialTheme.typography.labelLarge, color = Color.White)
+        Text("GRAPHICS PROFILE (HARDWARE 120HZ CANVAS)", style = MaterialTheme.typography.labelLarge, color = Color.White)
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),

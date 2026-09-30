@@ -202,6 +202,16 @@ fun CombatScreen(
             )
         }
 
+        // 3c. Roguelite System Overclock / Perk Selection Modal
+        engine.pendingPerkSelection?.let { perks ->
+            RoguelitePerkModal(
+                perks = perks,
+                onSelectPerk = { selectedPerk ->
+                    engine.selectPerk(selectedPerk)
+                }
+            )
+        }
+
         // 4. Pause Menu Modal
         if (engine.isPaused) {
             PauseModal(
@@ -237,7 +247,7 @@ fun CombatScreen(
         if (engine.isGameOver) {
             GameOverModal(
                 stats = stats,
-            onBankOverclocks = viewModel::bankMissionOverclocks,
+                onBankOverclocks = viewModel::bankMissionOverclocks,
                 onRetry = {
                     val w = canvasSize.width.toFloat()
                     val h = canvasSize.height.toFloat()
@@ -253,6 +263,19 @@ fun CombatScreen(
                         screenHeight = h
                     )
                 },
+                onExit = {
+                    viewModel.saveMissionFinish()
+                    onExitMission()
+                }
+            )
+        }
+
+        // 6. Mission Complete / Victory Screen
+        if (engine.isVictory) {
+            VictoryModal(
+                stats = stats,
+                biomeName = engine.currentBiome.name,
+                onBankOverclocks = viewModel::bankMissionOverclocks,
                 onExit = {
                     viewModel.saveMissionFinish()
                     onExitMission()
@@ -1089,6 +1112,114 @@ fun GameOverModal(
                 ) {
                     Text("RE-DEPLOY", fontWeight = FontWeight.Bold)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun VictoryModal(
+    stats: com.example.game.engine.GameCombatStats,
+    biomeName: String,
+    onBankOverclocks: () -> Unit,
+    onExit: () -> Unit
+) {
+    var overclocksBanked by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.92f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(0.88f)
+                .clip(RoundedCornerShape(16.dp))
+                .background(DarkSurface)
+                .border(2.dp, AeroCyan, RoundedCornerShape(16.dp))
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                Icons.Default.MilitaryTech,
+                contentDescription = null,
+                tint = AeroCyan,
+                modifier = Modifier.size(48.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "MISSION ACCOMPLISHED!",
+                style = MaterialTheme.typography.titleLarge,
+                color = AeroCyan,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                "THEATER SECURED: ${biomeName.uppercase()}",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextSecondary,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(DarkSurfaceElevated)
+                    .padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Final Sortie Score:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                    Text("${stats.score}", color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Hostiles Destroyed:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                    Text("${stats.kills}", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Bosses Annihilated:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                    Text("${stats.bossKills}", color = AeroAmber, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Credits Secured:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                    Text("+${stats.creditsEarned} CR", color = AeroEmerald, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Plasma Cores:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                    Text("+${stats.plasmaCoresEarned}", color = AeroViolet, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                }
+                if (stats.overclocksEarned > 0 && !overclocksBanked) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("System Overclocks:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                        Text("+${stats.overclocksEarned}", color = AeroCyan, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            if (stats.overclocksEarned > 0 && !overclocksBanked) {
+                Button(
+                    onClick = {
+                        onBankOverclocks()
+                        overclocksBanked = true
+                    },
+                    modifier = Modifier.fillMaxWidth().testTag("victory_bank_overclocks_button"),
+                    colors = ButtonDefaults.buttonColors(containerColor = AeroAmber, contentColor = DarkVoid)
+                ) {
+                    Text("BANK SYSTEM OVERCLOCKS", fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+
+            Button(
+                onClick = onExit,
+                modifier = Modifier.fillMaxWidth().height(48.dp).testTag("victory_exit_button"),
+                colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid)
+            ) {
+                Icon(Icons.Default.FlightTakeoff, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("RETURN TO HANGAR", fontWeight = FontWeight.Bold)
             }
         }
     }

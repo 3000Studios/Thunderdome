@@ -121,6 +121,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     )
 
+    private var menuMediaPlayer: android.media.MediaPlayer? = null
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             repository.ensureInitialized()
@@ -132,8 +134,69 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 gameEngine.musicVolume = if (s.soundEnabled) s.musicVolume else 0f
                 gameEngine.isSoundMuted = !s.soundEnabled
                 gameEngine.graphicsPreset = s.graphicsPreset
+                updateMenuMusicVolume(if (s.soundEnabled) s.musicVolume else 0f)
             }
         }
+        viewModelScope.launch {
+            playerProfile.collect { prof ->
+                val claimedSet = prof.claimedPassTiers.split(",")
+                    .mapNotNull { it.trim().toIntOrNull() }
+                    .toSet()
+                battlePassTiers.value = battlePassTiers.value.map { tier ->
+                    tier.copy(isClaimed = claimedSet.contains(tier.tier))
+                }
+            }
+        }
+    }
+
+    fun startMenuMusic() {
+        try {
+            val isMuted = !settings.value.soundEnabled
+            val vol = if (isMuted) 0f else settings.value.musicVolume.coerceIn(0f, 1f)
+            if (menuMediaPlayer == null) {
+                menuMediaPlayer = android.media.MediaPlayer.create(
+                    getApplication(),
+                    com.example.R.raw.music_menu_ambient
+                )?.apply {
+                    setVolume(vol, vol)
+                    isLooping = true
+                    start()
+                }
+            } else if (menuMediaPlayer?.isPlaying == false) {
+                menuMediaPlayer?.setVolume(vol, vol)
+                menuMediaPlayer?.start()
+            }
+        } catch (_: Exception) {}
+    }
+
+    fun pauseMenuMusic() {
+        try {
+            if (menuMediaPlayer?.isPlaying == true) {
+                menuMediaPlayer?.pause()
+            }
+        } catch (_: Exception) {}
+    }
+
+    fun resumeMenuMusic() {
+        startMenuMusic()
+    }
+
+    private fun updateMenuMusicVolume(volume: Float) {
+        try {
+            val vol = volume.coerceIn(0f, 1f)
+            menuMediaPlayer?.setVolume(vol, vol)
+        } catch (_: Exception) {}
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        try {
+            menuMediaPlayer?.let {
+                if (it.isPlaying) it.stop()
+                it.release()
+            }
+        } catch (_: Exception) {}
+        menuMediaPlayer = null
     }
 
     fun selectAircraft(aircraftId: String) {
@@ -249,11 +312,35 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun claimPromoBundle() {
         val prof = playerProfile.value
+        if (prof.hasClaimedPromoBundle) return
         viewModelScope.launch {
             val updated = prof.copy(
                 credits = prof.credits + 5000L,
                 plasmaCores = prof.plasmaCores + 25,
-                vanguardPassTier = (prof.vanguardPassTier + 5).coerceAtMost(15)
+                vanguardPassTier = (prof.vanguardPassTier + 5).coerceAtMost(15),
+                hasClaimedPromoBundle = true
+            )
+            repository.updateProfile(updated)
+            audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+        }
+    }
+
+    fun claimBattlePassTier(tierNumber: Int) {
+        val prof = playerProfile.value
+        val claimedSet = prof.claimedPassTiers.split(",")
+            .mapNotNull { it.trim().toIntOrNull() }
+            .toMutableSet()
+        if (claimedSet.contains(tierNumber)) return
+        claimedSet.add(tierNumber)
+        val tier = battlePassTiers.value.find { it.tier == tierNumber } ?: return
+
+        viewModelScope.launch {
+            val updatedCredits = if (tier.rewardType == "CREDITS") prof.credits + tier.rewardAmount else prof.credits
+            val updatedCores = if (tier.rewardType == "CORES") prof.plasmaCores + tier.rewardAmount else prof.plasmaCores
+            val updated = prof.copy(
+                credits = updatedCredits,
+                plasmaCores = updatedCores,
+                claimedPassTiers = claimedSet.sorted().joinToString(",")
             )
             repository.updateProfile(updated)
             audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)

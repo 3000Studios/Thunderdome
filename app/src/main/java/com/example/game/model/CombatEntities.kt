@@ -61,7 +61,9 @@ data class EnemyEntity(
     var angle: Float = 180f,
     var isCloaked: Boolean = false,
     var cloakAlpha: Float = 1f,
-    var hitFlashTimer: Float = 0f
+    var hitFlashTimer: Float = 0f,
+    var customName: String? = null,
+    var customColor: Color? = null
 )
 
 data class BossComponent(

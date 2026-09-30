@@ -403,6 +403,6 @@ object SectorSupportCatalog {
             "thunder_dome" -> 24
             else -> null
         }
-        return num?.let { PROFILES[it] }
+        return (num?.let { PROFILES[it] }) ?: PROFILES.values.first()
     }
 }

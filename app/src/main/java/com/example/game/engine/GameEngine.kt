@@ -48,6 +48,11 @@ class GameEngine(
     var isVictory: Boolean = false
     var pendingPerkSelection: List<RoguelitePerk>? = null
 
+    // Environmental Hazards & Handling Modifiers
+    var activeGooSlowTimer: Float = 0f
+    var activeWindForceX: Float = 0f
+    var hasBossHijackedRadio: Boolean = false
+
     // Interactive Holo-Comms System (Concept Art)
     // 1: Trigger -> 2: Hologram Appears -> 3: Taunt -> 4: Player Reply -> 5: Counter Response -> 6: Dissolve -> 7: Resume
     var isHoloCommsActive: Boolean = false
@@ -257,7 +262,13 @@ class GameEngine(
 
         val clampedDt = dt.coerceIn(0.001f, 0.05f)
 
-        // 1. Update Camera and Physics
+        // 1. Update Camera and Physics with environmental goo & wind effects
+        if (activeGooSlowTimer > 0f) {
+            activeGooSlowTimer -= clampedDt
+            vfx.spawnExplosion(playerState.x, playerState.y, isHeavy = false, colorScheme = Color(0xFF22C55E))
+        }
+        val handlingMult = if (activeGooSlowTimer > 0f) 0.55f else 1.0f
+
         physics.updateCamera(clampedDt, playerState.vx, playerState.vy)
         physics.updateAircraftPhysics(
             player = playerState,
@@ -268,8 +279,18 @@ class GameEngine(
             screenHeight = screenHeight,
             baseSpeed = currentAircraftSpec.baseSpeed,
             handling = currentAircraftSpec.baseHandling,
-            isDirectTouch = isDirectTouchActive
+            isDirectTouch = isDirectTouchActive,
+            handlingMultiplier = handlingMult,
+            windForceX = activeWindForceX
         )
+
+        // Reset Chrono Stasis time dilation factor when special ability expires
+        if (playerState.specialDurationLeft <= 0f && weaponSystem.timeDilationFactor != 1.0f) {
+            weaponSystem.timeDilationFactor = 1.0f
+        }
+
+        // Decay transient wind gusts smoothly
+        activeWindForceX *= (1.0f - clampedDt * 3.5f)
 
         // 2. Continuous Weapon Firing
         if (isFireHeld) {
@@ -338,6 +359,10 @@ class GameEngine(
                 audioHaptics.triggerExplosionHaptic(true)
                 weaponSystem.spawnPowerUp(screenWidth * 0.5f, screenHeight * 0.25f)
                 vfx.addText("BOSS ANNIHILATED! +25000", screenWidth * 0.5f, screenHeight * 0.25f, Color(0xFFFFD700))
+                isVictory = true
+                stopTunnelMusic()
+                stopRadioMusic()
+                audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
             }
         )
 
@@ -709,6 +734,18 @@ class GameEngine(
         isHoloCommsActive = true
         audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
         vfx.addText("📡 INCOMING TRANSMISSION: ${profile.name}", playerState.x, playerState.y - 60f, profile.primaryColor)
+
+        // Boss radio hijack: Boss takes over the comms and radio frequency
+        if (!hasBossHijackedRadio) {
+            hasBossHijackedRadio = true
+            // Switch radio to boss hijack track
+            val hijackTrackIdx = allSoundtracks.indexOfFirst {
+                it.rawResId == com.example.R.raw.track_why_do_i_not_like_my_songs ||
+                it.rawResId == com.example.R.raw.track_crabs_n_aidas
+            }.takeIf { it >= 0 } ?: (allSoundtracks.size - 2)
+            playRadioTrack(hijackTrackIdx)
+            vfx.addText("⚠️ RADIO SIGNAL HIJACKED BY ${profile.name}! ⚠️", playerState.x, playerState.y - 80f, Color(0xFFEF4444))
+        }
     }
 
     fun onPlayerReplyToHolo(replyText: String) {
@@ -789,16 +826,34 @@ class GameEngine(
             }
         }
 
-        // Course Obstacle Collisions (Laser Barricades & Asteroids)
+        // Course Obstacle Collisions (Laser Barricades, Asteroids, Green Goo, Wind Gusts)
         for (co in environment.courseObstacles) {
             if (!co.isDestroyed && playerState.x in (co.x - co.width * 0.45f)..(co.x + co.width * 0.45f) &&
-                playerState.y in (co.y - co.height * 0.45f)..(co.y + co.height * 0.45f) &&
-                playerState.invulnerableTimer <= 0f
+                playerState.y in (co.y - co.height * 0.45f)..(co.y + co.height * 0.45f)
             ) {
-                co.isDestroyed = true
-                applyDamageToPlayer(80f)
-                vfx.spawnExplosion(co.x, co.y, isHeavy = true, colorScheme = Color(0xFFFF2A4D))
-                vfx.addText("⚠️ HAZARD COLLISION (-80 HP)!", playerState.x, playerState.y - 40f, Color(0xFFEF4444))
+                when (co.type) {
+                    "GREEN_GOO" -> {
+                        // Slow down flight speed and handling, drain small boost
+                        activeGooSlowTimer = 2.5f
+                        playerState.boost = max(0f, playerState.boost - 15f)
+                        vfx.spawnExplosion(playerState.x, playerState.y, isHeavy = false, colorScheme = Color(0xFF22C55E))
+                        vfx.addText("⚠️ BIO SLIME! CONTROLS SLOWED (-45%)", playerState.x, playerState.y - 40f, Color(0xFF22C55E))
+                    }
+                    "WIND_GUST" -> {
+                        // Push aircraft laterally with high crosswind
+                        activeWindForceX = co.windDirX
+                        audioHaptics.playSound(AudioHapticSystem.SoundType.BOOST_BURST)
+                        vfx.addText("💨 CROSSWIND TURBULENCE!", playerState.x, playerState.y - 40f, Color(0xFF38BDF8))
+                    }
+                    else -> {
+                        if (playerState.invulnerableTimer <= 0f) {
+                            co.isDestroyed = true
+                            applyDamageToPlayer(80f)
+                            vfx.spawnExplosion(co.x, co.y, isHeavy = true, colorScheme = Color(0xFFFF2A4D))
+                            vfx.addText("⚠️ HAZARD COLLISION (-80 HP)!", playerState.x, playerState.y - 40f, Color(0xFFEF4444))
+                        }
+                    }
+                }
             }
         }
     }
@@ -838,6 +893,13 @@ class GameEngine(
             combatStats.xpToNextLevel = (combatStats.xpToNextLevel * 1.35f).toInt()
             combatStats.overclocksEarned++
             audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+
+            // Trigger Roguelite Perk selection modal on level-up
+            val perkChoices = PerkCatalog.getRandomChoices(3, playerState.perks.keys.toList())
+            if (perkChoices.isNotEmpty()) {
+                pendingPerkSelection = perkChoices
+                vfx.addText("⭐ LEVEL UP! SELECT OVERCLOCK PERK ⭐", playerState.x, playerState.y - 60f, Color(0xFFFFD700))
+            }
         }
     }
 

@@ -30,6 +30,14 @@ fun AeroStrikeApp(viewModel: GameViewModel) {
     var inCombatMode by remember { mutableStateOf(false) }
     var currentTab by remember { mutableStateOf(MainNavTab.TITLE) }
 
+    LaunchedEffect(showSplash, inCombatMode) {
+        if (!showSplash && !inCombatMode) {
+            viewModel.startMenuMusic()
+        } else {
+            viewModel.pauseMenuMusic()
+        }
+    }
+
     if (showSplash) {
         VideoSplashScreen(
             onSplashFinished = { showSplash = false }

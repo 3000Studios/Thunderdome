@@ -41,8 +41,9 @@ data class CourseObstacle(
     var y: Float,
     var width: Float = 90f,
     var height: Float = 90f,
-    var type: String = "LASER_BARRIER", // "LASER_BARRIER", "ASTEROID_PILLAR"
-    var isDestroyed: Boolean = false
+    var type: String = "LASER_BARRIER", // "LASER_BARRIER", "ASTEROID_PILLAR", "GREEN_GOO", "WIND_GUST"
+    var isDestroyed: Boolean = false,
+    var windDirX: Float = 0f
 )
 
 data class WeatherDrop(
@@ -50,7 +51,8 @@ data class WeatherDrop(
     var y: Float,
     var length: Float,
     var speed: Float,
-    var alpha: Float
+    var alpha: Float,
+    var vx: Float = 0f
 )
 
 class EnvironmentSystem {
@@ -104,15 +106,19 @@ class EnvironmentSystem {
             curY += bHeight * 0.7f
         }
 
-        // Initialize weather
-        for (i in 0 until 50) {
+        // Initialize weather based on biome
+        val isRainy = biome.weatherType.contains("RAIN") || biome.id in listOf("toxic_sector", "bio_labs", "alien_jungle", "storm_front", "underwater_ruins")
+        val dropCount = if (isRainy) 85 else 40
+        for (i in 0 until dropCount) {
+            val isWindy = biome.weatherType.contains("STORM") || biome.weatherType.contains("BLIZZARD") || biome.id in listOf("storm_front", "sand_wastes")
             weatherDrops.add(
                 WeatherDrop(
                     x = Random.nextFloat() * screenWidth,
                     y = Random.nextFloat() * screenHeight,
                     length = 18f + Random.nextFloat() * 22f,
                     speed = 850f + Random.nextFloat() * 450f,
-                    alpha = 0.25f + Random.nextFloat() * 0.35f
+                    alpha = 0.25f + Random.nextFloat() * 0.35f,
+                    vx = if (isWindy) (if (Random.nextBoolean()) 160f else -160f) else 0f
                 )
             )
         }
@@ -130,6 +136,11 @@ class EnvironmentSystem {
 
         courseObstacles.add(CourseObstacle(id = 10L, x = screenWidth * 0.7f, y = -500f, type = "LASER_BARRIER"))
         courseObstacles.add(CourseObstacle(id = 11L, x = screenWidth * 0.4f, y = -1100f, type = "ASTEROID_PILLAR"))
+        if (biome.id in listOf("toxic_sector", "bio_labs", "alien_jungle")) {
+            courseObstacles.add(CourseObstacle(id = 12L, x = screenWidth * 0.55f, y = -750f, width = 130f, height = 110f, type = "GREEN_GOO"))
+        } else if (biome.id in listOf("storm_front", "ice_fortress", "sand_wastes")) {
+            courseObstacles.add(CourseObstacle(id = 13L, x = screenWidth * 0.5f, y = -750f, width = 220f, height = 90f, type = "WIND_GUST", windDirX = if (Random.nextBoolean()) 380f else -380f))
+        }
     }
 
     fun spawnStructure(x: Float, y: Float, type: String) {
@@ -220,13 +231,28 @@ class EnvironmentSystem {
         }
 
         // Spawn Course Obstacles periodically
-        if (courseObstacles.size < 3 && Random.nextFloat() < dt * 0.35f) {
+        if (courseObstacles.size < 4 && Random.nextFloat() < dt * 0.4f) {
+            val obsTypes = listOf("LASER_BARRIER", "ASTEROID_PILLAR", "GREEN_GOO", "WIND_GUST")
+            val chosenType = obsTypes.random()
+            val w = when (chosenType) {
+                "GREEN_GOO" -> 140f
+                "WIND_GUST" -> 240f
+                else -> 90f
+            }
+            val h = when (chosenType) {
+                "GREEN_GOO" -> 100f
+                "WIND_GUST" -> 85f
+                else -> 90f
+            }
             courseObstacles.add(
                 CourseObstacle(
                     id = System.currentTimeMillis(),
                     x = 80f + Random.nextFloat() * (screenWidth - 160f),
                     y = -180f,
-                    type = if (Random.nextBoolean()) "LASER_BARRIER" else "ASTEROID_PILLAR"
+                    width = w,
+                    height = h,
+                    type = chosenType,
+                    windDirX = if (Random.nextBoolean()) 400f else -400f
                 )
             )
         }
@@ -244,7 +270,8 @@ class EnvironmentSystem {
         // Update weather streaks (Parallax layer 5)
         for (w in weatherDrops) {
             w.y += dt * (w.speed + if (isBoosting) 400f else 0f)
-            if (w.y > screenHeight + 50f) {
+            w.x += dt * w.vx
+            if (w.y > screenHeight + 50f || w.x < -30f || w.x > screenWidth + 30f) {
                 w.y = -40f
                 w.x = Random.nextFloat() * screenWidth
             }

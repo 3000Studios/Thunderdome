@@ -84,9 +84,12 @@ fun BattlePassScreen(viewModel: GameViewModel) {
                     }
                     Button(
                         onClick = { viewModel.claimPromoBundle() },
+                        enabled = !profile.hasClaimedPromoBundle,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = AeroAmber,
-                            contentColor = DarkVoid
+                            containerColor = if (!profile.hasClaimedPromoBundle) AeroAmber else DarkSurfaceElevated,
+                            contentColor = if (!profile.hasClaimedPromoBundle) DarkVoid else TextSecondary,
+                            disabledContainerColor = DarkSurfaceElevated,
+                            disabledContentColor = TextMuted
                         ),
                         shape = RoundedCornerShape(8.dp),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
@@ -94,7 +97,11 @@ fun BattlePassScreen(viewModel: GameViewModel) {
                     ) {
                         Icon(Icons.Default.ShoppingBag, contentDescription = null, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("CLAIM PROMO", fontSize = 11.sp, fontWeight = FontWeight.Black)
+                        Text(
+                            if (profile.hasClaimedPromoBundle) "CLAIMED" else "CLAIM PROMO",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Black
+                        )
                     }
                 }
             }
@@ -175,12 +182,7 @@ fun BattlePassScreen(viewModel: GameViewModel) {
                         } else if (isUnlocked) {
                             Button(
                                 onClick = {
-                                    viewModel.audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
-                                    // Update tier claimed in state
-                                    val updated = viewModel.battlePassTiers.value.map {
-                                        if (it.tier == tier.tier) it.copy(isClaimed = true) else it
-                                    }
-                                    viewModel.battlePassTiers.value = updated
+                                    viewModel.claimBattlePassTier(tier.tier)
                                 },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = AeroViolet,

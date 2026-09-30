@@ -51,11 +51,15 @@ class FlightPhysics {
         screenHeight: Float,
         baseSpeed: Float,
         handling: Float,
-        isDirectTouch: Boolean = false
+        isDirectTouch: Boolean = false,
+        handlingMultiplier: Float = 1.0f,
+        windForceX: Float = 0f
     ) {
         // Boost multiplier
         val speedMultiplier = if (player.isBoosting && player.boost > 0f) 1.8f else 1.0f
-        val targetMaxSpeed = baseSpeed * speedMultiplier
+        val effectiveSpeed = baseSpeed * speedMultiplier * handlingMultiplier
+        val effectiveHandling = handling * handlingMultiplier
+        val targetMaxSpeed = effectiveSpeed
 
         if (!isDirectTouch) {
             // Acceleration Curves & Drag for virtual stick / key controls
@@ -83,10 +87,12 @@ class FlightPhysics {
                 player.recoilY = max(0f, player.recoilY - dt * 25f)
             }
 
-            // Move aircraft
-            player.x += player.vx * dt
+            // Move aircraft with wind drift
+            player.x += (player.vx + windForceX) * dt
             player.y += player.vy * dt
         } else {
+            // Direct finger tracking with slight wind deflection
+            player.x += windForceX * dt * 0.45f
             // Direct finger tracking handles positioning directly.
             // Bleed off velocity smoothly for banking & visual particle effects
             player.vx -= player.vx * min(1f, dt * 8f)

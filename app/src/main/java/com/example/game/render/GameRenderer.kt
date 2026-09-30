@@ -112,13 +112,21 @@ object GameRenderer {
                 }
             }
 
-            // 5. Layer 5: Weather Precipitation
+            // 5. Layer 5: Dynamic Weather Precipitation (Slanted Rain, Blizzard, Green Acid Mist)
+            val dropColor = when {
+                biome.id in listOf("toxic_sector", "bio_labs", "alien_jungle") -> Color(0xFF4ADE80)
+                biome.id in listOf("lava_planet", "machine_world") -> Color(0xFFFF6B00)
+                biome.id in listOf("void_gate", "dimension_rift") -> Color(0xFFC084FC)
+                biome.id in listOf("ice_fortress") -> Color(0xFFE0F2FE)
+                else -> Color(0xFF00E5FF)
+            }
             for (w in env.weatherDrops) {
+                val slantX = if (w.vx != 0f) w.vx * 0.04f else 0f
                 drawLine(
-                    color = Color(0xFF00E5FF).copy(alpha = w.alpha),
+                    color = dropColor.copy(alpha = w.alpha),
                     start = Offset(w.x, w.y),
-                    end = Offset(w.x, w.y + w.length),
-                    strokeWidth = 1.2f
+                    end = Offset(w.x + slantX, w.y + w.length),
+                    strokeWidth = 1.4f
                 )
             }
 
@@ -195,31 +203,65 @@ object GameRenderer {
                 }
             }
 
-            // 4c. Course Obstacles (3D Laser Barricades & Asteroid Pillars)
+            // 4c. Course Obstacles (3D Laser Barricades, Asteroid Pillars, Green Goo, Wind Gusts)
             for (co in env.courseObstacles) {
                 if (!co.isDestroyed) {
-                    if (co.type == "LASER_BARRIER") {
-                        // Left & Right Emitter Posts
-                        drawRect(Color(0xFF64748B), Offset(co.x - co.width * 0.5f, co.y - 15f), Size(18f, 30f))
-                        drawRect(Color(0xFF64748B), Offset(co.x + co.width * 0.5f - 18f, co.y - 15f), Size(18f, 30f))
-                        // Pulsating Laser Beam
-                        drawLine(
-                            color = DangerRed.copy(alpha = 0.85f),
-                            start = Offset(co.x - co.width * 0.5f + 18f, co.y),
-                            end = Offset(co.x + co.width * 0.5f - 18f, co.y),
-                            strokeWidth = 6f
-                        )
-                        drawLine(
-                            color = Color.White,
-                            start = Offset(co.x - co.width * 0.5f + 18f, co.y),
-                            end = Offset(co.x + co.width * 0.5f - 18f, co.y),
-                            strokeWidth = 2f
-                        )
-                    } else {
-                        // Asteroid Pillar
-                        drawCircle(Color(0xFF475569), co.width * 0.45f, Offset(co.x, co.y))
-                        drawCircle(Color(0xFF334155), co.width * 0.40f, Offset(co.x + 3f, co.y + 3f))
-                        drawCircle(Color(0xFF1E293B), co.width * 0.20f, Offset(co.x - 5f, co.y - 5f))
+                    when (co.type) {
+                        "LASER_BARRIER" -> {
+                            // Left & Right Emitter Posts
+                            drawRect(Color(0xFF64748B), Offset(co.x - co.width * 0.5f, co.y - 15f), Size(18f, 30f))
+                            drawRect(Color(0xFF64748B), Offset(co.x + co.width * 0.5f - 18f, co.y - 15f), Size(18f, 30f))
+                            // Pulsating Laser Beam
+                            drawLine(
+                                color = DangerRed.copy(alpha = 0.85f),
+                                start = Offset(co.x - co.width * 0.5f + 18f, co.y),
+                                end = Offset(co.x + co.width * 0.5f - 18f, co.y),
+                                strokeWidth = 6f
+                            )
+                            drawLine(
+                                color = Color.White,
+                                start = Offset(co.x - co.width * 0.5f + 18f, co.y),
+                                end = Offset(co.x + co.width * 0.5f - 18f, co.y),
+                                strokeWidth = 2f
+                            )
+                        }
+                        "GREEN_GOO" -> {
+                            // Viscous slime puddle with bubbling core
+                            drawOval(
+                                color = Color(0x7722C55E),
+                                topLeft = Offset(co.x - co.width * 0.5f, co.y - co.height * 0.5f),
+                                size = Size(co.width, co.height)
+                            )
+                            drawOval(
+                                color = Color(0xFF15803D),
+                                topLeft = Offset(co.x - co.width * 0.38f, co.y - co.height * 0.38f),
+                                size = Size(co.width * 0.76f, co.height * 0.76f)
+                            )
+                            // Glowing bio bubbles
+                            drawCircle(Color(0xFF4ADE80), 9f, Offset(co.x - 22f, co.y - 12f))
+                            drawCircle(Color(0xFF86EFAC), 6f, Offset(co.x + 28f, co.y + 14f))
+                            drawCircle(Color(0xFF22C55E), 12f, Offset(co.x + 6f, co.y - 4f))
+                        }
+                        "WIND_GUST" -> {
+                            // High-speed wind current streamlines
+                            val windAlpha = 0.45f + 0.3f * sin((env.scrollOffset * 0.08f + co.id).toDouble()).toFloat()
+                            val windCol = Color(0xFF93C5FD).copy(alpha = windAlpha)
+                            for (row in listOf(-20f, 0f, 20f)) {
+                                drawLine(
+                                    color = windCol,
+                                    start = Offset(co.x - co.width * 0.45f, co.y + row),
+                                    end = Offset(co.x + co.width * 0.45f, co.y + row),
+                                    strokeWidth = 3f,
+                                    cap = StrokeCap.Round
+                                )
+                            }
+                        }
+                        else -> {
+                            // Asteroid Pillar
+                            drawCircle(Color(0xFF475569), co.width * 0.45f, Offset(co.x, co.y))
+                            drawCircle(Color(0xFF334155), co.width * 0.40f, Offset(co.x + 3f, co.y + 3f))
+                            drawCircle(Color(0xFF1E293B), co.width * 0.20f, Offset(co.x - 5f, co.y - 5f))
+                        }
                     }
                 }
             }
@@ -478,13 +520,13 @@ object GameRenderer {
         flash: Boolean,
         alpha: Float
     ) {
-        val baseColor = if (flash) Color.White else when (enemy.type) {
+        val baseColor = if (flash) Color.White else (enemy.customColor ?: when (enemy.type) {
             EnemyType.SCOUT_DRONE -> Color(0xFFEF4444)
             EnemyType.FAST_INTERCEPTOR -> Color(0xFFFF5500)
             EnemyType.HEAVY_GUNSHIP -> Color(0xFF8B5CF6)
             EnemyType.STEALTH_RAIDER -> Color(0xFF334155)
             EnemyType.MISSILE_CORVETTE -> Color(0xFFDC2626)
-        }.copy(alpha = alpha)
+        }).copy(alpha = alpha)
 
         val path = Path().apply {
             val r = enemy.type.radius
