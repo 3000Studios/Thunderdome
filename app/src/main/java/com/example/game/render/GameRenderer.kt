@@ -510,21 +510,82 @@ object GameRenderer {
         val halfW = boss.width * 0.5f
         val halfH = boss.height * 0.5f
         val flash = boss.hitFlashTimer > 0f
-        val hullColor = if (flash) Color.White else Color(0xFF1E293B)
-        val armorTrim = if (flash) Color.White else Color(0xFFEF4444)
+        val prof = boss.profile
+        val basePColor = prof?.primaryColor ?: Color(0xFFEF4444)
+        val baseAColor = prof?.accentColor ?: Color(0xFFFF9500)
+        val hullColor = if (flash) Color.White else Color(0xFF0F172A)
+        val armorTrim = if (flash) Color.White else basePColor
 
-        // Main Heavy Chassis
+        // Concept Art Custom Wing Silhouette Geometry
         val bossPath = Path().apply {
-            moveTo(boss.x, boss.y + halfH * 0.7f) // Front bow
-            lineTo(boss.x + halfW * 0.45f, boss.y + halfH * 0.3f)
-            lineTo(boss.x + halfW, boss.y - halfH * 0.2f) // Starboard wing
-            lineTo(boss.x + halfW * 0.85f, boss.y - halfH)
-            lineTo(boss.x - halfW * 0.85f, boss.y - halfH)
-            lineTo(boss.x - halfW, boss.y - halfH * 0.2f) // Port wing
-            lineTo(boss.x - halfW * 0.45f, boss.y + halfH * 0.3f)
-            close()
+            when (prof?.id) {
+                "toxin_haze" -> {
+                    // Swept bio-organic razor wings with needle nose
+                    moveTo(boss.x, boss.y + halfH * 0.85f)
+                    lineTo(boss.x + halfW * 0.25f, boss.y + halfH * 0.35f)
+                    lineTo(boss.x + halfW * 1.1f, boss.y + halfH * 0.15f) // Forward swept tip
+                    lineTo(boss.x + halfW * 0.7f, boss.y - halfH * 0.5f)
+                    lineTo(boss.x + halfW * 0.2f, boss.y - halfH * 0.85f)
+                    lineTo(boss.x - halfW * 0.2f, boss.y - halfH * 0.85f)
+                    lineTo(boss.x - halfW * 0.7f, boss.y - halfH * 0.5f)
+                    lineTo(boss.x - halfW * 1.1f, boss.y + halfH * 0.15f)
+                    lineTo(boss.x - halfW * 0.25f, boss.y + halfH * 0.35f)
+                    close()
+                }
+                "frost_nova" -> {
+                    // Angular crystalline shard geometry
+                    moveTo(boss.x, boss.y + halfH * 0.95f)
+                    lineTo(boss.x + halfW * 0.4f, boss.y + halfH * 0.2f)
+                    lineTo(boss.x + halfW * 1.05f, boss.y - halfH * 0.1f)
+                    lineTo(boss.x + halfW * 0.85f, boss.y - halfH * 0.7f)
+                    lineTo(boss.x + halfW * 0.35f, boss.y - halfH * 0.4f)
+                    lineTo(boss.x, boss.y - halfH * 0.8f)
+                    lineTo(boss.x - halfW * 0.35f, boss.y - halfH * 0.4f)
+                    lineTo(boss.x - halfW * 0.85f, boss.y - halfH * 0.7f)
+                    lineTo(boss.x - halfW * 1.05f, boss.y - halfH * 0.1f)
+                    lineTo(boss.x - halfW * 0.4f, boss.y + halfH * 0.2f)
+                    close()
+                }
+                "solar_flare", "magma_brute" -> {
+                    // Aggressive heavy chevron spike frame
+                    moveTo(boss.x, boss.y + halfH * 0.7f)
+                    lineTo(boss.x + halfW * 0.5f, boss.y + halfH * 0.5f)
+                    lineTo(boss.x + halfW * 1.15f, boss.y - halfH * 0.3f)
+                    lineTo(boss.x + halfW * 0.6f, boss.y - halfH * 0.9f)
+                    lineTo(boss.x, boss.y - halfH * 0.35f)
+                    lineTo(boss.x - halfW * 0.6f, boss.y - halfH * 0.9f)
+                    lineTo(boss.x - halfW * 1.15f, boss.y - halfH * 0.3f)
+                    lineTo(boss.x - halfW * 0.5f, boss.y + halfH * 0.5f)
+                    close()
+                }
+                "void_reaper", "neon_phantom", "quantum_shift" -> {
+                    // Triple-spike phantom delta frame
+                    moveTo(boss.x, boss.y + halfH * 0.9f)
+                    lineTo(boss.x + halfW * 0.3f, boss.y + halfH * 0.1f)
+                    lineTo(boss.x + halfW * 0.95f, boss.y + halfH * 0.4f)
+                    lineTo(boss.x + halfW * 0.85f, boss.y - halfH * 0.8f)
+                    lineTo(boss.x, boss.y - halfH * 0.2f)
+                    lineTo(boss.x - halfW * 0.85f, boss.y - halfH * 0.8f)
+                    lineTo(boss.x - halfW * 0.95f, boss.y + halfH * 0.4f)
+                    lineTo(boss.x - halfW * 0.3f, boss.y + halfH * 0.1f)
+                    close()
+                }
+                else -> {
+                    // Standard heavy dreadnought chassis
+                    moveTo(boss.x, boss.y + halfH * 0.7f)
+                    lineTo(boss.x + halfW * 0.45f, boss.y + halfH * 0.3f)
+                    lineTo(boss.x + halfW, boss.y - halfH * 0.2f)
+                    lineTo(boss.x + halfW * 0.85f, boss.y - halfH)
+                    lineTo(boss.x - halfW * 0.85f, boss.y - halfH)
+                    lineTo(boss.x - halfW, boss.y - halfH * 0.2f)
+                    lineTo(boss.x - halfW * 0.45f, boss.y + halfH * 0.3f)
+                    close()
+                }
+            }
         }
 
+        // Emissive Under-Glow / Ambient Shield Halo
+        scope.drawPath(bossPath, color = basePColor.copy(alpha = 0.25f))
         scope.drawPath(bossPath, color = hullColor)
         scope.drawPath(bossPath, color = armorTrim, style = Stroke(width = 3.5f))
 
@@ -533,7 +594,7 @@ object GameRenderer {
         if (leftTurret != null) {
             val lx = boss.x + leftTurret.offsetX
             val ly = boss.y + leftTurret.offsetY
-            val tCol = if (leftTurret.isDestroyed) Color(0xFF475569) else Color(0xFFFF7A00)
+            val tCol = if (leftTurret.isDestroyed) Color(0xFF475569) else basePColor
             scope.drawCircle(tCol, radius = 18f, center = Offset(lx, ly))
             scope.drawLine(
                 color = Color.Black,
@@ -548,7 +609,7 @@ object GameRenderer {
         if (rightTurret != null) {
             val rx = boss.x + rightTurret.offsetX
             val ry = boss.y + rightTurret.offsetY
-            val mCol = if (rightTurret.isDestroyed) Color(0xFF475569) else Color(0xFFFF1744)
+            val mCol = if (rightTurret.isDestroyed) Color(0xFF475569) else baseAColor
             scope.drawRect(
                 color = mCol,
                 topLeft = Offset(rx - 15f, ry - 15f),
@@ -557,9 +618,9 @@ object GameRenderer {
         }
 
         // Core Reactor (Pulsing Energy Core)
-        val coreColor = if (boss.phase == BossPhase.PHASE_3_RAGE_OVERDRIVE) Color(0xFFFF0055) else AeroAmber
+        val coreColor = if (boss.phase == BossPhase.PHASE_3_RAGE_OVERDRIVE) Color(0xFFFF0055) else basePColor
         scope.drawCircle(
-            color = coreColor.copy(alpha = 0.4f),
+            color = coreColor.copy(alpha = 0.45f),
             radius = 35f,
             center = Offset(boss.x, boss.y)
         )

@@ -104,7 +104,9 @@ data class BossEntity(
     var deathSequenceTimer: Float = 0f,
     var laserBeamAngle: Float = 90f,
     var isFiringLaser: Boolean = false,
-    var hitFlashTimer: Float = 0f
+    var hitFlashTimer: Float = 0f,
+    var profile: BossProfileSpec? = null,
+    var specialAttackTimer: Float = 0f
 )
 
 enum class ProjectileType {

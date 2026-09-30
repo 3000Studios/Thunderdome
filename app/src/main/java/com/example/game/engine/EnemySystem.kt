@@ -14,6 +14,7 @@ class EnemySystem {
     var waveSpawnTimer = 1.5f
     var enemiesKilledInWave = 0
     var isBossWave = false
+    var activeBiomeId: String = "neon_outpost"
 
     fun reset() {
         enemies.clear()
@@ -189,6 +190,93 @@ class EnemySystem {
                 boss.phase = BossPhase.PHASE_3_RAGE_OVERDRIVE
             }
 
+            val pCol = boss.profile?.primaryColor ?: Color(0xFFFF5500)
+            val aCol = boss.profile?.accentColor ?: Color(0xFFFF0055)
+
+            // Signature Concept Art Moves
+            boss.specialAttackTimer += dt
+            if (boss.specialAttackTimer > 2.2f) {
+                boss.specialAttackTimer = 0f
+                when (boss.profile?.id) {
+                    "toxin_haze" -> {
+                        // Poison gas clouds & corrosion spread
+                        for (i in -2..2) {
+                            val rad = (90f + i * 20f) * PI.toFloat() / 180f
+                            spawnEnemyProjectile(boss.x, boss.y + 40f, cos(rad) * 360f, sin(rad) * 360f, ProjectileType.ENEMY_PLASMA, 28f, Color(0xFF22C55E))
+                        }
+                    }
+                    "frost_nova" -> {
+                        // Freeze pulse spread ring & ice shards
+                        for (i in 0..7) {
+                            val rad = (i * 45f) * PI.toFloat() / 180f
+                            spawnEnemyProjectile(boss.x, boss.y + 30f, cos(rad) * 400f, sin(rad) * 400f, ProjectileType.ENEMY_PLASMA, 24f, Color(0xFF38BDF8))
+                        }
+                    }
+                    "solar_flare" -> {
+                        // Piercing Solar Beam & Nova eruption
+                        for (angle in listOf(-30f, -15f, 0f, 15f, 30f)) {
+                            val rad = (90f + angle) * PI.toFloat() / 180f
+                            spawnEnemyProjectile(boss.x, boss.y + 35f, cos(rad) * 580f, sin(rad) * 580f, ProjectileType.ENEMY_LASER, 35f, Color(0xFFF59E0B))
+                        }
+                    }
+                    "void_reaper" -> {
+                        // Singularity pull void orbs
+                        spawnEnemyProjectile(boss.x - 60f, boss.y + 30f, -60f, 340f, ProjectileType.ENEMY_MISSILE, 45f, Color(0xFF9333EA))
+                        spawnEnemyProjectile(boss.x + 60f, boss.y + 30f, 60f, 340f, ProjectileType.ENEMY_MISSILE, 45f, Color(0xFF9333EA))
+                    }
+                    "blade_storm" -> {
+                        // Spinning blade barrage / ricochet
+                        for (angle in listOf(-45f, -15f, 15f, 45f)) {
+                            val rad = (90f + angle) * PI.toFloat() / 180f
+                            spawnEnemyProjectile(boss.x, boss.y + 20f, cos(rad) * 460f, sin(rad) * 460f, ProjectileType.ENEMY_PLASMA, 30f, Color(0xFFF97316))
+                        }
+                    }
+                    "neon_phantom" -> {
+                        // Wide spread neon lasers
+                        for (i in -3..3) {
+                            spawnEnemyProjectile(boss.x + i * 25f, boss.y + 30f, i * 40f, 620f, ProjectileType.ENEMY_LASER, 28f, Color(0xFFEC4899))
+                        }
+                    }
+                    "omega_drone", "magma_brute" -> {
+                        // Magma balls & explosive drone barrage
+                        for (offset in listOf(-80f, 0f, 80f)) {
+                            spawnEnemyProjectile(boss.x + offset, boss.y + 30f, offset * 1.5f, 380f, ProjectileType.ENEMY_PLASMA, 34f, Color(0xFFEF4444))
+                        }
+                    }
+                    "liquid_metal" -> {
+                        // Reflective metal wave
+                        for (i in -2..2) {
+                            val rad = (90f + i * 25f) * PI.toFloat() / 180f
+                            spawnEnemyProjectile(boss.x, boss.y + 30f, cos(rad) * 480f, sin(rad) * 480f, ProjectileType.ENEMY_PLASMA, 26f, Color(0xFF38BDF8))
+                        }
+                    }
+                    "sand_viper" -> {
+                        // Sand tornado razor darts
+                        for (i in -2..2) {
+                            spawnEnemyProjectile(boss.x + i * 30f, boss.y + 25f, (Random.nextFloat() - 0.5f) * 120f, 520f, ProjectileType.ENEMY_MISSILE, 32f, Color(0xFFEAB308))
+                        }
+                    }
+                    "cyber_hawk" -> {
+                        // Missile Swarm 5 homing
+                        for (i in -2..2) {
+                            spawnEnemyProjectile(boss.x + i * 25f, boss.y + 20f, i * 70f, 440f, ProjectileType.ENEMY_MISSILE, 38f, Color(0xFF0284C7))
+                        }
+                    }
+                    "quantum_shift" -> {
+                        // Quantum blades teleporting barrage
+                        for (angle in listOf(-60f, -20f, 20f, 60f)) {
+                            val rad = (90f + angle) * PI.toFloat() / 180f
+                            spawnEnemyProjectile(boss.x, boss.y + 30f, cos(rad) * 520f, sin(rad) * 520f, ProjectileType.ENEMY_LASER, 36f, Color(0xFF8B5CF6))
+                        }
+                    }
+                    else -> {
+                        for (i in -1..1) {
+                            spawnEnemyProjectile(boss.x, boss.y + 30f, i * 70f, 440f, ProjectileType.ENEMY_PLASMA, 30f, pCol)
+                        }
+                    }
+                }
+            }
+
             // Boss Attack Patterns:
             // 1. Left turret plasma barrage
             if (leftTurret != null && !leftTurret.isDestroyed) {
@@ -198,7 +286,7 @@ class EnemySystem {
                     val tx = boss.x + leftTurret.offsetX
                     val ty = boss.y + leftTurret.offsetY
                     for (i in -1..1) {
-                        spawnEnemyProjectile(tx, ty, i * 80f, 420f, ProjectileType.ENEMY_PLASMA, 35f, Color(0xFFFF5500))
+                        spawnEnemyProjectile(tx, ty, i * 80f, 420f, ProjectileType.ENEMY_PLASMA, 35f, pCol)
                     }
                 }
             }
@@ -210,8 +298,8 @@ class EnemySystem {
                     rightTurret.fireTimer = 0f
                     val tx = boss.x + rightTurret.offsetX
                     val ty = boss.y + rightTurret.offsetY
-                    spawnEnemyProjectile(tx - 15f, ty, -100f, 250f, ProjectileType.ENEMY_MISSILE, 60f, Color(0xFFFF1744))
-                    spawnEnemyProjectile(tx + 15f, ty, 100f, 250f, ProjectileType.ENEMY_MISSILE, 60f, Color(0xFFFF1744))
+                    spawnEnemyProjectile(tx - 15f, ty, -100f, 250f, ProjectileType.ENEMY_MISSILE, 60f, aCol)
+                    spawnEnemyProjectile(tx + 15f, ty, 100f, 250f, ProjectileType.ENEMY_MISSILE, 60f, aCol)
                 }
             }
 
@@ -228,7 +316,7 @@ class EnemySystem {
                     spawnEnemyProjectile(
                         coreX, coreY,
                         cos(rad) * 750f, sin(rad) * 750f,
-                        ProjectileType.ENEMY_LASER, 45f, Color(0xFFFF0055)
+                        ProjectileType.ENEMY_LASER, 45f, aCol
                     )
                 }
             } else {
@@ -241,7 +329,7 @@ class EnemySystem {
                     spawnEnemyProjectile(
                         boss.x, boss.y + 35f,
                         cos(rad) * 380f, sin(rad) * 380f,
-                        ProjectileType.ENEMY_PLASMA, 30f, Color(0xFFFF2A4D)
+                        ProjectileType.ENEMY_PLASMA, 30f, pCol
                     )
                 }
             }
@@ -320,44 +408,49 @@ class EnemySystem {
     }
 
     fun spawnBoss(screenWidth: Float, screenHeight: Float) {
+        val profile = BossProfileCatalog.getForBiome(activeBiomeId)
+        val bossHp = profile.baseHealth + (waveNumber * 800f)
+        val bossShd = profile.baseShield
+
         val boss = BossEntity(
-            id = "goliath_dreadnought",
-            name = "EX-99 GOLIATH DREADNOUGHT",
+            id = profile.id,
+            name = profile.name,
             x = screenWidth * 0.5f,
             y = -220f,
             targetX = screenWidth * 0.5f,
             targetY = screenHeight * 0.22f,
             width = 340f,
             height = 240f,
-            health = 5500f + (waveNumber * 1000f),
-            maxHealth = 5500f + (waveNumber * 1000f),
-            shield = 2000f,
-            maxShield = 2000f
+            health = bossHp,
+            maxHealth = bossHp,
+            shield = bossShd,
+            maxShield = bossShd,
+            profile = profile
         )
 
         boss.components.add(
             BossComponent(
                 id = "left_turret",
-                name = "Port Heavy Flak",
+                name = profile.weaponMoves.getOrElse(0) { "Port Heavy Weapon" },
                 offsetX = -120f,
                 offsetY = 10f,
                 width = 50f,
                 height = 50f,
-                health = 1200f,
-                maxHealth = 1200f
+                health = 1400f,
+                maxHealth = 1400f
             )
         )
 
         boss.components.add(
             BossComponent(
                 id = "right_missile",
-                name = "Starboard Missile Rack",
+                name = profile.weaponMoves.getOrElse(1) { "Starboard Ordnance" },
                 offsetX = 120f,
                 offsetY = 10f,
                 width = 50f,
                 height = 50f,
-                health = 1200f,
-                maxHealth = 1200f
+                health = 1400f,
+                maxHealth = 1400f
             )
         )
 

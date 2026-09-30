@@ -48,6 +48,16 @@ class GameEngine(
     var isVictory: Boolean = false
     var pendingPerkSelection: List<RoguelitePerk>? = null
 
+    // Interactive Holo-Comms System (Concept Art)
+    // 1: Trigger -> 2: Hologram Appears -> 3: Taunt -> 4: Player Reply -> 5: Counter Response -> 6: Dissolve -> 7: Resume
+    var isHoloCommsActive: Boolean = false
+    var holoBossProfile: BossProfileSpec? = null
+    var holoCurrentTaunt: String = ""
+    var holoEnemyResponse: String = ""
+    var holoStep: Int = 1 // 1: Taunt display, 2: Player replied, 3: Counter-response
+    var holoHologramAlpha: Float = 0f
+    private var hasTriggeredEncounterHolo: Boolean = false
+
     // Touch controls input state
     var inputDirX: Float = 0f
     var inputDirY: Float = 0f
@@ -224,7 +234,15 @@ class GameEngine(
         vfx.clear()
         weaponSystem.clear()
         enemySystem.reset()
+        enemySystem.activeBiomeId = biome.id
         environment.initWorld(screenWidth, screenHeight, biome)
+
+        // Reset Holo Comms
+        isHoloCommsActive = false
+        hasTriggeredEncounterHolo = false
+        holoStep = 1
+        holoBossProfile = BossProfileCatalog.getForBiome(biome.id)
+        holoCurrentTaunt = holoBossProfile?.taunts?.trigger1 ?: ""
 
         // Start stage soundtrack
         val stageSongIdx = abs(biome.id.hashCode()) % allSoundtracks.size
@@ -413,11 +431,17 @@ class GameEngine(
                 stageDistanceCurrent = stageDistanceTotal
                 enemySystem.spawnBoss(screenWidth, screenHeight)
                 enemySystem.isBossWave = true
+                triggerHoloCommsEncounter()
 
                 vfx.addText("⚡ WARP EXIT: BOSS LEVEL ENCOUNTER! +15% BONUS CR (${bonus15Percent} CR) ⚡", screenWidth * 0.5f, screenHeight * 0.35f, Color(0xFFFFD700))
                 audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
                 audioHaptics.triggerExplosionHaptic(true)
             }
+        }
+
+        // Trigger Holo-Comms when normal stage reaches 100% and boss spawns
+        if (!hasTriggeredEncounterHolo && enemySystem.currentBoss != null && !isInBonusTunnel) {
+            triggerHoloCommsEncounter()
         }
 
         // 13. Send Real-Time Multiplayer Telemetry (30 Hz sync)
@@ -669,6 +693,33 @@ class GameEngine(
                 }
             }
         } catch (_: Exception) {}
+    }
+
+    // ── INTERACTIVE HOLO-COMMS ENCOUNTER CONTROLLER ──
+    fun triggerHoloCommsEncounter() {
+        hasTriggeredEncounterHolo = true
+        val profile = BossProfileCatalog.getForBiome(currentBiome.id)
+        holoBossProfile = profile
+        holoCurrentTaunt = profile.taunts.trigger1
+        holoEnemyResponse = ""
+        holoStep = 1 // Hologram appears + enemy taunts
+        isHoloCommsActive = true
+        audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+        vfx.addText("📡 INCOMING TRANSMISSION: ${profile.name}", playerState.x, playerState.y - 60f, profile.primaryColor)
+    }
+
+    fun onPlayerReplyToHolo(replyText: String) {
+        val profile = holoBossProfile ?: return
+        holoStep = 2 // Player replied
+        val counter = profile.comms.enemyCounterResponses[replyText] ?: profile.comms.defaultCounter
+        holoEnemyResponse = counter
+        audioHaptics.playSound(AudioHapticSystem.SoundType.BOOST_BURST)
+    }
+
+    fun closeHoloComms() {
+        isHoloCommsActive = false
+        holoStep = 1
+        audioHaptics.playSound(AudioHapticSystem.SoundType.PLASMA_SHOT)
     }
 
     private fun checkPowerUpCollisions() {

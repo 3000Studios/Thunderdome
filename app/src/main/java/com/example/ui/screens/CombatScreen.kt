@@ -194,6 +194,14 @@ fun CombatScreen(
             }
         }
 
+        // 3b. Interactive Holo-Comms Modal (Concept Art: Holographic Taunt & Player Reply System)
+        if (engine.isHoloCommsActive && engine.holoBossProfile != null) {
+            HoloCommsModal(
+                engine = engine,
+                onDismiss = { engine.closeHoloComms() }
+            )
+        }
+
         // 4. Pause Menu Modal
         if (engine.isPaused) {
             PauseModal(
@@ -624,19 +632,35 @@ fun BossHudBar(
                 .fillMaxWidth()
                 .padding(10.dp)
         ) {
+            val prof = boss.profile
+            val pCol = prof?.primaryColor ?: DangerRed
+            val aCol = prof?.accentColor ?: AeroAmber
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = boss.name,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = DangerRed
-                )
+                Column {
+                    Text(
+                        text = boss.name,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = pCol,
+                        fontWeight = FontWeight.Bold
+                    )
+                    prof?.epithet?.let { ep ->
+                        Text(
+                            text = ep,
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                            color = aCol,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
                 Text(
                     text = boss.phase.name.replace("_", " "),
                     style = MaterialTheme.typography.labelSmall,
-                    color = AeroAmber
+                    color = aCol
                 )
             }
 
@@ -655,7 +679,7 @@ fun BossHudBar(
                     modifier = Modifier
                         .fillMaxWidth(hullRatio)
                         .fillMaxHeight()
-                        .background(Brush.horizontalGradient(listOf(Color(0xFFFF2200), Color(0xFFFF7A00))))
+                        .background(Brush.horizontalGradient(listOf(pCol, aCol)))
                 )
             }
 
@@ -1065,6 +1089,210 @@ fun GameOverModal(
                 ) {
                     Text("RE-DEPLOY", fontWeight = FontWeight.Bold)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun HoloCommsModal(
+    engine: GameEngine,
+    onDismiss: () -> Unit
+) {
+    val prof = engine.holoBossProfile ?: return
+    val pCol = prof.primaryColor
+    val aCol = prof.accentColor
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.82f))
+            .clickable(enabled = false) {},
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .clip(RoundedCornerShape(16.dp))
+                .background(DarkSurface.copy(alpha = 0.95f))
+                .border(2.dp, pCol, RoundedCornerShape(16.dp))
+                .padding(18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Header: Sector and Enemy Tag
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(pCol)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "LIVE HOLO-COMMS // ${prof.matchedBiomeName.uppercase()}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = pCol,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Text(
+                    text = "SECTOR ${prof.index}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = aCol,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Holographic Projection Wireframe & Profile
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF030712))
+                    .border(1.dp, pCol.copy(alpha = 0.5f), RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                // Background scanline effect
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    for (i in 0..12) {
+                        val y = i * 10f
+                        drawLine(
+                            color = pCol.copy(alpha = 0.15f),
+                            start = androidx.compose.ui.geometry.Offset(0f, y),
+                            end = androidx.compose.ui.geometry.Offset(size.width, y),
+                            strokeWidth = 1.5f
+                        )
+                    }
+                    // Central Holographic Beacon Icon
+                    drawCircle(color = pCol.copy(alpha = 0.2f), radius = 45f)
+                    drawCircle(color = pCol, radius = 28f, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.5f))
+                    drawCircle(color = aCol, radius = 12f)
+                }
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = prof.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = pCol,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        text = prof.epithet,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = aCol,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Incoming Boss Taunt
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = DarkSurfaceElevated.copy(alpha = 0.9f)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, pCol.copy(alpha = 0.4f)),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(
+                        text = "TRANSMISSION RECEIVED:",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = TextSecondary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "\"${engine.holoCurrentTaunt}\"",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Enemy Counter-Response (If replied)
+            if (engine.holoStep >= 2 && engine.holoEnemyResponse.isNotBlank()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1028)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, aCol.copy(alpha = 0.8f)),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = "ENEMY COUNTER-RESPONSE:",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                            color = aCol,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "\"${engine.holoEnemyResponse}\"",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(14.dp))
+            }
+
+            // Player Reply Options (Interactive Quick Replies)
+            if (engine.holoStep == 1) {
+                Text(
+                    text = "SELECT TACTICAL TRANSMISSION REPLY:",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = AeroCyan,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    prof.comms.quickReplies.forEach { reply ->
+                        Button(
+                            onClick = { engine.onPlayerReplyToHolo(reply) },
+                            modifier = Modifier.weight(1f).height(44.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = DarkSurfaceElevated, contentColor = AeroCyan),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AeroCyan.copy(alpha = 0.6f)),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(text = reply, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            // Engage Combat / Dissolve Hologram Button
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth().height(48.dp).testTag("holo_engage_button"),
+                colors = ButtonDefaults.buttonColors(containerColor = pCol, contentColor = DarkVoid),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Icon(Icons.Default.RocketLaunch, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = if (engine.holoStep == 1) "SKIP COMMS & ENGAGE" else "RESUME DOGFIGHT // BREAK COMMS",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
             }
         }
     }

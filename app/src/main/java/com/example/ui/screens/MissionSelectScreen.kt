@@ -145,6 +145,7 @@ fun MissionSelectScreen(
                         )
 
                         Spacer(modifier = Modifier.height(10.dp))
+                        val matchedBoss = com.example.game.model.BossProfileCatalog.getForBiome(biome.id)
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Cloud, contentDescription = null, tint = AeroCyan, modifier = Modifier.size(16.dp))
@@ -152,9 +153,9 @@ fun MissionSelectScreen(
                                 Text(biome.weatherType.replace("_", " "), color = TextSecondary, style = MaterialTheme.typography.labelSmall)
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.MilitaryTech, contentDescription = null, tint = AeroViolet, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.MilitaryTech, contentDescription = null, tint = matchedBoss.primaryColor, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Goliath Dreadnought", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
+                                Text(matchedBoss.name, color = matchedBoss.primaryColor, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
