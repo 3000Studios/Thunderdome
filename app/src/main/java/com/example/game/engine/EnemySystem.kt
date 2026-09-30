@@ -123,19 +123,68 @@ class EnemySystem {
                         spawnEnemyProjectile(e.x, e.y + 18f, 0f, 620f, ProjectileType.ENEMY_LASER, 40f, Color(0xFFC084FC))
                     }
                 }
+                EnemyType.SWARM_UNIT -> {
+                    // Fast buzzing swarm drone
+                    e.vy = e.type.speed
+                    e.vx = sin(e.aiStateTimer * 7f) * 200f
+                    if (e.fireTimer > 0.9f) {
+                        e.fireTimer = 0f
+                        spawnEnemyProjectile(e.x, e.y + 10f, 0f, 520f, ProjectileType.ENEMY_PLASMA, 14f, Color(0xFFFF3366))
+                    }
+                }
+                EnemyType.BOMBER -> {
+                    // Heavy slow carpet bomber
+                    e.vy = e.type.speed * 0.8f
+                    e.vx = sin(e.aiStateTimer * 1.0f) * 60f
+                    if (e.fireTimer > 2.2f) {
+                        e.fireTimer = 0f
+                        spawnEnemyProjectile(e.x - 20f, e.y + 20f, -40f, 320f, ProjectileType.ENEMY_MISSILE, 45f, Color(0xFFFF9500))
+                        spawnEnemyProjectile(e.x + 20f, e.y + 20f, 40f, 320f, ProjectileType.ENEMY_MISSILE, 45f, Color(0xFFFF9500))
+                    }
+                }
+                EnemyType.SHIELD_UNIT -> {
+                    // Shield protector supporting other units
+                    e.vy = e.type.speed * 0.7f
+                    e.vx = cos(e.aiStateTimer * 1.5f) * 100f
+                    if (e.fireTimer > 2.0f) {
+                        e.fireTimer = 0f
+                        spawnEnemyProjectile(e.x, e.y + 15f, 0f, 400f, ProjectileType.ENEMY_PLASMA, 20f, Color(0xFF00F0FF))
+                    }
+                }
+                EnemyType.SNIPER_AIRCRAFT -> {
+                    // High-velocity railgun sniper
+                    if (e.y < screenHeight * 0.22f) e.vy = e.type.speed else e.vy = sin(e.aiStateTimer * 1.5f) * 40f
+                    e.vx = 0f
+                    if (e.fireTimer > 2.5f) {
+                        e.fireTimer = 0f
+                        spawnEnemyProjectile(e.x, e.y + 25f, 0f, 850f, ProjectileType.ENEMY_LASER, 60f, Color(0xFF22C55E))
+                    }
+                }
+                EnemyType.KAMIKAZE_UNIT -> {
+                    // High-speed aggressive dive straight at player
+                    val dx = player.x - e.x
+                    e.vx = dx.coerceIn(-350f, 350f)
+                    e.vy = e.type.speed * 1.2f
+                }
                 EnemyType.MISSILE_CORVETTE -> {
                     // Standoff at top, fires guided missiles
-                    if (e.y < screenHeight * 0.2f) {
-                        e.vy = e.type.speed
-                    } else {
-                        e.vy = 0f
-                    }
+                    if (e.y < screenHeight * 0.2f) e.vy = e.type.speed else e.vy = 0f
                     e.vx = sin(e.aiStateTimer * 0.7f) * 90f
-
                     if (e.fireTimer > 2.8f) {
                         e.fireTimer = 0f
                         spawnEnemyProjectile(e.x - 18f, e.y + 15f, -60f, 280f, ProjectileType.ENEMY_MISSILE, 55f, Color(0xFFFF2A4D))
                         spawnEnemyProjectile(e.x + 18f, e.y + 15f, 60f, 280f, ProjectileType.ENEMY_MISSILE, 55f, Color(0xFFFF2A4D))
+                    }
+                }
+                EnemyType.ELITE_GUARD -> {
+                    // Apex elite guard: multi-vector plasma sweep
+                    if (e.y < screenHeight * 0.3f) e.vy = e.type.speed * 0.7f else e.vy = sin(e.aiStateTimer * 2f) * 50f
+                    e.vx = cos(e.aiStateTimer * 1.8f) * 130f
+                    if (e.fireTimer > 1.4f) {
+                        e.fireTimer = 0f
+                        for (i in -1..1) {
+                            spawnEnemyProjectile(e.x, e.y + 20f, i * 60f, 480f, ProjectileType.ENEMY_PLASMA, 30f, Color(0xFFFFD700))
+                        }
                     }
                 }
             }

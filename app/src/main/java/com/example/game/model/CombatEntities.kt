@@ -52,6 +52,13 @@ enum class EnemyType(
     ELITE_GUARD("Apex Elite Guard", 480f, 320f, 48f, 1200)
 }
 
+enum class DamageState {
+    PRISTINE,
+    LIGHT,
+    HEAVY,
+    CRITICAL
+}
+
 data class EnemyEntity(
     val id: Long,
     val type: EnemyType,
@@ -69,7 +76,7 @@ data class EnemyEntity(
     var isCloaked: Boolean = false,
     var cloakAlpha: Float = 1f,
     var hitFlashTimer: Float = 0f,
-    var damageState: Float = 0f, // 0.0 (pristine) -> 1.0 (critical wreckage)
+    var damageState: DamageState = DamageState.PRISTINE,
     var isWingDamaged: Boolean = false,
     var isSmoking: Boolean = false,
     var isSparking: Boolean = false,

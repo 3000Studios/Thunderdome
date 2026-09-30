@@ -1,6 +1,7 @@
 package com.example.ui.components
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -119,7 +121,7 @@ fun CoreEmblem(modifier: Modifier = Modifier.size(20.dp), glowColor: Color = Aer
 }
 
 // ── CARBON FIBER TEXTURE HELPER ──
-fun DrawScope.drawCarbonFiberBackground(baseColor: Color = CarbonDark, weaveColor: Color = CarbonLight.copy(alpha = 0.45f)) {
+fun DrawScope.drawCarbonFiberBackground(baseColor: Color = CarbonBlack, weaveColor: Color = Color(0x33475569)) {
     drawRect(color = baseColor)
     val step = 6f
     var x = -size.height
