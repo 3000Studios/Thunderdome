@@ -49,6 +49,7 @@ fun CombatScreen(
     val player = engine.playerState
     val stats = engine.combatStats
     val settings by viewModel.settings.collectAsState()
+    val profile by viewModel.playerProfile.collectAsState()
 
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     var lastNanoTime by remember { mutableLongStateOf(0L) }
@@ -246,11 +247,44 @@ fun CombatScreen(
             )
         }
 
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val activity = context as? android.app.Activity
+
         // 5. Game Over / Debriefing Screen
         if (engine.isGameOver) {
             GameOverModal(
                 stats = stats,
                 onBankOverclocks = viewModel::bankMissionOverclocks,
+                onWatchAdToRevive = {
+                    if (activity != null) {
+                        viewModel.showRewardedAdForContinue(activity) {
+                            engine.revivePlayer()
+                        }
+                    } else {
+                        engine.revivePlayer()
+                    }
+                },
+                onDoubleRewards = {
+                    if (activity != null) {
+                        viewModel.showRewardedAdForDoubleReward(activity) {
+                            stats.creditsEarned *= 2
+                            stats.plasmaCoresEarned *= 2
+                        }
+                    } else {
+                        stats.creditsEarned *= 2
+                        stats.plasmaCoresEarned *= 2
+                    }
+                },
+                onShareSortie = {
+                    com.example.ui.components.ShareHelper.shareSortieResult(
+                        context = context,
+                        callsign = profile.callsign,
+                        score = stats.score,
+                        kills = stats.kills,
+                        stageName = engine.currentBiome.name,
+                        aircraftName = engine.currentAircraftSpec.name
+                    )
+                },
                 onRetry = {
                     val w = canvasSize.width.toFloat()
                     val h = canvasSize.height.toFloat()
@@ -279,6 +313,27 @@ fun CombatScreen(
                 stats = stats,
                 biomeName = engine.currentBiome.name,
                 onBankOverclocks = viewModel::bankMissionOverclocks,
+                onDoubleRewards = {
+                    if (activity != null) {
+                        viewModel.showRewardedAdForDoubleReward(activity) {
+                            stats.creditsEarned *= 2
+                            stats.plasmaCoresEarned *= 2
+                        }
+                    } else {
+                        stats.creditsEarned *= 2
+                        stats.plasmaCoresEarned *= 2
+                    }
+                },
+                onShareVictory = {
+                    com.example.ui.components.ShareHelper.shareSortieResult(
+                        context = context,
+                        callsign = profile.callsign,
+                        score = stats.score,
+                        kills = stats.kills,
+                        stageName = engine.currentBiome.name,
+                        aircraftName = engine.currentAircraftSpec.name
+                    )
+                },
                 onExit = {
                     viewModel.saveMissionFinish()
                     onExitMission()
@@ -1042,10 +1097,15 @@ fun PauseModal(
 fun GameOverModal(
     stats: com.example.game.engine.GameCombatStats,
     onBankOverclocks: () -> Unit,
+    onWatchAdToRevive: () -> Unit,
+    onDoubleRewards: () -> Unit,
+    onShareSortie: () -> Unit,
     onRetry: () -> Unit,
     onExit: () -> Unit
 ) {
     var overclocksBanked by remember { mutableStateOf(false) }
+    var rewardsDoubled by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -1054,23 +1114,24 @@ fun GameOverModal(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth(0.88f)
+                .fillMaxWidth(0.90f)
                 .clip(RoundedCornerShape(16.dp))
                 .background(DarkSurface)
                 .border(1.5.dp, DangerRed, RoundedCornerShape(16.dp))
-                .padding(24.dp),
+                .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 "MISSION DEBRIEF",
                 style = MaterialTheme.typography.titleLarge,
-                color = DangerRed
+                color = DangerRed,
+                fontWeight = FontWeight.Bold
             )
             Text(
                 "AIRCRAFT CRITICAL DAMAGE DESTROYED",
                 style = MaterialTheme.typography.labelSmall,
                 color = TextSecondary,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 12.dp)
             )
 
             Column(
@@ -1078,12 +1139,12 @@ fun GameOverModal(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
                     .background(DarkSurfaceElevated)
-                    .padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Total Score:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
-                    Text("${stats.score}", color = Color.White, style = MaterialTheme.typography.titleMedium)
+                    Text("${stats.score}", color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Hostiles Destroyed:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
@@ -1095,11 +1156,11 @@ fun GameOverModal(
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Credits Earned:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
-                    Text("+${stats.creditsEarned} CR", color = AeroEmerald, style = MaterialTheme.typography.bodyMedium)
+                    Text("+${stats.creditsEarned} CR", color = AeroEmerald, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Plasma Cores:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
-                    Text("+${stats.plasmaCoresEarned}", color = AeroViolet, style = MaterialTheme.typography.bodyMedium)
+                    Text("+${stats.plasmaCoresEarned}", color = AeroViolet, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                 }
                 if (stats.overclocksEarned > 0 && !overclocksBanked) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -1109,7 +1170,54 @@ fun GameOverModal(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Rewarded Revive Button
+            Button(
+                onClick = onWatchAdToRevive,
+                modifier = Modifier.fillMaxWidth().height(46.dp).testTag("revive_ad_button"),
+                colors = ButtonDefaults.buttonColors(containerColor = AeroViolet, contentColor = Color.White),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("REVIVE WARBIRD (AD / VIP +50% HP)", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Rewarded 2x Reward Multiplier
+            if (!rewardsDoubled) {
+                Button(
+                    onClick = {
+                        onDoubleRewards()
+                        rewardsDoubled = true
+                    },
+                    modifier = Modifier.fillMaxWidth().height(42.dp).testTag("double_rewards_button"),
+                    colors = ButtonDefaults.buttonColors(containerColor = AeroAmber, contentColor = DarkVoid),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Icon(Icons.Default.CardGiftcard, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("CLAIM 2X REWARDS (AD / VIP)", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            // Viral TikTok / Social Share Button
+            OutlinedButton(
+                onClick = onShareSortie,
+                modifier = Modifier.fillMaxWidth().height(40.dp).testTag("share_debrief_button"),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = AeroCyan),
+                border = androidx.compose.foundation.BorderStroke(1.dp, AeroCyan.copy(alpha = 0.7f)),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("SHARE SORTIE SCORE 🚀", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             if (stats.overclocksEarned > 0 && !overclocksBanked) {
                 Button(
@@ -1122,7 +1230,7 @@ fun GameOverModal(
                 ) {
                     Text("BANK SYSTEM OVERCLOCKS", fontWeight = FontWeight.Bold)
                 }
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             Row(
@@ -1152,9 +1260,13 @@ fun VictoryModal(
     stats: com.example.game.engine.GameCombatStats,
     biomeName: String,
     onBankOverclocks: () -> Unit,
+    onDoubleRewards: () -> Unit,
+    onShareVictory: () -> Unit,
     onExit: () -> Unit
 ) {
     var overclocksBanked by remember { mutableStateOf(false) }
+    var rewardsDoubled by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -1163,20 +1275,20 @@ fun VictoryModal(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth(0.88f)
+                .fillMaxWidth(0.90f)
                 .clip(RoundedCornerShape(16.dp))
                 .background(DarkSurface)
                 .border(2.dp, AeroCyan, RoundedCornerShape(16.dp))
-                .padding(24.dp),
+                .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
                 Icons.Default.MilitaryTech,
                 contentDescription = null,
                 tint = AeroCyan,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(44.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 "MISSION ACCOMPLISHED!",
                 style = MaterialTheme.typography.titleLarge,
@@ -1187,7 +1299,7 @@ fun VictoryModal(
                 "THEATER SECURED: ${biomeName.uppercase()}",
                 style = MaterialTheme.typography.labelSmall,
                 color = TextSecondary,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 12.dp)
             )
 
             Column(
@@ -1195,8 +1307,8 @@ fun VictoryModal(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
                     .background(DarkSurfaceElevated)
-                    .padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Final Sortie Score:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
@@ -1226,7 +1338,40 @@ fun VictoryModal(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Rewarded 2x Reward Multiplier
+            if (!rewardsDoubled) {
+                Button(
+                    onClick = {
+                        onDoubleRewards()
+                        rewardsDoubled = true
+                    },
+                    modifier = Modifier.fillMaxWidth().height(44.dp).testTag("victory_double_rewards_button"),
+                    colors = ButtonDefaults.buttonColors(containerColor = AeroAmber, contentColor = DarkVoid),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Icon(Icons.Default.CardGiftcard, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("CLAIM 2X REWARDS (AD / VIP)", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            // Viral TikTok / Social Share Button
+            OutlinedButton(
+                onClick = onShareVictory,
+                modifier = Modifier.fillMaxWidth().height(40.dp).testTag("victory_share_button"),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = AeroCyan),
+                border = androidx.compose.foundation.BorderStroke(1.dp, AeroCyan.copy(alpha = 0.7f)),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("SHARE VICTORY CARD 🚀", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             if (stats.overclocksEarned > 0 && !overclocksBanked) {
                 Button(
@@ -1239,13 +1384,14 @@ fun VictoryModal(
                 ) {
                     Text("BANK SYSTEM OVERCLOCKS", fontWeight = FontWeight.Bold)
                 }
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             Button(
                 onClick = onExit,
-                modifier = Modifier.fillMaxWidth().height(48.dp).testTag("victory_exit_button"),
-                colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid)
+                modifier = Modifier.fillMaxWidth().height(46.dp).testTag("victory_exit_button"),
+                colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid),
+                shape = RoundedCornerShape(10.dp)
             ) {
                 Icon(Icons.Default.FlightTakeoff, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))

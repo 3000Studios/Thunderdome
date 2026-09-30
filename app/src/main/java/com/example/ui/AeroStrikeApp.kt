@@ -102,6 +102,21 @@ fun AeroStrikeApp(viewModel: GameViewModel) {
                     MainNavTab.LEADERBOARD -> LeaderboardScreen(viewModel = viewModel)
                     MainNavTab.SETTINGS -> SettingsScreen(viewModel = viewModel)
                 }
+
+                // Global Store / Depot In-App Purchase Modal
+                val isStoreOpen by viewModel.isStoreModalOpen.collectAsState()
+                val profile by viewModel.playerProfile.collectAsState()
+                val availableProducts by viewModel.availableProducts.collectAsState()
+
+                if (isStoreOpen) {
+                    com.example.ui.components.StoreModal(
+                        profile = profile,
+                        availableProducts = availableProducts,
+                        onBuyProduct = { act, pid -> viewModel.buyProduct(act, pid) },
+                        onRestorePurchases = { viewModel.restorePurchases() },
+                        onDismiss = { viewModel.closeStoreModal() }
+                    )
+                }
             }
         }
     }

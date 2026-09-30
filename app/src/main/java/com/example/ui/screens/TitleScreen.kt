@@ -397,6 +397,21 @@ fun TitleScreen(
                         Text("PASS & REWARDS", fontWeight = FontWeight.Bold)
                     }
                 }
+
+                // 5. Warbird Depot & In-App Purchase Store
+                Button(
+                    onClick = { viewModel.openStoreModal() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(46.dp)
+                        .testTag("open_store_button"),
+                    colors = ButtonDefaults.buttonColors(containerColor = AeroAmber, contentColor = DarkVoid),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("DEPOT & FOUNDER STORE 🛒", fontWeight = FontWeight.Black, fontSize = 13.sp)
+                }
             }
 
             // ── FOOTER STATUS ──

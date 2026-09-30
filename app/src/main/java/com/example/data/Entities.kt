@@ -19,7 +19,12 @@ data class PlayerProfileEntity(
     val vanguardPassTier: Int = 1,
     val vanguardPassXp: Int = 0,
     val hasClaimedPromoBundle: Boolean = false,
-    val claimedPassTiers: String = "1,2"
+    val claimedPassTiers: String = "1,2",
+    val isAdsRemoved: Boolean = false,
+    val hasFounderPack: Boolean = false,
+    val hasStarterPack: Boolean = false,
+    val purchasedProductIds: String = "",
+    val lastSyncTimestamp: Long = 0L
 )
 
 @Entity(tableName = "aircraft_saves")

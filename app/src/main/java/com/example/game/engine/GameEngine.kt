@@ -961,6 +961,17 @@ class GameEngine(
         }
     }
 
+    fun revivePlayer() {
+        isGameOver = false
+        playerState.health = playerState.maxHealth * 0.6f
+        playerState.shield = playerState.maxShield
+        playerState.invulnerableTimer = 4.0f
+        vfx.spawnExplosion(playerState.x, playerState.y, isHeavy = false, colorScheme = Color(0xFF00F0FF))
+        audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+        vfx.addText("⚡ SYSTEMS RESTORED // REVIVED!", playerState.x, playerState.y - 50f, Color(0xFF00F0FF))
+        resumeRadioMusic()
+    }
+
     private fun startTunnelMusic() {
         try {
             stopTunnelMusic()

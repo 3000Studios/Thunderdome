@@ -157,7 +157,10 @@ fun HangarScreen(
                     Text(profile.callsign, style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold)
                     Text("LEVEL ${profile.level} PILOT", style = MaterialTheme.typography.labelSmall, color = AeroCyan, letterSpacing = 1.5.sp)
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(DarkSurfaceElevated.copy(alpha = 0.6f)).padding(horizontal = 8.dp, vertical = 4.dp)
@@ -173,6 +176,17 @@ fun HangarScreen(
                         Icon(Icons.Default.Diamond, "Plasma Cores", tint = AeroViolet, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
                         Text("${profile.plasmaCores}", style = MaterialTheme.typography.labelLarge, color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                    Button(
+                        onClick = { viewModel.openStoreModal() },
+                        colors = ButtonDefaults.buttonColors(containerColor = AeroAmber, contentColor = DarkVoid),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.height(32.dp).testTag("hangar_store_button")
+                    ) {
+                        Icon(Icons.Default.ShoppingCart, contentDescription = "Store", modifier = Modifier.size(14.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("STORE", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }

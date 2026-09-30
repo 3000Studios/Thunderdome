@@ -166,7 +166,28 @@ object AircraftCatalog {
         rosterCraft("apex_nova", "Apex Nova", "Ultimate Class", "Nova Catastrophe", "Massive screen-clearing energy eruption.", "nova_blast", Color(0xFFFFF0C4), AeroAmber, 1400f, 980f, 60000L)
     )
 
-    val ALL_AIRCRAFT = listOf(APEX_FALCON, VALKYRIE_PHANTOM, TITAN_DREAD, SOLARIS_SPECTER) + ROSTER_EXPANSION
+    val APEX_FOUNDER_ZERO = AircraftSpec(
+        id = "apex_founder_zero",
+        name = "Apex Zero [Founder]",
+        role = "3000 Studios Founder Prototype",
+        description = "Exclusive Founder Edition gold-alloy warbird with dual quantum turbines, titanium armor and infinite kinetic shields.",
+        baseHealth = 1800f,
+        baseShield = 1400f,
+        baseSpeed = 1120f,
+        baseHandling = 1.45f,
+        baseBoostCapacity = 160f,
+        baseBoostRecharge = 50f,
+        baseCritChance = 0.35f,
+        unlockCostCredits = 0L,
+        unlockCostCores = 0,
+        primaryColor = Color(0xFFFFD700),
+        accentColor = Color(0xFFF59E0B),
+        abilityName = "Founder Supernova",
+        abilityDescription = "Discharges a golden solar pulse destroying all enemy fire and supercharging fire rate.",
+        defaultSpecialAbilityId = "nova_blast"
+    )
+
+    val ALL_AIRCRAFT = listOf(APEX_FALCON, VALKYRIE_PHANTOM, TITAN_DREAD, SOLARIS_SPECTER, APEX_FOUNDER_ZERO) + ROSTER_EXPANSION
 
     fun getById(id: String): AircraftSpec = ALL_AIRCRAFT.firstOrNull { it.id == id } ?: APEX_FALCON
 }
@@ -186,7 +207,8 @@ object PaintCatalog {
         PaintScheme("cobalt_frost", "Cobalt Frost", Color(0xFF1E3A8A), Color(0xFF67E8F9), 800L),
         PaintScheme("crimson_war", "Crimson Warpath", Color(0xFF7F1D1D), AeroAmber, 1200L),
         PaintScheme("solar_flare", "Solar Prototype", Color(0xFF78350F), Color(0xFFFBBF24), 2000L),
-        PaintScheme("cyber_neon", "Cyberpunk Phantom", Color(0xFF581C87), AeroEmerald, 3500L)
+        PaintScheme("cyber_neon", "Cyberpunk Phantom", Color(0xFF581C87), AeroEmerald, 3500L),
+        PaintScheme("founder_gold", "3000 Founder Gold", Color(0xFFFFD700), Color(0xFFF59E0B), 0L)
     )
 
     fun getById(id: String): PaintScheme = ALL.firstOrNull { it.id == id } ?: ALL.first()
@@ -206,7 +228,8 @@ object ExhaustCatalog {
         ExhaustFlame("cyan_flame", "Ion Cyan", Color(0xFFE0F7FA), AeroCyan, 0L),
         ExhaustFlame("violet_flame", "Antimatter Violet", Color(0xFFF3E8FF), AeroViolet, 600L),
         ExhaustFlame("amber_flame", "Hyper Orange", Color(0xFFFEF3C7), AeroOrange, 1000L),
-        ExhaustFlame("emerald_flame", "Tachyon Emerald", Color(0xFFDCFCE7), AeroEmerald, 1500L)
+        ExhaustFlame("emerald_flame", "Tachyon Emerald", Color(0xFFDCFCE7), AeroEmerald, 1500L),
+        ExhaustFlame("founder_ion_gold", "Founder Solar Ion", Color(0xFFFFFBEB), Color(0xFFFFD700), 0L)
     )
 
     fun getById(id: String): ExhaustFlame = ALL.firstOrNull { it.id == id } ?: ALL.first()

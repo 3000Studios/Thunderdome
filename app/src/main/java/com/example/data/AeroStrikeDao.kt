@@ -21,6 +21,9 @@ interface AeroStrikeDao {
     @Query("SELECT * FROM aircraft_saves")
     fun getAllAircraft(): Flow<List<AircraftSaveEntity>>
 
+    @Query("SELECT * FROM aircraft_saves")
+    suspend fun getAllAircraftDirect(): List<AircraftSaveEntity>
+
     @Query("SELECT * FROM aircraft_saves WHERE aircraftId = :id")
     suspend fun getAircraftById(id: String): AircraftSaveEntity?
 

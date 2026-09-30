@@ -47,6 +47,19 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     val audioHaptics = AudioHapticSystem(application)
     val gameEngine = GameEngine(application, audioHaptics)
 
+    // Monetization & Ads
+    val billingManager = com.example.game.monetization.BillingManager(application, viewModelScope) { productId ->
+        handleSuccessfulPurchase(productId)
+    }
+    val adManager = com.example.game.monetization.AdManager(application)
+
+    // In-App Updates & Live Game Content
+    val appUpdateManager = com.example.game.update.AppUpdateManager(application)
+    val remoteConfigManager = com.example.game.update.RemoteGameConfigManager(application)
+
+    val isStoreModalOpen = MutableStateFlow(false)
+    val availableProducts = billingManager.availableProducts
+
     val playerProfile: StateFlow<PlayerProfileEntity> = repository.playerProfile
         .filterNotNull()
         .stateIn(
@@ -124,8 +137,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private var menuMediaPlayer: android.media.MediaPlayer? = null
 
     init {
+        com.example.game.analytics.AnalyticsManager.logGameOpen()
         viewModelScope.launch(Dispatchers.IO) {
             repository.ensureInitialized()
+            appUpdateManager.checkForUpdates(com.example.BuildConfig.VERSION_CODE, com.example.BuildConfig.VERSION_NAME)
+            remoteConfigManager.fetchLatestConfig()
         }
         viewModelScope.launch {
             settings.collect { s ->
@@ -401,6 +417,160 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun setScreenSizeScale(scale: String) {
         updateSettings(screenSizeScale = scale)
         audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+    }
+
+    fun openStoreModal() {
+        isStoreModalOpen.value = true
+        audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+    }
+
+    fun closeStoreModal() {
+        isStoreModalOpen.value = false
+    }
+
+    fun buyProduct(activity: android.app.Activity, productId: String) {
+        com.example.game.analytics.AnalyticsManager.logPurchaseStarted(productId)
+        billingManager.launchBillingFlow(activity, productId)
+    }
+
+    fun restorePurchases() {
+        billingManager.restorePurchases()
+        audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+    }
+
+    fun handleSuccessfulPurchase(productId: String) {
+        val prof = playerProfile.value
+        viewModelScope.launch {
+            when (productId) {
+                com.example.game.monetization.BillingManager.PRODUCT_REMOVE_ADS -> {
+                    val updated = prof.copy(
+                        isAdsRemoved = true,
+                        purchasedProductIds = "${prof.purchasedProductIds},remove_ads"
+                    )
+                    repository.updateProfile(updated)
+                }
+                com.example.game.monetization.BillingManager.PRODUCT_STARTER_PACK -> {
+                    val updated = prof.copy(
+                        credits = prof.credits + 15000L,
+                        plasmaCores = prof.plasmaCores + 30,
+                        hasStarterPack = true,
+                        purchasedProductIds = "${prof.purchasedProductIds},starter_pack"
+                    )
+                    repository.updateProfile(updated)
+                    val craft = repository.getAircraftById("valkyrie_phantom") ?: AircraftSaveEntity(aircraftId = "valkyrie_phantom")
+                    repository.updateAircraft(craft.copy(isUnlocked = true))
+                }
+                com.example.game.monetization.BillingManager.PRODUCT_FOUNDER_PACK -> {
+                    val updated = prof.copy(
+                        credits = prof.credits + 50000L,
+                        plasmaCores = prof.plasmaCores + 100,
+                        hasFounderPack = true,
+                        isAdsRemoved = true,
+                        selectedAircraftId = "apex_founder_zero",
+                        purchasedProductIds = "${prof.purchasedProductIds},founder_pack"
+                    )
+                    repository.updateProfile(updated)
+                    val founderCraft = repository.getAircraftById("apex_founder_zero") ?: AircraftSaveEntity(
+                        aircraftId = "apex_founder_zero",
+                        paintSchemeId = "founder_gold",
+                        exhaustColorId = "founder_ion_gold",
+                        specialAbilityId = "nova_blast"
+                    )
+                    repository.updateAircraft(founderCraft.copy(isUnlocked = true))
+                }
+                com.example.game.monetization.BillingManager.PRODUCT_CORES_SMALL -> {
+                    val updated = prof.copy(plasmaCores = prof.plasmaCores + 25)
+                    repository.updateProfile(updated)
+                }
+                com.example.game.monetization.BillingManager.PRODUCT_CORES_LARGE -> {
+                    val updated = prof.copy(plasmaCores = prof.plasmaCores + 150)
+                    repository.updateProfile(updated)
+                }
+            }
+            com.example.game.analytics.AnalyticsManager.logPurchaseCompleted(productId)
+            audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+        }
+    }
+
+    fun showRewardedAdForContinue(activity: android.app.Activity, onRevived: () -> Unit) {
+        val prof = playerProfile.value
+        if (prof.isAdsRemoved || prof.hasFounderPack) {
+            // Founder / Ad-free players get instant free revives without ads!
+            gameEngine.playerState.health = gameEngine.playerState.maxHealth * 0.75f
+            gameEngine.playerState.shield = gameEngine.playerState.maxShield
+            gameEngine.playerState.invulnerableTimer = 3.0f
+            gameEngine.isGameOver = false
+            com.example.game.analytics.AnalyticsManager.logContinueUsed("vip_instant")
+            onRevived()
+            return
+        }
+
+        com.example.game.analytics.AnalyticsManager.logRewardedAdStarted("continue_sortie")
+        adManager.showRewardedAd(
+            activity = activity,
+            onRewardEarned = { _, _ ->
+                gameEngine.playerState.health = gameEngine.playerState.maxHealth * 0.75f
+                gameEngine.playerState.shield = gameEngine.playerState.maxShield
+                gameEngine.playerState.invulnerableTimer = 3.0f
+                gameEngine.isGameOver = false
+                com.example.game.analytics.AnalyticsManager.logContinueUsed("rewarded_ad")
+                com.example.game.analytics.AnalyticsManager.logRewardedAdCompleted("continue_sortie", "REVIVE")
+                onRevived()
+            },
+            onAdDismissedOrFailed = {}
+        )
+    }
+
+    fun showRewardedAdForDoubleReward(activity: android.app.Activity, onDoubled: () -> Unit) {
+        val prof = playerProfile.value
+        val stats = gameEngine.combatStats
+
+        if (prof.isAdsRemoved || prof.hasFounderPack) {
+            // Instant 2x rewards for VIPs
+            val extraCredits = stats.creditsEarned
+            val extraCores = stats.plasmaCoresEarned
+            stats.creditsEarned += extraCredits
+            stats.plasmaCoresEarned += extraCores
+            viewModelScope.launch {
+                repository.updateProfile(prof.copy(credits = prof.credits + extraCredits, plasmaCores = prof.plasmaCores + extraCores))
+            }
+            onDoubled()
+            return
+        }
+
+        com.example.game.analytics.AnalyticsManager.logRewardedAdStarted("double_reward")
+        adManager.showRewardedAd(
+            activity = activity,
+            onRewardEarned = { _, _ ->
+                val extraCredits = stats.creditsEarned
+                val extraCores = stats.plasmaCoresEarned
+                stats.creditsEarned += extraCredits
+                stats.plasmaCoresEarned += extraCores
+                viewModelScope.launch {
+                    repository.updateProfile(prof.copy(credits = prof.credits + extraCredits, plasmaCores = prof.plasmaCores + extraCores))
+                }
+                com.example.game.analytics.AnalyticsManager.logRewardedAdCompleted("double_reward", "2X_MULTIPLIER")
+                onDoubled()
+            },
+            onAdDismissedOrFailed = {}
+        )
+    }
+
+    suspend fun exportSaveJson(): String {
+        val prof = repository.getProfileDirect() ?: PlayerProfileEntity()
+        val all = repository.getAllAircraftDirect()
+        return com.example.data.CloudSaveManager.exportSaveToJson(prof, all)
+    }
+
+    suspend fun importCloudSave(jsonStr: String): Boolean {
+        val snapshot = com.example.data.CloudSaveManager.parseSaveFromJson(jsonStr) ?: return false
+        val current = repository.getProfileDirect()
+        if (current != null && current.lastSyncTimestamp > snapshot.timestamp) {
+            // Keep local newer save
+            return false
+        }
+        repository.restoreSaveSnapshot(snapshot)
+        return true
     }
 
     fun optimizeAllSettingsToBest() {

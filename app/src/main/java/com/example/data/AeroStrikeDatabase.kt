@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
         AircraftSaveEntity::class,
         SettingsEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AeroStrikeDatabase : RoomDatabase() {
@@ -34,7 +34,7 @@ abstract class AeroStrikeDatabase : RoomDatabase() {
                     AeroStrikeDatabase::class.java,
                     "aerostrike_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .addCallback(DatabaseCallback(scope))
                     .build()
                 INSTANCE = instance
@@ -43,32 +43,42 @@ abstract class AeroStrikeDatabase : RoomDatabase() {
         }
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL(
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
                     "ALTER TABLE aircraft_saves ADD COLUMN overclockLevel INTEGER NOT NULL DEFAULT 0"
                 )
             }
         }
 
         private val MIGRATION_2_3 = object : Migration(2, 3) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE game_settings ADD COLUMN touchInputEnabled INTEGER NOT NULL DEFAULT 1")
-                database.execSQL("ALTER TABLE game_settings ADD COLUMN touchOffsetY REAL NOT NULL DEFAULT 55")
-                database.execSQL("ALTER TABLE game_settings ADD COLUMN soundEnabled INTEGER NOT NULL DEFAULT 1")
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE game_settings ADD COLUMN touchInputEnabled INTEGER NOT NULL DEFAULT 1")
+                db.execSQL("ALTER TABLE game_settings ADD COLUMN touchOffsetY REAL NOT NULL DEFAULT 55")
+                db.execSQL("ALTER TABLE game_settings ADD COLUMN soundEnabled INTEGER NOT NULL DEFAULT 1")
             }
         }
 
         private val MIGRATION_3_4 = object : Migration(3, 4) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE player_profile ADD COLUMN hasClaimedPromoBundle INTEGER NOT NULL DEFAULT 0")
-                database.execSQL("ALTER TABLE player_profile ADD COLUMN claimedPassTiers TEXT NOT NULL DEFAULT '1,2'")
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE player_profile ADD COLUMN hasClaimedPromoBundle INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE player_profile ADD COLUMN claimedPassTiers TEXT NOT NULL DEFAULT '1,2'")
             }
         }
 
         private val MIGRATION_4_5 = object : Migration(4, 5) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE game_settings ADD COLUMN cameraViewMode TEXT NOT NULL DEFAULT 'FOLLOW_3RD'")
-                database.execSQL("ALTER TABLE game_settings ADD COLUMN screenSizeScale TEXT NOT NULL DEFAULT 'MAX_IMMERSIVE'")
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE game_settings ADD COLUMN cameraViewMode TEXT NOT NULL DEFAULT 'FOLLOW_3RD'")
+                db.execSQL("ALTER TABLE game_settings ADD COLUMN screenSizeScale TEXT NOT NULL DEFAULT 'MAX_IMMERSIVE'")
+            }
+        }
+
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE player_profile ADD COLUMN isAdsRemoved INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE player_profile ADD COLUMN hasFounderPack INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE player_profile ADD COLUMN hasStarterPack INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE player_profile ADD COLUMN purchasedProductIds TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE player_profile ADD COLUMN lastSyncTimestamp INTEGER NOT NULL DEFAULT 0")
             }
         }
 
@@ -150,4 +160,13 @@ class GameRepository(private val dao: AeroStrikeDao) {
     suspend fun updateAircraft(aircraft: AircraftSaveEntity) = dao.insertOrUpdateAircraft(aircraft)
     suspend fun updateSettings(settings: SettingsEntity) = dao.insertOrUpdateSettings(settings)
     suspend fun getAircraftById(id: String) = dao.getAircraftById(id)
+    suspend fun getProfileDirect() = dao.getProfileDirect()
+    suspend fun getAllAircraftDirect() = dao.getAllAircraftDirect()
+
+    suspend fun restoreSaveSnapshot(snapshot: CloudSaveSnapshot) {
+        dao.insertOrUpdateProfile(snapshot.profile)
+        for (a in snapshot.aircraft) {
+            dao.insertOrUpdateAircraft(a)
+        }
+    }
 }
