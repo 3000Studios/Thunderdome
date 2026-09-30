@@ -474,6 +474,121 @@ object GameRenderer {
         val bodyColor = if (isInvulnerable) Color.White else paint.bodyColor
         val trimColor = paint.trimColor
 
+        when (spec.id) {
+            "aircraft_jerica" -> {
+                // ── SECRET QUEEN BEE (JERICA) ──
+                val beeGold = Color(0xFFFFD700)
+                val beeBlack = Color(0xFF18181B)
+                val beeAmber = Color(0xFFF59E0B)
+
+                // Translucent Hexagonal Wings
+                val wingPath = Path().apply {
+                    moveTo(0f, -10f)
+                    lineTo(48f, -22f)
+                    lineTo(44f, 15f)
+                    lineTo(12f, 10f)
+                    lineTo(0f, 0f)
+                    lineTo(-12f, 10f)
+                    lineTo(-44f, 15f)
+                    lineTo(-48f, -22f)
+                    close()
+                }
+                scope.drawPath(wingPath, color = Color(0x66FDE047))
+                scope.drawPath(wingPath, color = beeGold, style = Stroke(width = 1.8f))
+
+                // Black & Gold Striped Bee Fuselage
+                val fuselage = Path().apply {
+                    moveTo(0f, -38f)
+                    lineTo(16f, -15f)
+                    lineTo(18f, 12f)
+                    lineTo(8f, 32f)
+                    lineTo(0f, 44f) // Sharp Stinger Tip
+                    lineTo(-8f, 32f)
+                    lineTo(-18f, 12f)
+                    lineTo(-16f, -15f)
+                    close()
+                }
+                scope.drawPath(fuselage, color = beeBlack)
+                scope.drawPath(fuselage, color = beeGold, style = Stroke(width = 2.4f))
+
+                // Golden Abdomen Stripes
+                for (yOff in listOf(-8f, 4f, 16f, 26f)) {
+                    scope.drawRoundRect(
+                        color = beeGold,
+                        topLeft = Offset(-12f, yOff),
+                        size = Size(24f, 6f),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(3f, 3f)
+                    )
+                }
+
+                // Stinger Energy Glow & Thruster
+                val stingerColor = if (isBoosting) Color(0xFFFF2200) else beeAmber
+                scope.drawCircle(stingerColor, radius = if (isBoosting) 10f else 6f, center = Offset(0f, 44f))
+
+                // Cyan Hologram Queen Eyes
+                scope.drawOval(color = AeroCyan, topLeft = Offset(-10f, -30f), size = Size(6f, 10f))
+                scope.drawOval(color = AeroCyan, topLeft = Offset(4f, -30f), size = Size(6f, 10f))
+                return
+            }
+            "aircraft_jadon" -> {
+                // ── SECRET APEX SOVEREIGN (JADON) ──
+                val jadonRed = Color(0xFFFF1E56)
+                val jadonCyan = Color(0xFF00F0FF)
+                val jadonDark = Color(0xFF0A0F1D)
+
+                // Split Dual-Tone Sovereign Wing Geometry
+                val sovereignPath = Path().apply {
+                    moveTo(0f, -44f)
+                    lineTo(14f, -20f)
+                    lineTo(50f, 8f)
+                    lineTo(34f, 22f)
+                    lineTo(18f, 16f)
+                    lineTo(12f, 36f)
+                    lineTo(0f, 28f)
+                    lineTo(-12f, 36f)
+                    lineTo(-18f, 16f)
+                    lineTo(-34f, 22f)
+                    lineTo(-50f, 8f)
+                    lineTo(-14f, -20f)
+                    close()
+                }
+                scope.drawPath(sovereignPath, color = jadonDark)
+
+                // Left Wing Crimson Accent, Right Wing Cyan Accent
+                val leftWing = Path().apply {
+                    moveTo(0f, -44f)
+                    lineTo(-14f, -20f)
+                    lineTo(-50f, 8f)
+                    lineTo(-34f, 22f)
+                    lineTo(-18f, 16f)
+                    close()
+                }
+                scope.drawPath(leftWing, color = jadonRed.copy(alpha = 0.85f))
+                scope.drawPath(leftWing, color = Color.White, style = Stroke(width = 1.6f))
+
+                val rightWing = Path().apply {
+                    moveTo(0f, -44f)
+                    lineTo(14f, -20f)
+                    lineTo(50f, 8f)
+                    lineTo(34f, 22f)
+                    lineTo(18f, 16f)
+                    close()
+                }
+                scope.drawPath(rightWing, color = jadonCyan.copy(alpha = 0.85f))
+                scope.drawPath(rightWing, color = Color.White, style = Stroke(width = 1.6f))
+
+                // Central Titanium Spine & Canopy
+                scope.drawLine(color = Color.White, start = Offset(0f, -44f), end = Offset(0f, 28f), strokeWidth = 3f)
+                scope.drawCircle(color = AeroCyan, radius = 6f, center = Offset(0f, -12f))
+
+                // Dual Ion Thruster Plumes
+                val flameLen = if (isBoosting) 45f else 22f
+                scope.drawOval(brush = Brush.verticalGradient(listOf(Color.White, jadonRed, Color.Transparent)), topLeft = Offset(-16f, 32f), size = Size(8f, flameLen))
+                scope.drawOval(brush = Brush.verticalGradient(listOf(Color.White, jadonCyan, Color.Transparent)), topLeft = Offset(8f, 32f), size = Size(8f, flameLen))
+                return
+            }
+        }
+
         val hash = spec.id.hashCode()
         val wingSpan = 32f + (abs(hash % 24))
         val noseLen = 32f + (abs(hash % 16))
@@ -554,32 +669,172 @@ object GameRenderer {
         flash: Boolean,
         alpha: Float
     ) {
+        val r = enemy.type.radius
         val baseColor = if (flash) Color.White else (enemy.customColor ?: when (enemy.type) {
             EnemyType.SCOUT_DRONE -> Color(0xFFEF4444)
             EnemyType.FAST_INTERCEPTOR -> Color(0xFFFF5500)
             EnemyType.HEAVY_GUNSHIP -> Color(0xFF8B5CF6)
+            EnemyType.BOMBER -> Color(0xFFB45309)
+            EnemyType.SWARM_UNIT -> Color(0xFFE11D48)
+            EnemyType.SHIELD_UNIT -> Color(0xFF0284C7)
+            EnemyType.SNIPER_AIRCRAFT -> Color(0xFF10B981)
+            EnemyType.KAMIKAZE_UNIT -> Color(0xFFFF0055)
             EnemyType.STEALTH_RAIDER -> Color(0xFF334155)
             EnemyType.MISSILE_CORVETTE -> Color(0xFFDC2626)
+            EnemyType.ELITE_GUARD -> Color(0xFFFFD700)
         }).copy(alpha = alpha)
 
+        val trimColor = if (flash) Color.White else Color(0xFFFFD700).copy(alpha = alpha)
+
+        // 11 Distinct Enemy Geometries
         val path = Path().apply {
-            val r = enemy.type.radius
-            moveTo(0f, -r * 1.2f)
-            lineTo(r * 0.9f, r)
-            lineTo(0f, r * 0.5f)
-            lineTo(-r * 0.9f, r)
-            close()
+            when (enemy.type) {
+                EnemyType.SCOUT_DRONE, EnemyType.SWARM_UNIT -> {
+                    // Compact agile diamond with sensor prongs
+                    moveTo(0f, -r * 1.3f)
+                    lineTo(r * 0.8f, 0f)
+                    lineTo(r * 0.5f, r * 0.9f)
+                    lineTo(0f, r * 0.4f)
+                    lineTo(-r * 0.5f, r * 0.9f)
+                    lineTo(-r * 0.8f, 0f)
+                    close()
+                }
+                EnemyType.FAST_INTERCEPTOR -> {
+                    // Razor forward-swept twin-blade
+                    moveTo(0f, -r * 1.4f)
+                    lineTo(r * 0.3f, -r * 0.2f)
+                    lineTo(r * 1.1f, r * 0.5f)
+                    lineTo(r * 0.6f, r)
+                    lineTo(0f, r * 0.6f)
+                    lineTo(-r * 0.6f, r)
+                    lineTo(-r * 1.1f, r * 0.5f)
+                    lineTo(-r * 0.3f, -r * 0.2f)
+                    close()
+                }
+                EnemyType.HEAVY_GUNSHIP, EnemyType.ELITE_GUARD -> {
+                    // Broad armored flying dreadnought with weapon sponsons
+                    moveTo(0f, -r * 1.1f)
+                    lineTo(r * 0.6f, -r * 0.5f)
+                    lineTo(r * 1.2f, 0f)
+                    lineTo(r * 1.1f, r * 0.8f)
+                    lineTo(r * 0.4f, r)
+                    lineTo(0f, r * 0.7f)
+                    lineTo(-r * 0.4f, r)
+                    lineTo(-r * 1.1f, r * 0.8f)
+                    lineTo(-r * 1.2f, 0f)
+                    lineTo(-r * 0.6f, -r * 0.5f)
+                    close()
+                }
+                EnemyType.BOMBER -> {
+                    // Heavy diamond delta with ordnance bay
+                    moveTo(0f, -r * 1.2f)
+                    lineTo(r * 1.3f, r * 0.4f)
+                    lineTo(r * 0.7f, r)
+                    lineTo(0f, r * 0.5f)
+                    lineTo(-r * 0.7f, r)
+                    lineTo(-r * 1.3f, r * 0.4f)
+                    close()
+                }
+                EnemyType.SHIELD_UNIT -> {
+                    // Hexagonal shield matrix generator
+                    for (i in 0 until 6) {
+                        val angle = (i * 60f - 30f) * PI.toFloat() / 180f
+                        val hx = cos(angle) * r
+                        val hy = sin(angle) * r
+                        if (i == 0) moveTo(hx, hy) else lineTo(hx, hy)
+                    }
+                    close()
+                }
+                EnemyType.SNIPER_AIRCRAFT -> {
+                    // Needle-nose railgun platform
+                    moveTo(0f, -r * 1.8f)
+                    lineTo(r * 0.25f, -r * 0.2f)
+                    lineTo(r * 0.9f, r * 0.7f)
+                    lineTo(0f, r * 0.4f)
+                    lineTo(-r * 0.9f, r * 0.7f)
+                    lineTo(-r * 0.25f, -r * 0.2f)
+                    close()
+                }
+                EnemyType.KAMIKAZE_UNIT -> {
+                    // Aggressive swept delta with booster tail
+                    moveTo(0f, -r * 1.5f)
+                    lineTo(r * 0.95f, r * 0.8f)
+                    lineTo(0f, r * 0.2f)
+                    lineTo(-r * 0.95f, r * 0.8f)
+                    close()
+                }
+                EnemyType.STEALTH_RAIDER -> {
+                    // Faceted stealth stealth chevron
+                    moveTo(0f, -r * 1.3f)
+                    lineTo(r * 0.7f, 0f)
+                    lineTo(r * 1.0f, r * 0.9f)
+                    lineTo(0f, r * 0.3f)
+                    lineTo(-r * 1.0f, r * 0.9f)
+                    lineTo(-r * 0.7f, 0f)
+                    close()
+                }
+                EnemyType.MISSILE_CORVETTE -> {
+                    // Twin-hull catamaran
+                    moveTo(-r * 0.5f, -r * 1.2f)
+                    lineTo(-r * 0.2f, r)
+                    lineTo(0f, r * 0.5f)
+                    lineTo(r * 0.2f, r)
+                    lineTo(r * 0.5f, -r * 1.2f)
+                    lineTo(r * 0.8f, r * 0.6f)
+                    lineTo(0f, r * 0.2f)
+                    lineTo(-r * 0.8f, r * 0.6f)
+                    close()
+                }
+            }
         }
 
         scope.drawPath(path, color = baseColor)
-        scope.drawPath(path, color = Color(0xFFFFD700).copy(alpha = alpha), style = Stroke(width = 1.5f))
+        scope.drawPath(path, color = trimColor, style = Stroke(width = 1.8f))
 
-        // Red cockpit eye
+        // Glowing Cockpit Core
+        val eyeColor = if (enemy.type == EnemyType.SHIELD_UNIT) AeroCyan else Color(0xFFFF0055)
         scope.drawCircle(
-            color = Color(0xFFFF0055).copy(alpha = alpha),
-            radius = enemy.type.radius * 0.28f,
+            color = eyeColor.copy(alpha = alpha),
+            radius = enemy.type.radius * 0.25f,
             center = Offset(0f, 0f)
         )
+
+        // ── PROGRESSIVE ENEMY DAMAGE OVERLAYS ──
+        if (enemy.isWingDamaged || enemy.damageState == DamageState.CRITICAL) {
+            // Broken jagged wing crack
+            scope.drawLine(
+                color = Color(0xFFFF3366),
+                start = Offset(-r * 0.8f, r * 0.2f),
+                end = Offset(-r * 0.2f, -r * 0.3f),
+                strokeWidth = 2.5f
+            )
+            scope.drawLine(
+                color = Color(0xFFFFD700),
+                start = Offset(r * 0.6f, r * 0.3f),
+                end = Offset(r * 0.1f, 0f),
+                strokeWidth = 2f
+            )
+        }
+
+        if (enemy.isSparking) {
+            // Electrical short-circuit sparks
+            val sparkAngle = (System.currentTimeMillis() % 360L) * PI.toFloat() / 180f
+            scope.drawLine(
+                color = Color(0xFF00F0FF),
+                start = Offset(cos(sparkAngle) * r * 0.4f, sin(sparkAngle) * r * 0.4f),
+                end = Offset(cos(sparkAngle) * r * 0.9f, sin(sparkAngle) * r * 0.9f),
+                strokeWidth = 1.8f
+            )
+        }
+
+        if (enemy.isSmoking) {
+            // Hull scorch mark
+            scope.drawCircle(
+                color = Color.Black.copy(alpha = 0.6f),
+                radius = r * 0.35f,
+                center = Offset(r * 0.2f, -r * 0.2f)
+            )
+        }
     }
 
     private fun drawBossDreadnought(scope: DrawScope, boss: BossEntity) {

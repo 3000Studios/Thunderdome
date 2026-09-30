@@ -46,11 +46,21 @@ class AudioHapticSystem(private val context: Context) {
         POWERUP,
         WARNING_BEEP,
         BOOST_BURST,
-        BOSS_ROAR
+        BOSS_ROAR,
+        BUTTON_CLICK,
+        PURCHASE_SUCCESS,
+        PURCHASE_FAIL,
+        DEV_MODE_UNLOCKED,
+        WARP_ENGAGE,
+        SECRET_TUNNEL_ENTER,
+        ENEMY_ARMOR_CRACK,
+        BOSS_LAUGH,
+        VOICE_DIE_IN_A_FIRE,
+        VOICE_GOT_EM
     }
 
     private val soundPool: SoundPool = SoundPool.Builder()
-        .setMaxStreams(12)
+        .setMaxStreams(16)
         .setAudioAttributes(
             AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_GAME)
@@ -83,7 +93,17 @@ class AudioHapticSystem(private val context: Context) {
             SoundType.POWERUP to synthesizeArpeggio(),
             SoundType.WARNING_BEEP to synthesizeTone(100, 1200f),
             SoundType.BOOST_BURST to synthesizeWhoosh(250),
-            SoundType.BOSS_ROAR to synthesizeBossRoar(500)
+            SoundType.BOSS_ROAR to synthesizeBossRoar(500),
+            SoundType.BUTTON_CLICK to synthesizeKeyClick(35),
+            SoundType.PURCHASE_SUCCESS to synthesizeChaChing(450),
+            SoundType.PURCHASE_FAIL to synthesizeErrorBuzz(250),
+            SoundType.DEV_MODE_UNLOCKED to synthesizeDevChime(500),
+            SoundType.WARP_ENGAGE to synthesizeWarpScream(600),
+            SoundType.SECRET_TUNNEL_ENTER to synthesizeSecretChime(550),
+            SoundType.ENEMY_ARMOR_CRACK to synthesizeArmorCrack(85),
+            SoundType.BOSS_LAUGH to synthesizeBossLaugh(650),
+            SoundType.VOICE_DIE_IN_A_FIRE to synthesizeVoiceStinger(450, true),
+            SoundType.VOICE_GOT_EM to synthesizeVoiceStinger(350, false)
         )
 
         for ((type, pcm) in soundDefs) {
@@ -278,6 +298,163 @@ class AudioHapticSystem(private val context: Context) {
             val env = sin(progress * PI.toFloat())
             val mix = sin(phase1) * 0.5f + sin(phase2) * 0.3f + noise * 0.4f
             val sample = (mix * env * 25000).toInt()
+            buffer[i] = sample.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+        }
+        return buffer
+    }
+
+    private fun synthesizeKeyClick(durationMs: Int): ShortArray {
+        val totalSamples = (sampleRate * durationMs) / 1000
+        val buffer = ShortArray(totalSamples)
+        for (i in 0 until totalSamples) {
+            val progress = i.toFloat() / totalSamples
+            val noise = (Random.nextFloat() * 2f - 1f) * 0.7f
+            val tone = sin(2.0 * PI * 1800.0 * i / sampleRate).toFloat() * 0.3f
+            val env = exp(-progress * 35f)
+            val sample = ((noise + tone) * env * 26000).toInt()
+            buffer[i] = sample.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+        }
+        return buffer
+    }
+
+    private fun synthesizeChaChing(durationMs: Int): ShortArray {
+        val totalSamples = (sampleRate * durationMs) / 1000
+        val buffer = ShortArray(totalSamples)
+        val coin1Samples = (sampleRate * 0.12f).toInt()
+        val coin2Start = (sampleRate * 0.08f).toInt()
+        
+        for (i in 0 until totalSamples) {
+            var sum = 0.0
+            // Coin Hit 1 (987Hz + 1975Hz)
+            if (i < coin1Samples) {
+                val p = i.toFloat() / coin1Samples
+                val env = exp(-p * 8f)
+                sum += (sin(2.0 * PI * 987.77 * i / sampleRate) * 0.5 + sin(2.0 * PI * 1975.5 * i / sampleRate) * 0.5) * env
+            }
+            // Cash Register Bell Hit 2 (1318Hz + 2637Hz + 3951Hz)
+            if (i >= coin2Start) {
+                val p = (i - coin2Start).toFloat() / (totalSamples - coin2Start)
+                val env = exp(-p * 4.5f)
+                sum += (sin(2.0 * PI * 1318.5 * i / sampleRate) * 0.4 + 
+                        sin(2.0 * PI * 2637.0 * i / sampleRate) * 0.35 + 
+                        sin(2.0 * PI * 3951.0 * i / sampleRate) * 0.25) * env
+            }
+            val sample = (sum * 28000).toInt()
+            buffer[i] = sample.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+        }
+        return buffer
+    }
+
+    private fun synthesizeErrorBuzz(durationMs: Int): ShortArray {
+        val totalSamples = (sampleRate * durationMs) / 1000
+        val buffer = ShortArray(totalSamples)
+        for (i in 0 until totalSamples) {
+            val progress = i.toFloat() / totalSamples
+            val square = if ((i * 150 / sampleRate) % 2 == 0) 1f else -1f
+            val env = exp(-progress * 6f)
+            val sample = (square * env * 20000).toInt()
+            buffer[i] = sample.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+        }
+        return buffer
+    }
+
+    private fun synthesizeDevChime(durationMs: Int): ShortArray {
+        val notes = floatArrayOf(523.25f, 659.25f, 783.99f, 987.77f, 1318.5f, 1567.98f, 2093.0f)
+        val totalSamples = (sampleRate * durationMs) / 1000
+        val buffer = ShortArray(totalSamples)
+        val step = totalSamples / notes.size
+        for (n in notes.indices) {
+            val freq = notes[n]
+            for (i in 0 until (totalSamples - n * step)) {
+                val idx = n * step + i
+                if (idx < totalSamples) {
+                    val p = i.toFloat() / (step * 2)
+                    val env = exp(-p * 4f)
+                    val sample = (sin(2.0 * PI * freq * i / sampleRate) * env * 8000).toInt()
+                    val cur = buffer[idx].toInt()
+                    buffer[idx] = (cur + sample).coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+                }
+            }
+        }
+        return buffer
+    }
+
+    private fun synthesizeWarpScream(durationMs: Int): ShortArray {
+        val totalSamples = (sampleRate * durationMs) / 1000
+        val buffer = ShortArray(totalSamples)
+        var phase = 0.0
+        for (i in 0 until totalSamples) {
+            val p = i.toFloat() / totalSamples
+            // Rising hyper-drive turbine from 300Hz to 2800Hz with sub-bass drop
+            val freq = 300.0 + 2500.0 * (p * p)
+            phase += 2.0 * PI * freq / sampleRate
+            val subBass = sin(2.0 * PI * (80.0 * (1f - p * 0.5f)) * i / sampleRate) * 0.5
+            val scream = sin(phase) * 0.5
+            val env = sin(p * PI.toFloat())
+            val sample = ((scream + subBass) * env * 27000).toInt()
+            buffer[i] = sample.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+        }
+        return buffer
+    }
+
+    private fun synthesizeSecretChime(durationMs: Int): ShortArray {
+        val totalSamples = (sampleRate * durationMs) / 1000
+        val buffer = ShortArray(totalSamples)
+        for (i in 0 until totalSamples) {
+            val p = i.toFloat() / totalSamples
+            val f1 = sin(2.0 * PI * 880.0 * i / sampleRate)
+            val f2 = sin(2.0 * PI * 1320.0 * i / sampleRate + sin(2.0 * PI * 6.0 * i / sampleRate) * 2.0)
+            val env = exp(-p * 3.5f)
+            val sample = ((f1 * 0.5 + f2 * 0.5) * env * 24000).toInt()
+            buffer[i] = sample.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+        }
+        return buffer
+    }
+
+    private fun synthesizeArmorCrack(durationMs: Int): ShortArray {
+        val totalSamples = (sampleRate * durationMs) / 1000
+        val buffer = ShortArray(totalSamples)
+        for (i in 0 until totalSamples) {
+            val p = i.toFloat() / totalSamples
+            val noise = (Random.nextFloat() * 2f - 1f) * 0.8f
+            val snap = sin(2.0 * PI * 2400.0 * i / sampleRate).toFloat() * 0.4f
+            val env = exp(-p * 28f)
+            val sample = ((noise + snap) * env * 26000).toInt()
+            buffer[i] = sample.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+        }
+        return buffer
+    }
+
+    private fun synthesizeBossLaugh(durationMs: Int): ShortArray {
+        val totalSamples = (sampleRate * durationMs) / 1000
+        val buffer = ShortArray(totalSamples)
+        val pulseCount = 4
+        val samplesPerPulse = totalSamples / pulseCount
+        for (k in 0 until pulseCount) {
+            val pulseFreq = 160.0 - k * 18.0
+            for (i in 0 until samplesPerPulse) {
+                val idx = k * samplesPerPulse + i
+                val p = i.toFloat() / samplesPerPulse
+                val env = sin(p * PI.toFloat()) * exp(-p * 2f)
+                val tone = sin(2.0 * PI * pulseFreq * i / sampleRate) * 0.7 + (Random.nextFloat() * 2f - 1f) * 0.3
+                val sample = (tone * env * 24000).toInt()
+                buffer[idx] = sample.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+            }
+        }
+        return buffer
+    }
+
+    private fun synthesizeVoiceStinger(durationMs: Int, isDieInFire: Boolean): ShortArray {
+        val totalSamples = (sampleRate * durationMs) / 1000
+        val buffer = ShortArray(totalSamples)
+        val baseFreq = if (isDieInFire) 340.0 else 440.0
+        for (i in 0 until totalSamples) {
+            val p = i.toFloat() / totalSamples
+            val formant1 = sin(2.0 * PI * baseFreq * i / sampleRate) * 0.5
+            val formant2 = sin(2.0 * PI * (baseFreq * 2.4) * i / sampleRate) * 0.3
+            val grit = (Random.nextFloat() * 2f - 1f) * 0.2f
+            val env = sin(p * PI.toFloat())
+            val sample = ((formant1 + formant2 + grit) * env * 25000).toInt()
             buffer[i] = sample.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
         }
         return buffer

@@ -345,7 +345,7 @@ fun SettingsScreen(viewModel: GameViewModel) {
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        // Pilot Career Statistics
+        // Pilot Career Statistics (7 Rapid Taps on High Score activates Dev Mode)
         Text("PILOT FLIGHT RECORD & TELEMETRY", style = MaterialTheme.typography.labelLarge, color = Color.White)
         Spacer(modifier = Modifier.height(8.dp))
         Card(
@@ -358,9 +358,17 @@ fun SettingsScreen(viewModel: GameViewModel) {
                     Text("Pilot Callsign:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
                     Text(profile.callsign, color = Color.White, style = MaterialTheme.typography.bodyMedium)
                 }
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Career High Score:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
-                    Text("${profile.highScore}", color = Color(0xFFFFD700), style = MaterialTheme.typography.titleMedium)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .clickable { viewModel.onCareerScoreTapped() }
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Career High Score (Tap 7x):", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                    Text("${profile.highScore} ⚡", color = Color(0xFFFFD700), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Total Hostiles Destroyed:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
@@ -373,6 +381,37 @@ fun SettingsScreen(viewModel: GameViewModel) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Sorties Flown:", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
                     Text("${profile.missionsCompleted}", color = AeroCyan, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+
+        // Developer Mode Active Status & Control Banner
+        if (settings.isDeveloperMode) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1B4B)),
+                shape = RoundedCornerShape(12.dp),
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFA855F7))
+            ) {
+                Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🛠️ DEVELOPER MODE OVERRIDE ACTIVE", color = Color(0xFFE9D5FF), fontWeight = FontWeight.Black, fontSize = 14.sp)
+                    }
+                    Text(
+                        "• All 24 Sortie Theaters Unlocked\n• All 26 Warbirds Unlocked (Including Jerica & Jadon)\n• 100,000 Credits & 1,000 Plasma Cores Granted\n• All Paint Schemes & Exhausts Available",
+                        color = Color(0xFFC084FC),
+                        style = MaterialTheme.typography.bodySmall,
+                        lineHeight = 18.sp
+                    )
+                    Button(
+                        onClick = { viewModel.resetDeveloperMode() },
+                        colors = ButtonDefaults.buttonColors(containerColor = DangerRed, contentColor = Color.White),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth().height(42.dp)
+                    ) {
+                        Text("RESET TO STANDARD CADET PROGRESS", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
                 }
             }
         }

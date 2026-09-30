@@ -39,11 +39,17 @@ enum class EnemyType(
     val radius: Float,
     val score: Int
 ) {
-    SCOUT_DRONE("Scout Drone", 45f, 380f, 22f, 150),
-    FAST_INTERCEPTOR("Interceptor", 90f, 440f, 28f, 300),
-    HEAVY_GUNSHIP("Heavy Gunship", 380f, 210f, 45f, 750),
-    STEALTH_RAIDER("Stealth Raider", 160f, 350f, 32f, 500),
-    MISSILE_CORVETTE("Missile Corvette", 260f, 240f, 38f, 600)
+    SCOUT_DRONE("Scout Drone", 45f, 380f, 20f, 150),
+    FAST_INTERCEPTOR("Fast Interceptor", 85f, 450f, 26f, 300),
+    HEAVY_GUNSHIP("Heavy Gunship", 420f, 200f, 46f, 800),
+    BOMBER("Plasma Bomber", 320f, 180f, 42f, 650),
+    SWARM_UNIT("Swarm Drone", 30f, 490f, 16f, 100),
+    SHIELD_UNIT("Shield Protector", 240f, 250f, 36f, 550),
+    SNIPER_AIRCRAFT("Beam Sniper", 140f, 280f, 30f, 580),
+    KAMIKAZE_UNIT("Kamikaze Torpedo", 75f, 530f, 22f, 400),
+    STEALTH_RAIDER("Stealth Raider", 170f, 340f, 32f, 500),
+    MISSILE_CORVETTE("Missile Corvette", 280f, 230f, 38f, 600),
+    ELITE_GUARD("Apex Elite Guard", 480f, 320f, 48f, 1200)
 }
 
 data class EnemyEntity(
@@ -55,13 +61,18 @@ data class EnemyEntity(
     var vy: Float = 0f,
     var health: Float = type.maxHp,
     var maxHealth: Float = type.maxHp,
-    var shield: Float = if (type == EnemyType.HEAVY_GUNSHIP) 150f else 0f,
+    var shield: Float = if (type == EnemyType.HEAVY_GUNSHIP || type == EnemyType.SHIELD_UNIT) 160f else 0f,
+    var maxShield: Float = if (type == EnemyType.HEAVY_GUNSHIP || type == EnemyType.SHIELD_UNIT) 160f else 0f,
     var fireTimer: Float = 0f,
     var aiStateTimer: Float = 0f,
     var angle: Float = 180f,
     var isCloaked: Boolean = false,
     var cloakAlpha: Float = 1f,
     var hitFlashTimer: Float = 0f,
+    var damageState: Float = 0f, // 0.0 (pristine) -> 1.0 (critical wreckage)
+    var isWingDamaged: Boolean = false,
+    var isSmoking: Boolean = false,
+    var isSparking: Boolean = false,
     var customName: String? = null,
     var customColor: Color? = null
 )

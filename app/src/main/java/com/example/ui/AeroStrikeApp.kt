@@ -50,30 +50,10 @@ fun AeroStrikeApp(viewModel: GameViewModel) {
     } else {
         Scaffold(
             bottomBar = {
-                NavigationBar(
-                    containerColor = DarkSurface,
-                    contentColor = Color.White,
-                    tonalElevation = 8.dp,
-                    modifier = Modifier.testTag("main_bottom_nav")
-                ) {
-                    MainNavTab.values().forEach { tab ->
-                        val selected = currentTab == tab
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = { currentTab = tab },
-                            icon = { Icon(tab.icon, contentDescription = tab.title) },
-                            label = { Text(tab.title) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = DarkVoid,
-                                selectedTextColor = AeroCyan,
-                                indicatorColor = AeroCyan,
-                                unselectedIconColor = TextSecondary,
-                                unselectedTextColor = TextSecondary
-                            ),
-                            modifier = Modifier.testTag("nav_tab_${tab.name.lowercase()}")
-                        )
-                    }
-                }
+                com.example.ui.components.TacticalKeycapBar(
+                    currentTab = currentTab,
+                    onTabSelected = { currentTab = it }
+                )
             },
             containerColor = DarkVoid
         ) { paddingValues ->

@@ -203,123 +203,98 @@ fun TitleScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // ── PILOT CARD & QUICK HUD TOGGLE BADGE ──
-            Card(
+            // ── PILOT HUD RESOURCE MODULE ──
+            com.example.ui.components.HudResourceModule(
+                callsign = profile.callsign,
+                level = profile.level,
+                credits = profile.credits,
+                plasmaCores = profile.plasmaCores,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // View Mode & Screen Scale Quick Selectors
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp)),
-                colors = CardDefaults.cardColors(containerColor = DarkSurface.copy(alpha = 0.85f)),
-                border = androidx.compose.foundation.BorderStroke(1.2.dp, AeroCyan.copy(alpha = 0.35f))
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(DarkSurface.copy(alpha = 0.7f))
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.padding(14.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "CAM:",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextSecondary
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = when (settings.cameraViewMode) {
+                            "COCKPIT_1ST" -> AeroEmerald.copy(alpha = 0.2f)
+                            "TOP_DOWN_CHASE" -> AeroViolet.copy(alpha = 0.2f)
+                            else -> AeroCyan.copy(alpha = 0.2f)
+                        },
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            when (settings.cameraViewMode) {
+                                "COCKPIT_1ST" -> AeroEmerald
+                                "TOP_DOWN_CHASE" -> AeroViolet
+                                else -> AeroCyan
+                            }
+                        ),
+                        modifier = Modifier.clickable { viewModel.toggleCameraViewMode() }
                     ) {
-                        Column {
-                            Text(
-                                text = profile.callsign,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "LEVEL ${profile.level} COMMANDER",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = AeroCyan
-                            )
-                        }
-
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text("${profile.credits} CR", color = AeroEmerald, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                            Text("${profile.plasmaCores} CORES", color = AeroViolet, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        }
+                        Text(
+                            text = when (settings.cameraViewMode) {
+                                "COCKPIT_1ST" -> "👁️ 1ST COCKPIT"
+                                "TOP_DOWN_CHASE" -> "🛰️ TOP-DOWN"
+                                else -> "🚀 3RD FOLLOW"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // View Mode & Screen Scale Status Badges
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "SCALE:",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextSecondary
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = AeroAmber.copy(alpha = 0.2f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, AeroAmber),
+                        modifier = Modifier.clickable {
+                            val nextScale = when (settings.screenSizeScale) {
+                                "MAX_IMMERSIVE" -> "STANDARD"
+                                "STANDARD" -> "COMPACT"
+                                else -> "MAX_IMMERSIVE"
+                            }
+                            viewModel.setScreenSizeScale(nextScale)
+                        }
                     ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "CAMERA:",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextSecondary
-                            )
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = when (settings.cameraViewMode) {
-                                    "COCKPIT_1ST" -> AeroEmerald.copy(alpha = 0.2f)
-                                    "TOP_DOWN_CHASE" -> AeroViolet.copy(alpha = 0.2f)
-                                    else -> AeroCyan.copy(alpha = 0.2f)
-                                },
-                                border = androidx.compose.foundation.BorderStroke(
-                                    1.dp,
-                                    when (settings.cameraViewMode) {
-                                        "COCKPIT_1ST" -> AeroEmerald
-                                        "TOP_DOWN_CHASE" -> AeroViolet
-                                        else -> AeroCyan
-                                    }
-                                ),
-                                modifier = Modifier.clickable { viewModel.toggleCameraViewMode() }
-                            ) {
-                                Text(
-                                    text = when (settings.cameraViewMode) {
-                                        "COCKPIT_1ST" -> "👁️ 1ST COCKPIT"
-                                        "TOP_DOWN_CHASE" -> "🛰️ TOP-DOWN"
-                                        else -> "🚀 3RD FOLLOW"
-                                    },
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                )
-                            }
-                        }
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "SCALE:",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextSecondary
-                            )
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = AeroAmber.copy(alpha = 0.2f),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, AeroAmber),
-                                modifier = Modifier.clickable {
-                                    val nextScale = when (settings.screenSizeScale) {
-                                        "MAX_IMMERSIVE" -> "STANDARD"
-                                        "STANDARD" -> "COMPACT"
-                                        else -> "MAX_IMMERSIVE"
-                                    }
-                                    viewModel.setScreenSizeScale(nextScale)
-                                }
-                            ) {
-                                Text(
-                                    text = when (settings.screenSizeScale) {
-                                        "MAX_IMMERSIVE" -> "115% MAX"
-                                        "COMPACT" -> "90% COMPACT"
-                                        else -> "100% STD"
-                                    },
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = AeroAmber,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                )
-                            }
-                        }
+                        Text(
+                            text = when (settings.screenSizeScale) {
+                                "MAX_IMMERSIVE" -> "115% MAX"
+                                "COMPACT" -> "90% COMPACT"
+                                else -> "100% STD"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = AeroAmber,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
                     }
                 }
             }
@@ -327,25 +302,24 @@ fun TitleScreen(
             // ── MAIN COMBAT MODES SELECTOR ──
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 // 1. Singleplayer Campaign Mode
-                Button(
+                com.example.ui.components.TacticalGlossButton(
                     onClick = onStartCampaign,
+                    containerColor = AeroCyan,
+                    contentColor = DarkVoid,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp)
-                        .testTag("start_campaign_button"),
-                    colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid),
-                    shape = RoundedCornerShape(12.dp)
+                        .testTag("start_campaign_button")
                 ) {
                     Icon(Icons.Default.FlightTakeoff, contentDescription = null)
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text("CAMPAIGN SORTIE (24 THEATERS)", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text("CAMPAIGN SORTIE (24 THEATERS)", fontWeight = FontWeight.Black, fontSize = 14.5.sp)
                 }
 
                 // 2. Real-Time 1v1 PvP Multiplayer Dogfight Mode
-                Button(
+                com.example.ui.components.TacticalGlossButton(
                     onClick = {
                         viewModel.gameEngine.multiplayerManager.connectToMatchmaking(
                             playerCallsign = profile.callsign,
@@ -353,16 +327,15 @@ fun TitleScreen(
                         )
                         onStartMultiplayer()
                     },
+                    containerColor = AeroCrimson,
+                    contentColor = Color.White,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp)
-                        .testTag("start_multiplayer_button"),
-                    colors = ButtonDefaults.buttonColors(containerColor = AeroCrimson, contentColor = Color.White),
-                    shape = RoundedCornerShape(12.dp)
+                        .testTag("start_multiplayer_button")
                 ) {
                     Icon(Icons.Default.Wifi, contentDescription = null)
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text("1V1 MULTIPLAYER DOGFIGHT (PVP)", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text("1V1 MULTIPLAYER DOGFIGHT (PVP)", fontWeight = FontWeight.Black, fontSize = 14.5.sp)
                 }
 
                 Row(
@@ -370,48 +343,39 @@ fun TitleScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     // 3. Hangar Button
-                    OutlinedButton(
+                    com.example.ui.components.TacticalGlossButton(
                         onClick = onOpenHangar,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                        shape = RoundedCornerShape(10.dp)
+                        containerColor = CarbonElevated,
+                        contentColor = Color.White,
+                        height = 48.dp,
+                        modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.Build, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.Build, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("HANGAR", fontWeight = FontWeight.Bold)
+                        Text("HANGAR", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
 
                     // 4. Battle Pass / Rewards Button
-                    OutlinedButton(
+                    com.example.ui.components.TacticalGlossButton(
                         onClick = onOpenBattlePass,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = AeroAmber),
-                        shape = RoundedCornerShape(10.dp)
+                        containerColor = CarbonElevated,
+                        contentColor = AeroAmber,
+                        height = 48.dp,
+                        modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.MilitaryTech, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.MilitaryTech, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("PASS & REWARDS", fontWeight = FontWeight.Bold)
+                        Text("PASS & REWARDS", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     }
                 }
 
-                // 5. Warbird Depot & In-App Purchase Store
-                Button(
+                // 5. Warbird Depot & In-App Purchase Store (Extra-Premium Button)
+                com.example.ui.components.DepotFounderButton(
                     onClick = { viewModel.openStoreModal() },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(46.dp)
-                        .testTag("open_store_button"),
-                    colors = ButtonDefaults.buttonColors(containerColor = AeroAmber, contentColor = DarkVoid),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("DEPOT & FOUNDER STORE 🛒", fontWeight = FontWeight.Black, fontSize = 13.sp)
-                }
+                        .testTag("open_store_button")
+                )
             }
 
             // ── FOOTER STATUS ──

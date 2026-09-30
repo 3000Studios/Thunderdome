@@ -555,11 +555,30 @@ class GameEngine(
                     if (dist < enemy.type.radius + p.size) {
                         hit = true
                         enemy.hitFlashTimer = 0.08f
+                        val prevRatio = (enemy.health) / enemy.maxHealth
                         if (enemy.shield > 0f) {
                             enemy.shield = max(0f, enemy.shield - p.damage)
                             audioHaptics.playSound(AudioHapticSystem.SoundType.SHIELD_HIT, 0.5f)
                         } else {
                             enemy.health -= p.damage
+                        }
+
+                        val healthRatio = enemy.health / enemy.maxHealth
+                        if (healthRatio <= 0.25f) {
+                            enemy.damageState = DamageState.CRITICAL
+                            enemy.isWingDamaged = true
+                            enemy.isSmoking = true
+                            enemy.isSparking = true
+                        } else if (healthRatio <= 0.50f) {
+                            enemy.damageState = DamageState.HEAVY
+                            enemy.isSmoking = true
+                            enemy.isSparking = true
+                            if (prevRatio > 0.50f) {
+                                audioHaptics.playSound(AudioHapticSystem.SoundType.ENEMY_ARMOR_CRACK, 0.7f)
+                            }
+                        } else if (healthRatio <= 0.75f) {
+                            enemy.damageState = DamageState.LIGHT
+                            enemy.isSmoking = true
                         }
 
                         vfx.spawnExplosion(p.x, p.y, isHeavy = false, colorScheme = p.color)
@@ -883,6 +902,17 @@ class GameEngine(
         // Chance to spawn power-up
         if (Random.nextFloat() < 0.22f || enemy.type == EnemyType.HEAVY_GUNSHIP) {
             weaponSystem.spawnPowerUp(enemy.x, enemy.y)
+        }
+
+        // 20-Kill Streak Voice Lines for Secret Planes
+        if (combatStats.kills > 0 && combatStats.kills % 20 == 0) {
+            if (currentAircraftSpec.id == "aircraft_jerica") {
+                audioHaptics.playSound(AudioHapticSystem.SoundType.VOICE_DIE_IN_A_FIRE)
+                vfx.addText("🔥 JERICA: \"DIE IN A FIRE!\" 🔥", playerState.x, playerState.y - 80f, Color(0xFFFFD700))
+            } else if (currentAircraftSpec.id == "aircraft_jadon") {
+                audioHaptics.playSound(AudioHapticSystem.SoundType.VOICE_GOT_EM)
+                vfx.addText("⚡ JADON: \"GOT 'EM.\" ⚡", playerState.x, playerState.y - 80f, Color(0xFF00F0FF))
+            }
         }
 
         // Roguelite XP progression

@@ -488,8 +488,64 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
             com.example.game.analytics.AnalyticsManager.logPurchaseCompleted(productId)
-            audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+            audioHaptics.playSound(AudioHapticSystem.SoundType.PURCHASE_SUCCESS)
+            audioHaptics.triggerExplosionHaptic(false)
         }
+    }
+
+    // ── SECRET DEVELOPER MODE CONTROLLER ──
+    private var careerScoreTapCount = 0
+    private var lastCareerTapTimestamp = 0L
+    val devModeToast = MutableStateFlow<String?>(null)
+
+    fun onCareerScoreTapped() {
+        val now = System.currentTimeMillis()
+        if (now - lastCareerTapTimestamp > 3000L) {
+            careerScoreTapCount = 1
+        } else {
+            careerScoreTapCount++
+        }
+        lastCareerTapTimestamp = now
+
+        if (careerScoreTapCount >= 7) {
+            careerScoreTapCount = 0
+            activateDeveloperMode()
+        } else {
+            audioHaptics.playSound(AudioHapticSystem.SoundType.BUTTON_CLICK, 0.4f)
+        }
+    }
+
+    fun activateDeveloperMode() {
+        viewModelScope.launch {
+            val s = settings.value.copy(isDeveloperMode = true)
+            repository.updateSettings(s)
+
+            // Unlock all planes locally for test & development
+            AircraftCatalog.ALL_AIRCRAFT.forEach { spec ->
+                val craft = repository.getAircraftById(spec.id) ?: AircraftSaveEntity(
+                    aircraftId = spec.id,
+                    specialAbilityId = spec.defaultSpecialAbilityId
+                )
+                repository.updateAircraft(craft.copy(isUnlocked = true))
+            }
+
+            audioHaptics.playSound(AudioHapticSystem.SoundType.DEV_MODE_UNLOCKED)
+            audioHaptics.triggerExplosionHaptic(true)
+            devModeToast.value = "⚡ DEVELOPER MODE ACTIVATED // ALL WARBIRDS & THEATERS UNLOCKED"
+        }
+    }
+
+    fun resetDeveloperMode() {
+        viewModelScope.launch {
+            val s = settings.value.copy(isDeveloperMode = false)
+            repository.updateSettings(s)
+            audioHaptics.playSound(AudioHapticSystem.SoundType.BUTTON_CLICK)
+            devModeToast.value = "🔒 DEV MODE RESET TO STANDARD"
+        }
+    }
+
+    fun playButtonClick() {
+        audioHaptics.playSound(AudioHapticSystem.SoundType.BUTTON_CLICK)
     }
 
     fun showRewardedAdForContinue(activity: android.app.Activity, onRevived: () -> Unit) {
@@ -587,7 +643,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 sfxVolume = 1.0f,
                 musicVolume = 1.0f,
                 cameraViewMode = "FOLLOW_3RD",
-                screenSizeScale = "MAX_IMMERSIVE"
+                screenSizeScale = "MAX_IMMERSIVE",
+                isDeveloperMode = false
             )
             repository.updateSettings(best)
             audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)

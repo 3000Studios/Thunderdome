@@ -187,7 +187,52 @@ object AircraftCatalog {
         defaultSpecialAbilityId = "nova_blast"
     )
 
-    val ALL_AIRCRAFT = listOf(APEX_FALCON, VALKYRIE_PHANTOM, TITAN_DREAD, SOLARIS_SPECTER, APEX_FOUNDER_ZERO) + ROSTER_EXPANSION
+    // ── SECRET DEVELOPER-MODE AIRCRAFT ──
+    val AIRCRAFT_JERICA = AircraftSpec(
+        id = "aircraft_jerica",
+        name = "Jerica (Queen Bee)",
+        role = "Apex Hive Queen",
+        description = "Secret prototype inspired by the predatory honey bee. Carbon-fiber black chassis with glowing yellow bio-vector wings.",
+        baseHealth = 9999f,
+        baseShield = 9999f,
+        baseSpeed = 1600f,
+        baseHandling = 2.0f,
+        baseBoostCapacity = 300f,
+        baseBoostRecharge = 100f,
+        baseCritChance = 0.90f,
+        unlockCostCredits = 0L,
+        unlockCostCores = 0,
+        primaryColor = Color(0xFFFFD700),
+        accentColor = Color(0xFF18181B),
+        abilityName = "Stinger Swarm Nova",
+        abilityDescription = "Devastating multi-vector bio-plasma stinger burst with instant screen destruction.",
+        defaultSpecialAbilityId = "nova_blast"
+    )
+
+    val AIRCRAFT_JADON = AircraftSpec(
+        id = "aircraft_jadon",
+        name = "Jadon (Sovereign)",
+        role = "Apex Sovereign",
+        description = "Secret hyper-tier hero fighter. Aggressive dual-toned crimson and cobalt chassis with supercharged tachyon thrusters.",
+        baseHealth = 9999f,
+        baseShield = 9999f,
+        baseSpeed = 1600f,
+        baseHandling = 2.0f,
+        baseBoostCapacity = 300f,
+        baseBoostRecharge = 100f,
+        baseCritChance = 0.90f,
+        unlockCostCredits = 0L,
+        unlockCostCores = 0,
+        primaryColor = Color(0xFFFF1E56),
+        accentColor = Color(0xFF00F0FF),
+        abilityName = "Tachyon Sovereign Beam",
+        abilityDescription = "Unleashes dual relativistic crimson & cyan particle beams annihilating all hostile columns.",
+        defaultSpecialAbilityId = "nova_blast"
+    )
+
+    val SECRET_PLANES = listOf(AIRCRAFT_JERICA, AIRCRAFT_JADON)
+
+    val ALL_AIRCRAFT = listOf(APEX_FALCON, VALKYRIE_PHANTOM, TITAN_DREAD, SOLARIS_SPECTER, APEX_FOUNDER_ZERO) + ROSTER_EXPANSION + SECRET_PLANES
 
     fun getById(id: String): AircraftSpec = ALL_AIRCRAFT.firstOrNull { it.id == id } ?: APEX_FALCON
 }
@@ -208,7 +253,15 @@ object PaintCatalog {
         PaintScheme("crimson_war", "Crimson Warpath", Color(0xFF7F1D1D), AeroAmber, 1200L),
         PaintScheme("solar_flare", "Solar Prototype", Color(0xFF78350F), Color(0xFFFBBF24), 2000L),
         PaintScheme("cyber_neon", "Cyberpunk Phantom", Color(0xFF581C87), AeroEmerald, 3500L),
-        PaintScheme("founder_gold", "3000 Founder Gold", Color(0xFFFFD700), Color(0xFFF59E0B), 0L)
+        PaintScheme("military_camo", "Desert Vanguard Camo", Color(0xFF785E3A), Color(0xFF4A381E), 1500L),
+        PaintScheme("arctic_camo", "Arctic Ghost Camo", Color(0xFFCBD5E1), Color(0xFF38BDF8), 1800L),
+        PaintScheme("lava_inferno", "Volcanic Magma Weave", Color(0xFF450A0A), Color(0xFFFF5500), 2800L),
+        PaintScheme("ice_shatter", "Glacial Crystalline", Color(0xFF082F49), Color(0xFF38BDF8), 3000L),
+        PaintScheme("alien_xenon", "Xenon Bioluminescent", Color(0xFF052E16), Color(0xFF22C55E), 4000L),
+        PaintScheme("executive_carbon", "Carbon Fiber Matte", Color(0xFF09090B), Color(0xFF71717A), 4500L),
+        PaintScheme("founder_gold", "3000 Founder Gold", Color(0xFFFFD700), Color(0xFFF59E0B), 0L),
+        PaintScheme("jerica_honey_gold", "Queen Bee Hex Amber", Color(0xFFFFD700), Color(0xFF18181B), 0L),
+        PaintScheme("jadon_apex_hero", "Apex Sovereign Red/Blue", Color(0xFFFF1E56), Color(0xFF00F0FF), 0L)
     )
 
     fun getById(id: String): PaintScheme = ALL.firstOrNull { it.id == id } ?: ALL.first()
@@ -229,7 +282,9 @@ object ExhaustCatalog {
         ExhaustFlame("violet_flame", "Antimatter Violet", Color(0xFFF3E8FF), AeroViolet, 600L),
         ExhaustFlame("amber_flame", "Hyper Orange", Color(0xFFFEF3C7), AeroOrange, 1000L),
         ExhaustFlame("emerald_flame", "Tachyon Emerald", Color(0xFFDCFCE7), AeroEmerald, 1500L),
-        ExhaustFlame("founder_ion_gold", "Founder Solar Ion", Color(0xFFFFFBEB), Color(0xFFFFD700), 0L)
+        ExhaustFlame("founder_ion_gold", "Founder Solar Ion", Color(0xFFFFFBEB), Color(0xFFFFD700), 0L),
+        ExhaustFlame("honey_plasma", "Honey Bio-Plume", Color(0xFFFEF08A), Color(0xFFFFD700), 0L),
+        ExhaustFlame("tachyon_hero", "Sovereign Dual Trail", Color(0xFFFFFFFF), Color(0xFFFF1E56), 0L)
     )
 
     fun getById(id: String): ExhaustFlame = ALL.firstOrNull { it.id == id } ?: ALL.first()
