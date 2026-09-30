@@ -27,11 +27,23 @@ class ExampleRobolectricTest {
 
     @Test
     fun testAircraftCatalog() {
-        assertEquals(4, AircraftCatalog.ALL_AIRCRAFT.size)
+        assertEquals(24, AircraftCatalog.ALL_AIRCRAFT.size)
         val falcon = AircraftCatalog.getById("apex_falcon")
         assertNotNull(falcon)
-        assertEquals("Apex Falcon", falcon.name)
+        assertEquals("Falconix", falcon.name)
         assertTrue(falcon.baseHealth > 0f)
+    }
+
+    @Test
+    fun testSettingsDefaults() {
+        val defaultSettings = com.example.data.SettingsEntity()
+        assertEquals(120, defaultSettings.targetFps)
+        assertEquals("ULTRA", defaultSettings.graphicsPreset)
+        assertEquals("TOUCH_FOLLOW", defaultSettings.controlScheme)
+        assertEquals(1.0f, defaultSettings.sfxVolume)
+        assertEquals(1.0f, defaultSettings.musicVolume)
+        assertTrue(defaultSettings.soundEnabled)
+        assertTrue(defaultSettings.hapticsEnabled)
     }
 
     @Test

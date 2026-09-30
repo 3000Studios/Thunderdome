@@ -267,7 +267,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         haptics: Boolean? = null,
         soundEnabled: Boolean? = null,
         sfx: Float? = null,
-        music: Float? = null
+        music: Float? = null,
+        sensitivity: Float? = null
     ) {
         val current = settings.value
         viewModelScope.launch {
@@ -280,9 +281,29 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 hapticsEnabled = haptics ?: current.hapticsEnabled,
                 soundEnabled = soundEnabled ?: current.soundEnabled,
                 sfxVolume = sfx ?: current.sfxVolume,
-                musicVolume = music ?: current.musicVolume
+                musicVolume = music ?: current.musicVolume,
+                touchSensitivity = sensitivity ?: current.touchSensitivity
             )
             repository.updateSettings(updated)
+        }
+    }
+
+    fun optimizeAllSettingsToBest() {
+        viewModelScope.launch {
+            val best = SettingsEntity(
+                graphicsPreset = "ULTRA",
+                targetFps = 120,
+                controlScheme = "TOUCH_FOLLOW",
+                touchSensitivity = 1.0f,
+                touchInputEnabled = true,
+                touchOffsetY = 55f,
+                hapticsEnabled = true,
+                soundEnabled = true,
+                sfxVolume = 1.0f,
+                musicVolume = 1.0f
+            )
+            repository.updateSettings(best)
+            audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
         }
     }
 }

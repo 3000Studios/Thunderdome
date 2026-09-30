@@ -43,8 +43,30 @@ fun SettingsScreen(viewModel: GameViewModel) {
             text = "Graphics pipeline, device profiles, haptics & telemetry",
             style = MaterialTheme.typography.bodySmall,
             color = TextSecondary,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 12.dp)
         )
+
+        Button(
+            onClick = { viewModel.optimizeAllSettingsToBest() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+                .testTag("optimize_all_settings_btn"),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AeroCyan,
+                contentColor = DarkVoid
+            ),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Icon(Icons.Default.Speed, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                "APPLY BEST POSSIBLE FIDELITY & FPS",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
 
         Text("AUDIO & FLIGHT INPUT", style = MaterialTheme.typography.labelLarge, color = Color.White)
         Spacer(modifier = Modifier.height(8.dp))
@@ -81,6 +103,20 @@ fun SettingsScreen(viewModel: GameViewModel) {
             onValueChange = { viewModel.updateSettings(touchOffsetY = it) },
             valueRange = 20f..180f,
             modifier = Modifier.fillMaxWidth().testTag("plane_position_slider")
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Touch Flight Sensitivity", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+            Text("${(settings.touchSensitivity * 100).toInt()}%", color = AeroCyan, style = MaterialTheme.typography.labelSmall)
+        }
+        Slider(
+            value = settings.touchSensitivity,
+            onValueChange = { viewModel.updateSettings(sensitivity = it) },
+            valueRange = 0.5f..2.5f,
+            modifier = Modifier.fillMaxWidth().testTag("touch_sensitivity_slider")
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -215,6 +251,21 @@ fun SettingsScreen(viewModel: GameViewModel) {
                         value = settings.sfxVolume,
                         onValueChange = { viewModel.updateSettings(sfx = it) },
                         modifier = Modifier.fillMaxWidth().testTag("sfx_volume_slider")
+                    )
+                }
+
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Soundtrack Music Volume", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                        Text("${(settings.musicVolume * 100).toInt()}%", color = AeroCyan, style = MaterialTheme.typography.labelSmall)
+                    }
+                    Slider(
+                        value = settings.musicVolume,
+                        onValueChange = { viewModel.updateSettings(music = it) },
+                        modifier = Modifier.fillMaxWidth().testTag("music_volume_slider")
                     )
                 }
             }

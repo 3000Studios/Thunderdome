@@ -42,13 +42,13 @@ data class AircraftSaveEntity(
 data class SettingsEntity(
     @PrimaryKey val id: Int = 1,
     val graphicsPreset: String = "ULTRA",
-    val targetFps: Int = 60,
+    val targetFps: Int = 120,
     val controlScheme: String = "TOUCH_FOLLOW",
     val touchSensitivity: Float = 1.0f,
     val touchInputEnabled: Boolean = true,
     val touchOffsetY: Float = 55f,
     val hapticsEnabled: Boolean = true,
     val soundEnabled: Boolean = true,
-    val sfxVolume: Float = 0.9f,
-    val musicVolume: Float = 0.8f
+    val sfxVolume: Float = 1.0f,
+    val musicVolume: Float = 1.0f
 )

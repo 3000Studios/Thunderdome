@@ -120,8 +120,15 @@ class GameRepository(private val dao: AeroStrikeDao) {
             dao.insertAllAircraft(existingSaves)
         }
         val currentSettings = dao.getSettingsDirect()
-        if (currentSettings != null && currentSettings.controlScheme == "JOYSTICK") {
-            dao.insertOrUpdateSettings(currentSettings.copy(controlScheme = "TOUCH_FOLLOW"))
+        if (currentSettings != null) {
+            val optimized = currentSettings.copy(
+                graphicsPreset = "ULTRA",
+                targetFps = 120,
+                controlScheme = if (currentSettings.controlScheme == "JOYSTICK") "TOUCH_FOLLOW" else currentSettings.controlScheme
+            )
+            if (optimized != currentSettings) {
+                dao.insertOrUpdateSettings(optimized)
+            }
         }
     }
 
