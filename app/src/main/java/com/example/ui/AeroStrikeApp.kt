@@ -19,6 +19,7 @@ enum class MainNavTab(val title: String, val icon: androidx.compose.ui.graphics.
     TITLE("Home", Icons.Default.Home),
     HANGAR("Hangar", Icons.Default.Flight),
     MISSIONS("Missions", Icons.Default.Public),
+    BOSSES("Bosses", Icons.Default.Dangerous),
     BATTLE_PASS("Pass", Icons.Default.MilitaryTech),
     LEADERBOARD("Ranks", Icons.Default.Leaderboard),
     SETTINGS("Systems", Icons.Default.Settings)
@@ -68,6 +69,8 @@ fun AeroStrikeApp(viewModel: GameViewModel) {
                         onStartCampaign = { inCombatMode = true },
                         onStartMultiplayer = { inCombatMode = true },
                         onOpenHangar = { currentTab = MainNavTab.HANGAR },
+                        onOpenMissions = { currentTab = MainNavTab.MISSIONS },
+                        onOpenBosses = { currentTab = MainNavTab.BOSSES },
                         onOpenBattlePass = { currentTab = MainNavTab.BATTLE_PASS },
                         onOpenSettings = { currentTab = MainNavTab.SETTINGS }
                     )
@@ -78,6 +81,16 @@ fun AeroStrikeApp(viewModel: GameViewModel) {
                     MainNavTab.MISSIONS -> MissionSelectScreen(
                         viewModel = viewModel,
                         onLaunchMission = { inCombatMode = true }
+                    )
+                    MainNavTab.BOSSES -> BossesScreen(
+                        viewModel = viewModel,
+                        onLaunchBossSortie = { bossName ->
+                            val stageIdx = com.example.game.model.BossProfileCatalog.PROFILES.values.firstOrNull { 
+                                it.name.equals(bossName, ignoreCase = true) 
+                            }?.index ?: 24
+                            viewModel.selectStage(stageIdx)
+                            inCombatMode = true
+                        }
                     )
                     MainNavTab.BATTLE_PASS -> BattlePassScreen(viewModel = viewModel)
                     MainNavTab.LEADERBOARD -> LeaderboardScreen(viewModel = viewModel)

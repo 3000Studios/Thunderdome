@@ -59,6 +59,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     val isStoreModalOpen = MutableStateFlow(false)
     val availableProducts = billingManager.availableProducts
+    val selectedStageIndex = MutableStateFlow(1)
+
+    fun selectStage(stageIndex: Int) {
+        val clamped = stageIndex.coerceIn(1, 24)
+        selectedStageIndex.value = clamped
+        val biome = BiomeCatalog.ALL_BIOMES.getOrElse(clamped - 1) { BiomeCatalog.THEATER_01 }
+        gameEngine.currentBiome = biome
+    }
 
     val playerProfile: StateFlow<PlayerProfileEntity> = repository.playerProfile
         .filterNotNull()

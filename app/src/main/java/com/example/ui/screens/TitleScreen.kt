@@ -39,13 +39,14 @@ fun TitleScreen(
     onStartCampaign: () -> Unit,
     onStartMultiplayer: () -> Unit,
     onOpenHangar: () -> Unit,
+    onOpenMissions: (() -> Unit)? = null,
+    onOpenBosses: (() -> Unit)? = null,
     onOpenBattlePass: () -> Unit,
     onOpenSettings: (() -> Unit)? = null
 ) {
     val profile by viewModel.playerProfile.collectAsState()
     val settings by viewModel.settings.collectAsState()
 
-    // Soft reduced-motion: slow animations when user prefers less motion (Android a11y flag not always wired; keep gentle defaults)
     val reduceMotion = false
 
     val infiniteTransition = rememberInfiniteTransition(label = "title_bg")
@@ -57,6 +58,15 @@ fun TitleScreen(
             repeatMode = RepeatMode.Reverse
         ),
         label = "glow_pulse"
+    )
+    val eventPulse by infiniteTransition.animateFloat(
+        initialValue = 0.6f,
+        targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "event_pulse"
     )
     val radarRotation by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -77,13 +87,12 @@ fun TitleScreen(
         label = "warbird_yaw"
     )
 
-    // Bonus tunnel armed when player level is high enough or flag exists on profile
     val bonusArmed = profile.level >= 3
 
     Box(modifier = Modifier.fillMaxSize().semantics { contentDescription = "Thunder Dome title screen" }) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val cx = size.width * 0.5f
-            val cy = size.height * 0.30f
+            val cy = size.height * 0.26f
 
             drawRect(
                 brush = Brush.verticalGradient(
@@ -91,7 +100,7 @@ fun TitleScreen(
                 )
             )
 
-            val gridY = size.height * 0.48f
+            val gridY = size.height * 0.44f
             for (i in 0..12) {
                 val lineX = size.width * (i / 12f)
                 drawLine(
@@ -165,55 +174,84 @@ fun TitleScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 18.dp, vertical = 20.dp),
+                .padding(horizontal = 14.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
+            // Header Info & Brand
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "3000 STUDIOS // CYBER DEFENSE",
+                    text = "3000 STUDIOS // AIR COMBAT SYSTEMS",
                     style = MaterialTheme.typography.labelSmall,
                     color = AeroCyan,
-                    letterSpacing = 3.sp,
+                    letterSpacing = 2.5.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "THUNDER DOME",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 32.sp),
+                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 30.sp),
                     color = Color.White,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 2.sp
                 )
                 Text(
-                    text = "NEXT-GEN AIR COMBAT // TOP-DOWN 120 FPS",
+                    text = "NEXT-GEN TOP-DOWN ARCADE // 120 FPS",
                     style = MaterialTheme.typography.labelSmall,
                     color = TextSecondary,
-                    letterSpacing = 1.2.sp
+                    letterSpacing = 1.sp
                 )
-                if (bonusArmed) {
-                    Spacer(Modifier.height(8.dp))
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = FounderGold.copy(alpha = 0.15f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, FounderGold),
-                        modifier = Modifier.semantics {
-                            contentDescription = "Bonus warp tunnel armed. Lights up on entry."
+
+                // SPECIAL EVENT BANNER (Nexus Obliterator Live / Bonus Tunnel)
+                Spacer(Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(
+                                    AeroCrimson.copy(alpha = 0.25f * eventPulse),
+                                    AeroAmber.copy(alpha = 0.20f * eventPulse),
+                                    DarkSurfaceElevated
+                                )
+                            )
+                        )
+                        .border(1.dp, AeroCrimson.copy(alpha = 0.7f * eventPulse), RoundedCornerShape(8.dp))
+                        .clickable {
+                            if (onOpenBosses != null) {
+                                onOpenBosses()
+                            } else {
+                                onStartCampaign()
+                            }
                         }
-                    ) {
-                        Row(
-                            Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.Bolt, null, tint = FounderGold, modifier = Modifier.size(14.dp))
-                            Spacer(Modifier.width(6.dp))
+                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Dangerous,
+                            contentDescription = null,
+                            tint = AeroCrimson,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Column {
                             Text(
-                                text = "${BonusStageSpec.NAME.uppercase()} // LIGHTS UP",
-                                color = FounderGold,
+                                text = "SPECIAL EVENT // NEXUS OBLITERATOR LIVE",
                                 style = MaterialTheme.typography.labelSmall,
+                                color = Color.White,
+                                fontWeight = FontWeight.Black
+                            )
+                            Text(
+                                text = "DEFEAT STAGE 24 BOSS FOR +500 PLASMA CORES",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                color = AeroAmber,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                     }
+                    Icon(Icons.Default.ChevronRight, null, tint = AeroCrimson, modifier = Modifier.size(16.dp))
                 }
             }
 
@@ -225,34 +263,33 @@ fun TitleScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Spacer for radar hero zone (drawn in Canvas)
-            Spacer(Modifier.height(8.dp))
-
+            // Middle 4 CORE BEVELED ACTION BUTTONS (Concept Art media_1790893533484.jpg)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // PRIMARY
-                com.example.ui.components.TacticalGlossButton(
-                    onClick = onStartCampaign,
-                    containerColor = AeroCyan,
-                    contentColor = DarkVoid,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp)
-                        .testTag("start_campaign_button")
-                        .semantics { contentDescription = "Start campaign sortie solo" }
-                ) {
-                    Icon(Icons.Default.FlightTakeoff, contentDescription = null)
-                    Spacer(Modifier.width(10.dp))
-                    Text("CAMPAIGN SORTIE", fontWeight = FontWeight.Black, fontSize = 15.sp)
-                }
-
-                // SECONDARY: Co-op | PvP
+                // Row 1: CAMPAIGN (Cyan) & MULTIPLAYER (Crimson)
                 Row(
-                    Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    com.example.ui.components.TacticalGlossButton(
+                        onClick = onStartCampaign,
+                        containerColor = AeroCyan,
+                        contentColor = DarkVoid,
+                        height = 54.dp,
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("start_campaign_button")
+                    ) {
+                        Icon(Icons.Default.FlightTakeoff, null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Column {
+                            Text("CAMPAIGN", fontWeight = FontWeight.Black, fontSize = 13.sp)
+                            Text("SOLO SORTIE", fontWeight = FontWeight.Bold, fontSize = 9.sp)
+                        }
+                    }
+
                     com.example.ui.components.TacticalGlossButton(
                         onClick = {
                             viewModel.gameEngine.isMultiplayerMatchActive = true
@@ -261,136 +298,182 @@ fun TitleScreen(
                                 aircraftId = profile.selectedAircraftId,
                                 mode = MultiplayerMode.SQUAD_COOP_4P
                             )
-                            onStartCampaign()
-                        },
-                        containerColor = AeroEmerald,
-                        contentColor = DarkVoid,
-                        height = 48.dp,
-                        modifier = Modifier
-                            .weight(1f)
-                            .testTag("start_coop_campaign_button")
-                    ) {
-                        Icon(Icons.Default.Groups, null, Modifier.size(16.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("4P CO-OP", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    }
-                    com.example.ui.components.TacticalGlossButton(
-                        onClick = {
-                            viewModel.gameEngine.isMultiplayerMatchActive = true
-                            viewModel.gameEngine.multiplayerManager.connectToMatchmaking(
-                                playerCallsign = profile.callsign,
-                                aircraftId = profile.selectedAircraftId,
-                                mode = MultiplayerMode.PVP_DOGFIGHT_1V1
-                            )
                             onStartMultiplayer()
                         },
                         containerColor = AeroCrimson,
                         contentColor = Color.White,
-                        height = 48.dp,
+                        height = 54.dp,
                         modifier = Modifier
                             .weight(1f)
                             .testTag("start_multiplayer_button")
                     ) {
-                        Icon(Icons.Default.Wifi, null, Modifier.size(16.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("1V1 PVP", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Icon(Icons.Default.Groups, null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Column {
+                            Text("MULTIPLAYER", fontWeight = FontWeight.Black, fontSize = 13.sp)
+                            Text("4P CO-OP // 1V1 PVP", fontWeight = FontWeight.Bold, fontSize = 9.sp)
+                        }
                     }
                 }
 
-                // TERTIARY: Hangar | Pass | Settings
+                // Row 2: HANGAR (Violet) & STORE / DEPOT (Gold)
                 Row(
-                    Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     com.example.ui.components.TacticalGlossButton(
                         onClick = onOpenHangar,
-                        containerColor = CarbonElevated,
+                        containerColor = AeroViolet,
                         contentColor = Color.White,
-                        height = 46.dp,
+                        height = 50.dp,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.Build, null, Modifier.size(15.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("HANGAR", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                        Icon(Icons.Default.Flight, null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Column {
+                            Text("HANGAR", fontWeight = FontWeight.Black, fontSize = 12.sp)
+                            Text("CUSTOMIZE CRAFT", fontWeight = FontWeight.Bold, fontSize = 8.5.sp)
+                        }
                     }
+
+                    com.example.ui.components.TacticalGlossButton(
+                        onClick = { viewModel.openStoreModal() },
+                        containerColor = FounderGold,
+                        contentColor = DarkVoid,
+                        height = 50.dp,
+                        modifier = Modifier.weight(1f).testTag("open_store_button")
+                    ) {
+                        Icon(Icons.Default.ShoppingBag, null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Column {
+                            Text("DEPOT STORE", fontWeight = FontWeight.Black, fontSize = 12.sp)
+                            Text("FOUNDER PACKS", fontWeight = FontWeight.Bold, fontSize = 8.5.sp)
+                        }
+                    }
+                }
+
+                // Row 3: Quick Systems Strip (MISSIONS | BOSSES | PASS | SETTINGS)
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    com.example.ui.components.TacticalGlossButton(
+                        onClick = { onOpenMissions?.invoke() ?: onStartCampaign() },
+                        containerColor = CarbonElevated,
+                        contentColor = AeroCyan,
+                        height = 42.dp,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Public, null, Modifier.size(14.dp))
+                        Spacer(Modifier.width(3.dp))
+                        Text("STAGES", fontWeight = FontWeight.Bold, fontSize = 10.sp)
+                    }
+
+                    com.example.ui.components.TacticalGlossButton(
+                        onClick = { onOpenBosses?.invoke() ?: onStartCampaign() },
+                        containerColor = CarbonElevated,
+                        contentColor = AeroCrimson,
+                        height = 42.dp,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Dangerous, null, Modifier.size(14.dp))
+                        Spacer(Modifier.width(3.dp))
+                        Text("BOSSES", fontWeight = FontWeight.Bold, fontSize = 10.sp)
+                    }
+
                     com.example.ui.components.TacticalGlossButton(
                         onClick = onOpenBattlePass,
                         containerColor = CarbonElevated,
                         contentColor = AeroAmber,
-                        height = 46.dp,
+                        height = 42.dp,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.MilitaryTech, null, Modifier.size(15.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("PASS", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                        Icon(Icons.Default.MilitaryTech, null, Modifier.size(14.dp))
+                        Spacer(Modifier.width(3.dp))
+                        Text("PASS", fontWeight = FontWeight.Bold, fontSize = 10.sp)
                     }
+
                     com.example.ui.components.TacticalGlossButton(
                         onClick = {
-                            onOpenSettings?.invoke()
-                            // Fallback: cycle camera if settings route not wired yet
-                            if (onOpenSettings == null) viewModel.toggleCameraViewMode()
+                            onOpenSettings?.invoke() ?: viewModel.toggleCameraViewMode()
                         },
                         containerColor = CarbonElevated,
-                        contentColor = AeroViolet,
-                        height = 46.dp,
+                        contentColor = TextSecondary,
+                        height = 42.dp,
                         modifier = Modifier.weight(1f).testTag("title_settings_button")
                     ) {
-                        Icon(Icons.Default.Settings, null, Modifier.size(15.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("SETTINGS", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                        Icon(Icons.Default.Settings, null, Modifier.size(14.dp))
+                        Spacer(Modifier.width(3.dp))
+                        Text("SYSTEMS", fontWeight = FontWeight.Bold, fontSize = 10.sp)
                     }
                 }
 
-                // Compact cam/scale strip (moved off primary path)
-                Row(
+                // 24-Stage Quick Carousel Progress Track
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(DarkSurface.copy(alpha = 0.65f))
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(DarkSurface.copy(alpha = 0.85f))
+                        .border(1.dp, MetallicBorder.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 8.dp, vertical = 6.dp)
                 ) {
-                    Text(
-                        text = when (settings.cameraViewMode) {
-                            "COCKPIT_1ST" -> "CAM: 1ST COCKPIT"
-                            "TOP_DOWN_CHASE" -> "CAM: TOP-DOWN"
-                            else -> "CAM: 3RD FOLLOW"
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = AeroCyan,
-                        modifier = Modifier
-                            .clickable { viewModel.toggleCameraViewMode() }
-                            .semantics { contentDescription = "Toggle camera view mode" }
-                    )
-                    Text(
-                        text = when (settings.screenSizeScale) {
-                            "MAX_IMMERSIVE" -> "SCALE 115%"
-                            "COMPACT" -> "SCALE 90%"
-                            else -> "SCALE 100%"
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = AeroAmber,
-                        modifier = Modifier.clickable {
-                            val next = when (settings.screenSizeScale) {
-                                "MAX_IMMERSIVE" -> "STANDARD"
-                                "STANDARD" -> "COMPACT"
-                                else -> "MAX_IMMERSIVE"
-                            }
-                            viewModel.setScreenSizeScale(next)
-                        }
-                    )
-                }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "24-STAGE CAMPAIGN TRACK",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.5.sp),
+                            color = AeroCyan,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "ACTIVE: STAGE ${viewModel.selectedStageIndex.collectAsState().value}",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                            color = AeroAmber
+                        )
+                    }
 
-                com.example.ui.components.DepotFounderButton(
-                    onClick = { viewModel.openStoreModal() },
-                    modifier = Modifier.fillMaxWidth().testTag("open_store_button")
-                )
+                    Spacer(Modifier.height(4.dp))
+
+                    androidx.compose.foundation.lazy.LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(24) { i ->
+                            val stageNum = i + 1
+                            val isSelected = viewModel.selectedStageIndex.collectAsState().value == stageNum
+                            Box(
+                                modifier = Modifier
+                                    .size(width = 36.dp, height = 28.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(if (isSelected) AeroCyan else DarkSurfaceElevated)
+                                    .border(
+                                        1.dp,
+                                        if (isSelected) Color.White else MetallicBorder.copy(alpha = 0.6f),
+                                        RoundedCornerShape(4.dp)
+                                    )
+                                    .clickable {
+                                        viewModel.selectStage(stageNum)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "%02d".format(stageNum),
+                                    color = if (isSelected) DarkVoid else Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             Text(
                 text = "SYSTEM READY // v3.2 ULTRA // 24 STAGES + BONUS TUNNEL // 3000 STUDIOS",
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                 color = TextMuted,
                 letterSpacing = 0.8.sp
             )

@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -555,57 +557,65 @@ fun CombatHudOverlay(
                 }
             }
 
-            // Score & Combo Counter
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "${stats.score}",
-                    style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace),
-                    color = Color.White
-                )
-
-                if (stats.comboCount > 1) {
+            // Score & Radar Compass & Controls
+            Row(
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = "COMBO x${stats.comboCount} (+${(stats.comboCount * 10)}%)",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = AeroAmber,
-                        fontWeight = FontWeight.Bold
+                        text = "${stats.score}",
+                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace),
+                        color = Color.White
                     )
-                }
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = onToggleCamera,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .testTag("combat_camera_toggle_button")
-                    ) {
-                        Icon(
-                            imageVector = when (engine.cameraViewMode) {
-                                "COCKPIT_1ST" -> Icons.Default.Visibility
-                                "TOP_DOWN_CHASE" -> Icons.Default.TravelExplore
-                                else -> Icons.Default.Videocam
-                            },
-                            contentDescription = "Camera View",
-                            tint = when (engine.cameraViewMode) {
-                                "COCKPIT_1ST" -> AeroEmerald
-                                "TOP_DOWN_CHASE" -> AeroViolet
-                                else -> AeroCyan
-                            }
+                    if (stats.comboCount > 1) {
+                        Text(
+                            text = "COMBO x${stats.comboCount} (+${(stats.comboCount * 10)}%)",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = AeroAmber,
+                            fontWeight = FontWeight.Bold
                         )
                     }
 
-                    IconButton(
-                        onClick = onPauseClick,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .testTag("combat_pause_button")
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Pause, contentDescription = "Pause", tint = TextSecondary)
+                        IconButton(
+                            onClick = onToggleCamera,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .testTag("combat_camera_toggle_button")
+                        ) {
+                            Icon(
+                                imageVector = when (engine.cameraViewMode) {
+                                    "COCKPIT_1ST" -> Icons.Default.Visibility
+                                    "TOP_DOWN_CHASE" -> Icons.Default.TravelExplore
+                                    else -> Icons.Default.Videocam
+                                },
+                                contentDescription = "Camera View",
+                                tint = when (engine.cameraViewMode) {
+                                    "COCKPIT_1ST" -> AeroEmerald
+                                    "TOP_DOWN_CHASE" -> AeroViolet
+                                    else -> AeroCyan
+                                }
+                            )
+                        }
+
+                        IconButton(
+                            onClick = onPauseClick,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .testTag("combat_pause_button")
+                        ) {
+                            Icon(Icons.Default.Pause, contentDescription = "Pause", tint = TextSecondary)
+                        }
                     }
                 }
+
+                // Tactical Radar Compass (media_1790893533430.jpg)
+                TacticalRadarCompass(engine = engine)
             }
         }
 
@@ -984,6 +994,108 @@ fun BossHudBar(
                 }
             }
         )
+    }
+}
+
+@Composable
+fun TacticalRadarCompass(
+    engine: GameEngine,
+    modifier: Modifier = Modifier
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "radar_sweep")
+    val sweepAngle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2400, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "sweep_angle"
+    )
+
+    val player = engine.playerState
+    val enemies = engine.enemySystem.enemies
+    val boss = engine.enemySystem.currentBoss
+
+    Box(
+        modifier = modifier
+            .size(52.dp)
+            .clip(CircleShape)
+            .background(DarkSurfaceElevated.copy(alpha = 0.85f))
+            .border(1.dp, AeroCyan.copy(alpha = 0.6f), CircleShape)
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val cx = size.width * 0.5f
+            val cy = size.height * 0.5f
+            val r = size.width * 0.44f
+
+            // Concentric range circles
+            drawCircle(
+                color = AeroCyan.copy(alpha = 0.15f),
+                radius = r * 0.5f,
+                center = Offset(cx, cy),
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 0.8f)
+            )
+            drawCircle(
+                color = AeroCyan.copy(alpha = 0.25f),
+                radius = r,
+                center = Offset(cx, cy),
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1f)
+            )
+
+            // Crosshair lines
+            drawLine(
+                color = AeroCyan.copy(alpha = 0.2f),
+                start = Offset(cx, cy - r),
+                end = Offset(cx, cy + r),
+                strokeWidth = 0.8f
+            )
+            drawLine(
+                color = AeroCyan.copy(alpha = 0.2f),
+                start = Offset(cx - r, cy),
+                end = Offset(cx + r, cy),
+                strokeWidth = 0.8f
+            )
+
+            // Rotating sweep beam
+            val rad = Math.toRadians(sweepAngle.toDouble())
+            val sweepX = cx + (r * kotlin.math.cos(rad)).toFloat()
+            val sweepY = cy + (r * kotlin.math.sin(rad)).toFloat()
+            drawLine(
+                brush = Brush.radialGradient(
+                    listOf(AeroCyan.copy(alpha = 0.9f), AeroCyan.copy(alpha = 0.1f), Color.Transparent),
+                    center = Offset(cx, cy),
+                    radius = r
+                ),
+                start = Offset(cx, cy),
+                end = Offset(sweepX, sweepY),
+                strokeWidth = 1.5f
+            )
+
+            // Player dot at center
+            drawCircle(color = AeroCyan, radius = 2.5f, center = Offset(cx, cy))
+            drawCircle(color = Color.White, radius = 1.2f, center = Offset(cx, cy))
+
+            // Enemy blips
+            for (enemy in enemies) {
+                if (enemy.health <= 0f) continue
+                val relX = ((enemy.x - player.x) / 400f).coerceIn(-1f, 1f)
+                val relY = ((enemy.y - player.y) / 700f).coerceIn(-1f, 1f)
+                val blipX = cx + relX * (r * 0.8f)
+                val blipY = cy + relY * (r * 0.8f)
+                drawCircle(color = DangerRed, radius = 2f, center = Offset(blipX, blipY))
+            }
+
+            // Boss blip (larger pulsing gold/crimson dot)
+            if (boss != null && boss.phase != BossPhase.DESTROYED) {
+                val relX = ((boss.x - player.x) / 500f).coerceIn(-1f, 1f)
+                val relY = ((boss.y - player.y) / 800f).coerceIn(-1f, 1f)
+                val blipX = cx + relX * (r * 0.85f)
+                val blipY = cy + relY * (r * 0.85f)
+                drawCircle(color = AeroCrimson, radius = 4f, center = Offset(blipX, blipY))
+                drawCircle(color = FounderGold, radius = 2f, center = Offset(blipX, blipY))
+            }
+        }
     }
 }
 
