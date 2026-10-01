@@ -187,12 +187,17 @@ class GameEngine(
 
     var graphicsPreset: String = "ULTRA"
 
-    // Stage Progress & Distance Line Tracking
+    // Stage Progress & Distance Line Tracking (3 min to 8 min stage scaling)
     var stageDistanceCurrent: Float = 0f
-    val stageDistanceTotal: Float = 3000f // 3,000 meters stage length
+    var stageDistanceTotal: Float = 20000f // 20,000m to 45,000m (3 to 8 min)
     var damageTakenThisStage: Float = 0f
     var totalTargetsSpawned: Int = 0
     var totalTargetsDestroyed: Int = 0
+
+    // Tachyon Warp Drive Cinematic Drop-In
+    var isWarpIntroActive: Boolean = false
+    var warpIntroTimer: Float = 0f
+    val warpIntroDuration: Float = 2.4f
 
     // Bonus Vortex & Tunnel State
     var bonusVortexActive: Boolean = false
@@ -244,8 +249,16 @@ class GameEngine(
         inputDirX = 0f
         inputDirY = 0f
 
-        // Reset stage distance & bonus vortex state
+        // Dynamic Stage Distance Scaling: 3 minutes minimum (20,000m) to 8 minutes maximum (45,000m)
+        val stageIndex = BiomeCatalog.ALL_BIOMES.indexOfFirst { it.id == biome.id }.let { if (it >= 0) it else 0 }
+        stageDistanceTotal = 20000f + (stageIndex * 1086f)
         stageDistanceCurrent = 0f
+
+        // Engage Tachyon Warp Drive Intro
+        isWarpIntroActive = true
+        warpIntroTimer = warpIntroDuration
+        audioHaptics.playSound(AudioHapticSystem.SoundType.BOOST_BURST)
+        audioHaptics.triggerBoostHaptic()
         damageTakenThisStage = 0f
         totalTargetsSpawned = 0
         totalTargetsDestroyed = 0
@@ -445,12 +458,29 @@ class GameEngine(
             }
         }
 
+        // Update Warp Intro Timer
+        if (isWarpIntroActive) {
+            warpIntroTimer -= clampedDt
+            if (warpIntroTimer <= 0f) {
+                isWarpIntroActive = false
+                vfx.addText("⚡ WARP EXIT: ENGAGING SECTOR DEFENSE ⚡", screenWidth * 0.5f, screenHeight * 0.38f, Color(0xFF00F0FF))
+            }
+        }
+
         // 12. Stage Distance & Bonus Vortex Black Hole Logic
         if (!isInBonusTunnel) {
             // Advance stage distance (scaled by flight speed)
             val speedFactor = if (playerState.isBoosting) 180f else 110f
             stageDistanceCurrent = (stageDistanceCurrent + clampedDt * speedFactor).coerceAtMost(stageDistanceTotal)
             val progressRatio = stageDistanceCurrent / stageDistanceTotal
+
+            // Trigger Epic Boss Encounter upon reaching 100% stage distance (3-8 min flight completed)
+            if (stageDistanceCurrent >= stageDistanceTotal && enemySystem.currentBoss == null && !enemySystem.isBossWave) {
+                enemySystem.spawnBoss(screenWidth, screenHeight)
+                enemySystem.isBossWave = true
+                vfx.addText("⚠️ WARNING: BOSS DREADNOUGHT DETECTED ⚠️", screenWidth * 0.5f, screenHeight * 0.30f, Color(0xFFEF4444))
+                audioHaptics.playSound(AudioHapticSystem.SoundType.WARNING_BEEP)
+            }
 
             // Check for Bonus Vortex Spawn at 90% Stage Progress
             // Requirement: Reached 90%, 0 damage taken on stage, and destroyed targets

@@ -4,7 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
-import com.example.game.engine.GameEngine
+import com.example.game.engine.*
 import com.example.game.model.*
 import com.example.ui.theme.*
 import kotlin.math.PI
@@ -93,6 +93,9 @@ object GameRenderer {
                     )
                 }
             }
+
+            // 2b. Layer 2b: Biome-Specific Planetary Textures & Features (All 24 Biomes)
+            drawBiomeSpecificFeatures(this, biome, env, width, height)
 
             // 3. Layer 3: High-Altitude Atmospheric Clouds with Ground Shadows
             for (c in env.clouds) {
@@ -476,6 +479,11 @@ object GameRenderer {
         } else if (isTopDown && !engine.isGameOver) {
             drawTopDownChaseHud(drawScope, engine, width, height)
         }
+
+        // 18. Cinematic Tachyon Warp Drive Drop-In Sequence
+        if (engine.isWarpIntroActive && !engine.isGameOver) {
+            drawWarpDriveIntro(drawScope, engine, width, height)
+        }
     }
 
     private fun drawPlayerAircraft(
@@ -489,6 +497,150 @@ object GameRenderer {
         val trimColor = paint.trimColor
 
         when (spec.id) {
+            "aircraft_dart" -> {
+                // ── DART: RAZOR DELTA INTERCEPTOR ──
+                val dartPath = Path().apply {
+                    moveTo(0f, -46f) // Needle nose tip
+                    lineTo(8f, -22f)
+                    lineTo(38f, 10f) // Swept delta wingtip
+                    lineTo(34f, 22f)
+                    lineTo(16f, 18f)
+                    lineTo(14f, 32f) // Twin right engine nozzle
+                    lineTo(0f, 24f)
+                    lineTo(-14f, 32f) // Twin left engine nozzle
+                    lineTo(-16f, 18f)
+                    lineTo(-34f, 22f)
+                    lineTo(-38f, 10f) // Swept delta left wingtip
+                    lineTo(-8f, -22f)
+                    close()
+                }
+                scope.drawPath(dartPath, color = bodyColor)
+                scope.drawPath(dartPath, color = trimColor, style = Stroke(width = 2.2f))
+
+                // Carbon Fiber Wing Inset Panels
+                val leftPanel = Path().apply {
+                    moveTo(-6f, -16f); lineTo(-30f, 8f); lineTo(-18f, 16f); close()
+                }
+                val rightPanel = Path().apply {
+                    moveTo(6f, -16f); lineTo(30f, 8f); lineTo(18f, 16f); close()
+                }
+                scope.drawPath(leftPanel, color = Color(0x55000000))
+                scope.drawPath(rightPanel, color = Color(0x55000000))
+
+                // Dual Forward Plasma Muzzles
+                scope.drawLine(color = trimColor, start = Offset(-18f, 6f), end = Offset(-18f, -4f), strokeWidth = 2.5f)
+                scope.drawLine(color = trimColor, start = Offset(18f, 6f), end = Offset(18f, -4f), strokeWidth = 2.5f)
+
+                // Canopy
+                val canopy = Path().apply {
+                    moveTo(0f, -32f); lineTo(5f, -10f); lineTo(0f, 12f); lineTo(-5f, -10f); close()
+                }
+                scope.drawPath(canopy, brush = Brush.verticalGradient(listOf(AeroCyan, Color(0xFF0284C7))))
+
+                // Dual Ion Thrusters
+                val flLen = if (isBoosting) 42f else 20f
+                scope.drawOval(brush = Brush.verticalGradient(listOf(Color.White, AeroCyan, Color.Transparent)), topLeft = Offset(-17f, 28f), size = Size(7f, flLen))
+                scope.drawOval(brush = Brush.verticalGradient(listOf(Color.White, AeroCyan, Color.Transparent)), topLeft = Offset(10f, 28f), size = Size(7f, flLen))
+                return
+            }
+            "aircraft_valkyrie" -> {
+                // ── VALKYRIE: HEAVY TWIN-BOOM STRIKE FIGHTER ──
+                val valkPath = Path().apply {
+                    moveTo(0f, -40f)
+                    lineTo(14f, -24f)
+                    lineTo(48f, -4f) // Heavy broad wings
+                    lineTo(44f, 20f)
+                    lineTo(22f, 24f)
+                    lineTo(20f, 38f) // Right engine boom
+                    lineTo(8f, 36f)
+                    lineTo(0f, 16f) // Center fuselage inset
+                    lineTo(-8f, 36f)
+                    lineTo(-20f, 38f) // Left engine boom
+                    lineTo(-22f, 24f)
+                    lineTo(-44f, 20f)
+                    lineTo(-48f, -4f)
+                    lineTo(-14f, -24f)
+                    close()
+                }
+                scope.drawPath(valkPath, color = bodyColor)
+                scope.drawPath(valkPath, color = trimColor, style = Stroke(width = 2.5f))
+
+                // Heavy Titanium Armor Plating Line
+                scope.drawLine(color = trimColor, start = Offset(-38f, 4f), end = Offset(38f, 4f), strokeWidth = 2f)
+
+                // Cockpit Glass
+                val canopy = Path().apply {
+                    moveTo(0f, -28f); lineTo(7f, -8f); lineTo(0f, 10f); lineTo(-7f, -8f); close()
+                }
+                scope.drawPath(canopy, brush = Brush.verticalGradient(listOf(AeroAmber, AeroOrange)))
+
+                // Heavy Twin Engine Plumes
+                val flLen = if (isBoosting) 46f else 24f
+                scope.drawOval(brush = Brush.verticalGradient(listOf(Color.White, AeroOrange, Color.Transparent)), topLeft = Offset(-18f, 34f), size = Size(10f, flLen))
+                scope.drawOval(brush = Brush.verticalGradient(listOf(Color.White, AeroOrange, Color.Transparent)), topLeft = Offset(8f, 34f), size = Size(10f, flLen))
+                return
+            }
+            "aircraft_phantom" -> {
+                // ── PHANTOM: STEALTH VARIABLE-SWEEP FIGHTER ──
+                val phantPath = Path().apply {
+                    moveTo(0f, -48f)
+                    lineTo(10f, -26f)
+                    lineTo(44f, 14f)
+                    lineTo(28f, 24f)
+                    lineTo(12f, 22f)
+                    lineTo(10f, 34f)
+                    lineTo(0f, 28f)
+                    lineTo(-10f, 34f)
+                    lineTo(-12f, 22f)
+                    lineTo(-28f, 24f)
+                    lineTo(-44f, 14f)
+                    lineTo(-10f, -26f)
+                    close()
+                }
+                scope.drawPath(phantPath, color = Color(0xFF0F172A))
+                scope.drawPath(phantPath, color = trimColor, style = Stroke(width = 2.2f))
+
+                // Stealth Faceted Edge Facets
+                scope.drawLine(color = AeroViolet, start = Offset(0f, -48f), end = Offset(0f, 28f), strokeWidth = 2f)
+                scope.drawCircle(color = AeroViolet, radius = 5f, center = Offset(0f, -8f))
+
+                // Purple Ion Thruster Plumes
+                val flLen = if (isBoosting) 40f else 18f
+                scope.drawOval(brush = Brush.verticalGradient(listOf(Color.White, AeroViolet, Color.Transparent)), topLeft = Offset(-14f, 30f), size = Size(7f, flLen))
+                scope.drawOval(brush = Brush.verticalGradient(listOf(Color.White, AeroViolet, Color.Transparent)), topLeft = Offset(7f, 30f), size = Size(7f, flLen))
+                return
+            }
+            "aircraft_titan" -> {
+                // ── TITAN: ARMORED DREADNOUGHT ASSAULT FIGHTER ──
+                val titanPath = Path().apply {
+                    moveTo(0f, -38f)
+                    lineTo(18f, -28f)
+                    lineTo(52f, 0f)
+                    lineTo(48f, 28f)
+                    lineTo(26f, 28f)
+                    lineTo(22f, 38f)
+                    lineTo(0f, 32f)
+                    lineTo(-22f, 38f)
+                    lineTo(-26f, 28f)
+                    lineTo(-48f, 28f)
+                    lineTo(-52f, 0f)
+                    lineTo(-18f, -28f)
+                    close()
+                }
+                scope.drawPath(titanPath, color = bodyColor)
+                scope.drawPath(titanPath, color = trimColor, style = Stroke(width = 2.8f))
+
+                // Reinforced Bulkheads & Cockpit
+                scope.drawRect(color = Color(0xFF334155), topLeft = Offset(-12f, -10f), size = Size(24f, 20f))
+                scope.drawCircle(color = AeroEmerald, radius = 6f, center = Offset(0f, -16f))
+
+                // Triple Heavy Thrusters
+                val flLen = if (isBoosting) 50f else 26f
+                scope.drawOval(brush = Brush.verticalGradient(listOf(Color.White, AeroEmerald, Color.Transparent)), topLeft = Offset(-20f, 34f), size = Size(8f, flLen))
+                scope.drawOval(brush = Brush.verticalGradient(listOf(Color.White, AeroEmerald, Color.Transparent)), topLeft = Offset(-4f, 30f), size = Size(8f, flLen))
+                scope.drawOval(brush = Brush.verticalGradient(listOf(Color.White, AeroEmerald, Color.Transparent)), topLeft = Offset(12f, 34f), size = Size(8f, flLen))
+                return
+            }
             "aircraft_jerica" -> {
                 // ── SECRET QUEEN BEE (JERICA) ──
                 val beeGold = Color(0xFFFFD700)
@@ -675,6 +827,165 @@ object GameRenderer {
         val tipY = if (swept) 4f else -4f
         scope.drawCircle(color = trimColor, radius = 3f, center = Offset(-wingSpan, tipY))
         scope.drawCircle(color = trimColor, radius = 3f, center = Offset(wingSpan, tipY))
+    }
+
+    private fun drawBiomeSpecificFeatures(
+        scope: DrawScope,
+        biome: BiomeSpec,
+        env: EnvironmentSystem,
+        width: Float,
+        height: Float
+    ) {
+        when (biome.id) {
+            "asteroid_belt", "junkyard", "space_graveyard" -> {
+                // Floating space debris & jagged asteroid boulders
+                for (i in 0 until 12) {
+                    val astY = ((env.scrollOffset * 0.6f + i * 140f) % (height + 160f)) - 80f
+                    val astX = ((i * 197f) % (width - 60f)) + 30f
+                    val size = 22f + (i % 5) * 8f
+                    val astCol = if (biome.id == "junkyard") Color(0xFF78350F) else Color(0xFF475569)
+                    scope.drawCircle(astCol.copy(alpha = 0.55f), size, Offset(astX, astY))
+                    scope.drawCircle(Color.Black.copy(alpha = 0.4f), size * 0.6f, Offset(astX - 3f, astY - 3f))
+                }
+            }
+            "crystal_caverns", "dimension_rift", "void_gate" -> {
+                // Prismatic crystal refraction shards & dimensional fracture lines
+                val pulse = (sin(env.scrollOffset * 0.02) * 0.3f + 0.7f).toFloat()
+                for (i in 0 until 8) {
+                    val crx = ((i * 220f) % (width - 80f)) + 40f
+                    val cry = ((env.scrollOffset * 0.8f + i * 200f) % (height + 200f)) - 100f
+                    val shardPath = Path().apply {
+                        moveTo(crx, cry - 30f)
+                        lineTo(crx + 18f, cry)
+                        lineTo(crx, cry + 30f)
+                        lineTo(crx - 18f, cry)
+                        close()
+                    }
+                    scope.drawPath(shardPath, color = AeroViolet.copy(alpha = 0.25f * pulse))
+                    scope.drawPath(shardPath, color = AeroCyan.copy(alpha = 0.65f * pulse), style = Stroke(width = 1.5f))
+                }
+            }
+            "lava_planet", "solar_core", "volcanic_ridge" -> {
+                // Glowing magma cracks & heat fissure veins on terrain
+                val lavaCol = Color(0xFFFF5500)
+                for (i in 0 until 6) {
+                    val lx = ((i * 180f) % (width - 100f)) + 50f
+                    val ly = ((env.scrollOffset * 0.5f + i * 240f) % (height + 150f)) - 80f
+                    scope.drawLine(
+                        color = lavaCol.copy(alpha = 0.45f),
+                        start = Offset(lx - 40f, ly),
+                        end = Offset(lx + 40f, ly + 60f),
+                        strokeWidth = 5f
+                    )
+                    scope.drawLine(
+                        color = Color(0xFFFDE047).copy(alpha = 0.7f),
+                        start = Offset(lx - 20f, ly + 15f),
+                        end = Offset(lx + 20f, ly + 45f),
+                        strokeWidth = 2f
+                    )
+                }
+            }
+            "neon_outpost", "cyber_city", "orbital_array" -> {
+                // Cyberpunk runway gridlines & high-tech ground telemetry
+                val gridAlpha = 0.12f
+                for (x in 0..(width / 70f).toInt()) {
+                    scope.drawLine(
+                        color = AeroCyan.copy(alpha = gridAlpha),
+                        start = Offset(x * 70f, 0f),
+                        end = Offset(x * 70f, height),
+                        strokeWidth = 1f
+                    )
+                }
+            }
+            "underwater_ruins" -> {
+                // Rising deep-sea bubbles & luminous hydro-currents
+                for (i in 0 until 14) {
+                    val bx = ((i * 137f) % width)
+                    val by = height - ((env.scrollOffset * 1.2f + i * 90f) % (height + 50f))
+                    scope.drawCircle(AeroCyan.copy(alpha = 0.35f), 4f + (i % 3) * 3f, Offset(bx, by), style = Stroke(width = 1.5f))
+                }
+            }
+            "thunder_dome", "the_citadel", "final_approach" -> {
+                // Apex Colosseum thunder arcs & golden arena floodlights
+                val glowAlpha = (sin(env.scrollOffset * 0.04) * 0.2f + 0.35f).toFloat()
+                scope.drawLine(
+                    color = AeroAmber.copy(alpha = glowAlpha),
+                    start = Offset(0f, (env.scrollOffset * 0.7f) % height),
+                    end = Offset(width, (env.scrollOffset * 0.7f) % height),
+                    strokeWidth = 2.5f
+                )
+            }
+        }
+    }
+
+    private fun drawWarpDriveIntro(
+        scope: DrawScope,
+        engine: GameEngine,
+        width: Float,
+        height: Float
+    ) {
+        val timer = engine.warpIntroTimer
+        val duration = engine.warpIntroDuration
+        val progress = (1.0f - (timer / duration)).coerceIn(0f, 1f) // 0 to 1
+        val nativeCanvas = scope.drawContext.canvas.nativeCanvas
+
+        // 1. Hyperspace Tachyon Streak Tunnel
+        val cx = width * 0.5f
+        val cy = height * 0.45f
+        val streakCount = 36
+        for (i in 0 until streakCount) {
+            val angle = (i * (360f / streakCount) + progress * 720f) * PI.toFloat() / 180f
+            val baseLen = (height * 0.7f) * (1.0f - progress * 0.6f)
+            val startDist = 30f + progress * 100f
+            val endDist = startDist + baseLen
+            val col = if (i % 2 == 0) AeroCyan.copy(alpha = (1.0f - progress) * 0.85f) else AeroViolet.copy(alpha = (1.0f - progress) * 0.65f)
+            scope.drawLine(
+                color = col,
+                start = Offset(cx + cos(angle) * startDist, cy + sin(angle) * startDist),
+                end = Offset(cx + cos(angle) * endDist, cy + sin(angle) * endDist),
+                strokeWidth = 3f * (1.0f - progress)
+            )
+        }
+
+        // 2. Chromatic Distortion Rings
+        val ringRadius = (progress * width * 1.2f)
+        scope.drawCircle(
+            color = AeroCyan.copy(alpha = (1.0f - progress) * 0.4f),
+            radius = ringRadius,
+            center = Offset(cx, cy),
+            style = Stroke(width = 6f * (1.0f - progress))
+        )
+        scope.drawCircle(
+            color = Color.White.copy(alpha = (1.0f - progress) * 0.6f),
+            radius = ringRadius * 0.85f,
+            center = Offset(cx, cy),
+            style = Stroke(width = 3f * (1.0f - progress))
+        )
+
+        // 3. Futuristic Drop-in Holo Banner
+        if (progress < 0.85f) {
+            val bannerAlpha = if (progress < 0.65f) 1.0f else (0.85f - progress) / 0.2f
+            scope.drawRoundRect(
+                color = Color(0xFF0F172A).copy(alpha = 0.88f * bannerAlpha),
+                topLeft = Offset(cx - 160f, height * 0.28f),
+                size = Size(320f, 58f),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(8f, 8f)
+            )
+            scope.drawRoundRect(
+                brush = Brush.horizontalGradient(listOf(AeroCyan.copy(alpha = bannerAlpha), AeroViolet.copy(alpha = bannerAlpha))),
+                topLeft = Offset(cx - 160f, height * 0.28f),
+                size = Size(320f, 58f),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(8f, 8f),
+                style = Stroke(width = 2f)
+            )
+            textPaint.textAlign = android.graphics.Paint.Align.CENTER
+            textPaint.textSize = 14f
+            textPaint.color = android.graphics.Color.argb((255 * bannerAlpha).toInt(), 0, 240, 255)
+            nativeCanvas.drawText("⚡ TACHYON HYPERDRIVE EXIT ⚡", cx, height * 0.28f + 24f, textPaint)
+            textPaint.textSize = 11f
+            textPaint.color = android.graphics.Color.argb((200 * bannerAlpha).toInt(), 255, 255, 255)
+            nativeCanvas.drawText("SECTOR: ${engine.currentBiome.name.uppercase()}", cx, height * 0.28f + 44f, textPaint)
+        }
     }
 
     private fun drawEnemyCraft(
@@ -1300,7 +1611,7 @@ object GameRenderer {
             }
         }
 
-        // ── 4. TARGET LOCK-ON BOX & LEAD RETICLE ──
+        // ── 4. SUBTLE COCKPIT TARGETING HUD (NON-OBSTRUCTIVE) ──
         val closestEnemy = engine.enemySystem.enemies.minByOrNull {
             kotlin.math.hypot(it.x - player.x, it.y - player.y)
         } ?: engine.enemySystem.currentBoss?.let {
@@ -1308,27 +1619,13 @@ object GameRenderer {
         }
 
         if (closestEnemy != null) {
-            val dist = kotlin.math.hypot(closestEnemy.x - player.x, closestEnemy.y - player.y)
-            val distKm = String.format("%.2f KM", dist / 800f)
-
-            // Target Box
-            scope.drawRect(
-                color = AeroCrimson,
-                topLeft = Offset(closestEnemy.x - 24f, closestEnemy.y - 24f),
-                size = Size(48f, 48f),
-                style = Stroke(width = 2f)
-            )
-            // Diamond Lead Pip
+            // Sleek subtle holographic lead pip without obscuring banners or bulky boxes
             scope.drawCircle(
-                color = AeroCyan,
-                radius = 8f,
+                color = AeroCyan.copy(alpha = 0.65f),
+                radius = 7f,
                 center = Offset(closestEnemy.x, closestEnemy.y),
-                style = Stroke(width = 1.5f)
+                style = Stroke(width = 1.2f)
             )
-
-            textPaint.textSize = 12f
-            textPaint.color = android.graphics.Color.argb(255, 255, 75, 75)
-            nativeCanvas.drawText("LOCK // $distKm", closestEnemy.x, closestEnemy.y - 30f, textPaint)
         }
 
         // ── 5. LEFT AIRSPEED TAPE & RIGHT ALTIMETER TAPE ──

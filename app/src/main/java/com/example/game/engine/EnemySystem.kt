@@ -34,19 +34,13 @@ class EnemySystem {
         onBossDyingExplosion: (x: Float, y: Float) -> Unit,
         onBossDefeated: () -> Unit
     ) {
-        // Spawn waves if no boss
-        if (currentBoss == null) {
+        // Spawn waves continuously if no boss is active
+        if (currentBoss == null && !isBossWave) {
             waveSpawnTimer -= dt
             if (waveSpawnTimer <= 0f) {
-                if (waveNumber % 4 == 0 && !isBossWave) {
-                    // Trigger Epic Boss Encounter
-                    spawnBoss(screenWidth, screenHeight)
-                    isBossWave = true
-                } else {
-                    spawnWaveFormation(screenWidth)
-                    waveNumber++
-                    waveSpawnTimer = 4.2f + Random.nextFloat() * 1.5f
-                }
+                spawnWaveFormation(screenWidth)
+                waveNumber++
+                waveSpawnTimer = 3.5f + Random.nextFloat() * 2.0f
             }
         }
 
