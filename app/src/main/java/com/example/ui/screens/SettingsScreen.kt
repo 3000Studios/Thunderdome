@@ -97,11 +97,56 @@ fun SettingsScreen(viewModel: GameViewModel) {
                 modifier = Modifier.testTag("touch_input_switch")
             )
         }
-        Text("Plane Position Above Thumb", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+        // Steering Scheme Selector
+        Text("FLIGHT CONTROL SCHEME", style = MaterialTheme.typography.labelMedium, color = Color.White)
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            listOf(
+                "TOUCH_FOLLOW" to "DIRECT OFFSET",
+                "RELATIVE_DRAG" to "RELATIVE SWIPE",
+                "JOYSTICK" to "JOYSTICK"
+            ).forEach { (sch, label) ->
+                val active = settings.controlScheme == sch
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (active) AeroCyan else DarkSurfaceElevated)
+                        .clickable { viewModel.updateSettings(scheme = sch) }
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                        color = if (active) DarkVoid else TextSecondary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Plane Position Relative To Finger", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = "${settings.touchOffsetY.toInt()} dp (${if (settings.touchOffsetY > 0) "${settings.touchOffsetY.toInt()}dp Above" else if (settings.touchOffsetY == 0f) "Direct Center" else "${-settings.touchOffsetY.toInt()}dp Below"})",
+                color = AeroCyan,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold
+            )
+        }
         Slider(
             value = settings.touchOffsetY,
             onValueChange = { viewModel.updateSettings(touchOffsetY = it) },
-            valueRange = 20f..180f,
+            valueRange = -30f..200f,
             modifier = Modifier.fillMaxWidth().testTag("plane_position_slider")
         )
         Spacer(modifier = Modifier.height(8.dp))

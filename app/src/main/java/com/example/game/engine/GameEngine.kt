@@ -72,31 +72,39 @@ class GameEngine(
     var inputDirY: Float = 0f
     var isFireHeld: Boolean = false
 
+    var isMultiplayerMatchActive: Boolean = false
     var isDirectTouchActive: Boolean = false
     var fingerOffsetX: Float = 0f
     var fingerOffsetY: Float = 55f
+    var lastTouchX: Float = 0f
+    var lastTouchY: Float = 0f
 
     fun onDirectTouchDown(
         touchX: Float,
         touchY: Float,
         screenWidth: Float,
         screenHeight: Float,
-        touchOffsetY: Float = 75f
+        touchOffsetY: Float = 55f,
+        touchOffsetX: Float = 0f,
+        controlScheme: String = "TOUCH_FOLLOW"
     ) {
         isDirectTouchActive = true
-        // Set standard finger window offset: plane floats gracefully ahead of player thumb so action is 100% visible
-        fingerOffsetX = 0f
-        fingerOffsetY = touchOffsetY.coerceAtLeast(65f)
+        this.fingerOffsetX = touchOffsetX
+        this.fingerOffsetY = touchOffsetY
+        lastTouchX = touchX
+        lastTouchY = touchY
 
-        val padX = 35f
-        val padY = 80f
-        val targetX = touchX.coerceIn(padX, screenWidth - padX)
-        val targetY = (touchY - fingerOffsetY).coerceIn(padY, screenHeight - padY)
+        if (controlScheme == "TOUCH_FOLLOW") {
+            val padX = 25f
+            val padY = 50f
+            val targetX = (touchX + fingerOffsetX).coerceIn(padX, screenWidth - padX)
+            val targetY = (touchY - fingerOffsetY).coerceIn(padY, screenHeight - padY)
 
-        playerState.x = targetX
-        playerState.y = targetY
-        playerState.vx = 0f
-        playerState.vy = 0f
+            playerState.x = targetX
+            playerState.y = targetY
+            playerState.vx = 0f
+            playerState.vy = 0f
+        }
     }
 
     fun onDirectTouchMove(
@@ -104,24 +112,41 @@ class GameEngine(
         touchY: Float,
         screenWidth: Float,
         screenHeight: Float,
-        sensitivity: Float = 1.0f
+        sensitivity: Float = 1.0f,
+        controlScheme: String = "TOUCH_FOLLOW"
     ) {
         isDirectTouchActive = true
-        val padX = 35f
-        val padY = 80f
+        val padX = 25f
+        val padY = 50f
 
-        val targetX = touchX.coerceIn(padX, screenWidth - padX)
-        val targetY = (touchY - fingerOffsetY).coerceIn(padY, screenHeight - padY)
+        val deltaRawX = touchX - lastTouchX
+        val deltaRawY = touchY - lastTouchY
+        lastTouchX = touchX
+        lastTouchY = touchY
 
-        val deltaX = targetX - playerState.x
-        val deltaY = targetY - playerState.y
+        if (controlScheme == "RELATIVE_DRAG") {
+            val newX = (playerState.x + deltaRawX * sensitivity).coerceIn(padX, screenWidth - padX)
+            val newY = (playerState.y + deltaRawY * sensitivity).coerceIn(padY, screenHeight - padY)
+            val deltaX = newX - playerState.x
+            val deltaY = newY - playerState.y
 
-        // Responsive velocity for visual banking and exhaust plume direction
-        playerState.vx = (deltaX * 60f).coerceIn(-4000f, 4000f)
-        playerState.vy = (deltaY * 60f).coerceIn(-4000f, 4000f)
+            playerState.vx = (deltaX * 60f).coerceIn(-4000f, 4000f)
+            playerState.vy = (deltaY * 60f).coerceIn(-4000f, 4000f)
+            playerState.x = newX
+            playerState.y = newY
+        } else {
+            val targetX = (touchX + fingerOffsetX).coerceIn(padX, screenWidth - padX)
+            val targetY = (touchY - fingerOffsetY).coerceIn(padY, screenHeight - padY)
 
-        playerState.x = targetX
-        playerState.y = targetY
+            val deltaX = targetX - playerState.x
+            val deltaY = targetY - playerState.y
+
+            playerState.vx = (deltaX * 60f).coerceIn(-4000f, 4000f)
+            playerState.vy = (deltaY * 60f).coerceIn(-4000f, 4000f)
+
+            playerState.x = targetX
+            playerState.y = targetY
+        }
 
         // Dynamic visual banking into turns
         val targetBank = (playerState.vx / 800f).coerceIn(-1f, 1f) * 35f
@@ -130,6 +155,34 @@ class GameEngine(
 
     fun onDirectTouchUp() {
         isDirectTouchActive = false
+        playerState.vx = 0f
+        playerState.vy = 0f
+    }
+
+    fun toggleBoost() {
+        if (playerState.boost > 5f) {
+            playerState.isBoosting = !playerState.isBoosting
+            if (playerState.isBoosting) {
+                audioHaptics.playSound(com.example.game.audio.AudioHapticSystem.SoundType.BOOST_BURST)
+                audioHaptics.triggerBoostHaptic()
+                vfx.addText("⚡ AFTERBURNER ENGAGED", playerState.x, playerState.y - 35f, Color(0xFFFF9500))
+            }
+        } else {
+            audioHaptics.playSound(com.example.game.audio.AudioHapticSystem.SoundType.WARNING_BEEP)
+            vfx.addText("⚠️ BOOST EMPTY", playerState.x, playerState.y - 35f, Color(0xFFEF4444))
+        }
+    }
+
+    fun setBoostActive(active: Boolean) {
+        if (active && playerState.boost > 5f) {
+            if (!playerState.isBoosting) {
+                playerState.isBoosting = true
+                audioHaptics.playSound(com.example.game.audio.AudioHapticSystem.SoundType.BOOST_BURST)
+                audioHaptics.triggerBoostHaptic()
+            }
+        } else {
+            playerState.isBoosting = false
+        }
     }
 
     var graphicsPreset: String = "ULTRA"
@@ -184,6 +237,8 @@ class GameEngine(
         isPaused = false
         isGameOver = false
         isVictory = false
+        isMultiplayerMatchActive = false
+        playerState.isBoosting = false
         pendingPerkSelection = null
         isDirectTouchActive = false
         inputDirX = 0f

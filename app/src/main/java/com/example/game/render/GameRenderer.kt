@@ -382,34 +382,36 @@ object GameRenderer {
                 }
             }
 
-            // 12. Remote Multiplayer Opponent Fighter (Real-Time 1v1 PvP)
-            engine.multiplayerManager.remotePlayer.value?.let { remote ->
-                drawScope.withTransform({
-                    translate(remote.x, remote.y)
-                    rotate(remote.bankAngle)
-                }) {
-                    drawEnemyCraft(
-                        scope = this,
-                        enemy = EnemyEntity(
-                            id = 999999L,
-                            type = EnemyType.FAST_INTERCEPTOR,
-                            x = remote.x,
-                            y = remote.y,
-                            health = remote.health,
-                            maxHealth = remote.maxHealth
-                        ),
-                        flash = false,
-                        alpha = 1.0f
+            // 12. Remote Multiplayer Opponent Fighter (Only when explicit 1v1 PvP is active)
+            if (engine.isMultiplayerMatchActive) {
+                engine.multiplayerManager.remotePlayer.value?.let { remote ->
+                    drawScope.withTransform({
+                        translate(remote.x, remote.y)
+                        rotate(remote.bankAngle)
+                    }) {
+                        drawEnemyCraft(
+                            scope = this,
+                            enemy = EnemyEntity(
+                                id = 999999L,
+                                type = EnemyType.FAST_INTERCEPTOR,
+                                x = remote.x,
+                                y = remote.y,
+                                health = remote.health,
+                                maxHealth = remote.maxHealth
+                            ),
+                            flash = false,
+                            alpha = 1.0f
+                        )
+                    }
+
+                    // Opponent Radar Target Lock Box & Callsign Text
+                    drawRect(
+                        color = AeroCrimson,
+                        topLeft = Offset(remote.x - 30f, remote.y - 30f),
+                        size = androidx.compose.ui.geometry.Size(60f, 60f),
+                        style = Stroke(width = 1.5f)
                     )
                 }
-
-                // Opponent Radar Target Lock Box & Callsign Text
-                drawRect(
-                    color = AeroCrimson,
-                    topLeft = Offset(remote.x - 30f, remote.y - 30f),
-                    size = androidx.compose.ui.geometry.Size(60f, 60f),
-                    style = Stroke(width = 1.5f)
-                )
             }
 
             // 13. Bonus Vortex Black Hole Event Horizon (When Active)

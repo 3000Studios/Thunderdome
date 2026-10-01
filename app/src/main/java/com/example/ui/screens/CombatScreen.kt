@@ -121,8 +121,7 @@ fun CombatScreen(
                             engine.inputDirX = (dragAmount.x * 0.2f * settings.touchSensitivity).coerceIn(-1f, 1f)
                             engine.inputDirY = (dragAmount.y * 0.2f * settings.touchSensitivity).coerceIn(-1f, 1f)
                         }
-                    } else {
-                        // Direct Finger Tracking: ship moves with finger wherever finger goes
+                        // Direct Finger Tracking / Relative Delta Drag: ship moves with finger wherever finger goes
                         awaitEachGesture {
                             val down = awaitFirstDown(requireUnconsumed = false)
                             engine.onDirectTouchDown(
@@ -130,7 +129,8 @@ fun CombatScreen(
                                 touchY = down.position.y,
                                 screenWidth = size.width.toFloat(),
                                 screenHeight = size.height.toFloat(),
-                                touchOffsetY = settings.touchOffsetY
+                                touchOffsetY = settings.touchOffsetY,
+                                controlScheme = settings.controlScheme
                             )
                             down.consume()
 
@@ -147,7 +147,8 @@ fun CombatScreen(
                                     touchY = pointer.position.y,
                                     screenWidth = size.width.toFloat(),
                                     screenHeight = size.height.toFloat(),
-                                    sensitivity = settings.touchSensitivity
+                                    sensitivity = settings.touchSensitivity,
+                                    controlScheme = settings.controlScheme
                                 )
                             }
                         }
@@ -182,7 +183,10 @@ fun CombatScreen(
                 engine.weaponSystem.activateSpecial(player, engine.currentSpecialSpec)
             },
             onToggleBoost = {
-                player.isBoosting = !player.isBoosting
+                engine.toggleBoost()
+            },
+            onSetBoostActive = { active ->
+                engine.setBoostActive(active)
             }
         )
 
@@ -220,6 +224,10 @@ fun CombatScreen(
         if (engine.isPaused) {
             PauseModal(
                 engine = engine,
+                settings = settings,
+                onUpdateTouchOffsetY = { viewModel.updateSettings(touchOffsetY = it) },
+                onUpdateSensitivity = { viewModel.updateSettings(sensitivity = it) },
+                onUpdateScheme = { viewModel.updateSettings(scheme = it) },
                 onResume = { 
                     engine.isPaused = false
                     engine.resumeRadioMusic()
@@ -352,7 +360,8 @@ fun CombatHudOverlay(
     onBarrelRoll: () -> Unit,
     onSecondaryFire: () -> Unit,
     onSpecialFire: () -> Unit,
-    onToggleBoost: () -> Unit
+    onToggleBoost: () -> Unit,
+    onSetBoostActive: (Boolean) -> Unit = {}
 ) {
     val player = engine.playerState
     val stats = engine.combatStats
@@ -605,21 +614,47 @@ fun CombatHudOverlay(
                         modifier = Modifier
                             .fillMaxWidth(boostRatio)
                             .fillMaxHeight()
-                            .background(AeroCyan)
+                            .background(if (player.isBoosting) AeroOrange else AeroCyan)
                     )
                 }
 
-                // Afterburner Boost Button
-                FloatingActionButton(
-                    onClick = onToggleBoost,
-                    containerColor = if (player.isBoosting) AeroOrange else DarkSurfaceElevated,
-                    contentColor = if (player.isBoosting) DarkVoid else AeroOrange,
+                // Afterburner Boost Button (Tap: Toggle / Press & Hold: Instant Thrust)
+                var isBoostHeld by remember { mutableStateOf(false) }
+                val isBoostActive = player.isBoosting || isBoostHeld
+
+                Box(
                     modifier = Modifier
-                        .size(54.dp)
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(if (isBoostActive) AeroOrange else DarkSurfaceElevated)
+                        .border(
+                            1.5.dp,
+                            if (isBoostActive) Color.White else AeroOrange.copy(alpha = 0.6f),
+                            CircleShape
+                        )
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = {
+                                    isBoostHeld = true
+                                    onSetBoostActive(true)
+                                    tryAwaitRelease()
+                                    isBoostHeld = false
+                                    onSetBoostActive(false)
+                                },
+                                onTap = {
+                                    onToggleBoost()
+                                }
+                            )
+                        }
                         .testTag("boost_button"),
-                    shape = CircleShape
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Speed, contentDescription = "Afterburner Boost")
+                    Icon(
+                        imageVector = Icons.Default.Speed,
+                        contentDescription = "Afterburner Boost",
+                        tint = if (isBoostActive) DarkVoid else AeroOrange,
+                        modifier = Modifier.size(28.dp)
+                    )
                 }
 
                 // Evasive Barrel Roll Button
@@ -1018,6 +1053,10 @@ fun RoguelitePerkModal(
 @Composable
 fun PauseModal(
     engine: GameEngine,
+    settings: com.example.data.SettingsEntity,
+    onUpdateTouchOffsetY: (Float) -> Unit,
+    onUpdateSensitivity: (Float) -> Unit,
+    onUpdateScheme: (String) -> Unit,
     onResume: () -> Unit,
     onRestart: () -> Unit,
     onQuit: () -> Unit
@@ -1032,11 +1071,11 @@ fun PauseModal(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth(0.90f)
+                .fillMaxWidth(0.92f)
                 .clip(RoundedCornerShape(16.dp))
                 .background(DarkSurface)
                 .border(1.5.dp, AeroCyan, RoundedCornerShape(16.dp))
-                .padding(20.dp),
+                .padding(18.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -1077,38 +1116,84 @@ fun PauseModal(
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Tab Content
             when (pauseTab) {
                 "SYSTEMS" -> {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        // Flight Steering Scheme Toggle
+                        Text("STEERING MODE", color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Text("CONTROL SCHEME", color = Color.White, style = MaterialTheme.typography.bodyMedium)
-                            Text("DIRECT TOUCH", color = AeroCyan, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                            listOf(
+                                "TOUCH_FOLLOW" to "DIRECT OFFSET",
+                                "RELATIVE_DRAG" to "RELATIVE SWIPE",
+                                "JOYSTICK" to "JOYSTICK"
+                            ).forEach { (sch, label) ->
+                                val active = settings.controlScheme == sch
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (active) AeroCyan else DarkSurfaceElevated)
+                                        .clickable { onUpdateScheme(sch) }
+                                        .padding(vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                        color = if (active) DarkVoid else TextSecondary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
                         }
 
+                        // Finger Position Offset Slider
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("GRAPHICS QUALITY", color = Color.White, style = MaterialTheme.typography.bodyMedium)
-                            Text("ULTRA (60 FPS)", color = AeroEmerald, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                            Text("PLANE POSITION RELATIVE TO FINGER", color = Color.White, style = MaterialTheme.typography.labelSmall)
+                            Text(
+                                text = "${settings.touchOffsetY.toInt()} dp (${if (settings.touchOffsetY > 0) "${settings.touchOffsetY.toInt()}dp Above" else if (settings.touchOffsetY == 0f) "Direct Center" else "${-settings.touchOffsetY.toInt()}dp Below"})",
+                                color = AeroCyan,
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                fontWeight = FontWeight.Bold
+                            )
                         }
+                        Slider(
+                            value = settings.touchOffsetY,
+                            onValueChange = { onUpdateTouchOffsetY(it) },
+                            valueRange = -30f..200f,
+                            modifier = Modifier.fillMaxWidth()
+                        )
 
+                        // Flight Sensitivity Slider
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("WARP TUNNEL STATUS", color = Color.White, style = MaterialTheme.typography.bodyMedium)
-                            Text(if (engine.isInBonusTunnel) "ACTIVE" else "READY (90% STAGE)", color = AeroAmber, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                            Text("TOUCH SENSITIVITY", color = Color.White, style = MaterialTheme.typography.labelSmall)
+                            Text(
+                                text = "${(settings.touchSensitivity * 100).toInt()}%",
+                                color = AeroCyan,
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                fontWeight = FontWeight.Bold
+                            )
                         }
+                        Slider(
+                            value = settings.touchSensitivity,
+                            onValueChange = { onUpdateSensitivity(it) },
+                            valueRange = 0.5f..2.5f,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
                 "TACTICAL" -> {

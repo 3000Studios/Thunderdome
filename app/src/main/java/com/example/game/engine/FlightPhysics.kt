@@ -55,8 +55,8 @@ class FlightPhysics {
         handlingMultiplier: Float = 1.0f,
         windForceX: Float = 0f
     ) {
-        // Boost multiplier
-        val speedMultiplier = if (player.isBoosting && player.boost > 0f) 1.8f else 1.0f
+        // Boost multiplier & Afterburner Thrust Surge
+        val speedMultiplier = if (player.isBoosting && player.boost > 0f) 2.2f else 1.0f
         val effectiveSpeed = baseSpeed * speedMultiplier * handlingMultiplier
         val effectiveHandling = handling * handlingMultiplier
         val targetMaxSpeed = effectiveSpeed
