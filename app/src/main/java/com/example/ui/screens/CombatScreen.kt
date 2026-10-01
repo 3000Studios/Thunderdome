@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.sp
 import com.example.game.engine.GameEngine
 import com.example.game.model.BossPhase
 import com.example.game.model.RoguelitePerk
+import com.example.game.multiplayer.MultiplayerMode
+import com.example.game.multiplayer.RemotePlayerState
 import com.example.game.render.GameRenderer
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.GameViewModel
@@ -198,6 +200,19 @@ fun CombatScreen(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = 64.dp)
+                )
+            }
+        }
+
+        // 3a. 4-Player Squad Telemetry Widget (Co-op Campaign)
+        if (engine.isMultiplayerMatchActive && engine.multiplayerManager.currentMode.collectAsState().value == MultiplayerMode.SQUAD_COOP_4P) {
+            val squad by engine.multiplayerManager.squadMembers.collectAsState()
+            if (squad.isNotEmpty()) {
+                SquadTelemetryWidget(
+                    squad = squad,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(top = 110.dp, start = 12.dp)
                 )
             }
         }
@@ -968,6 +983,66 @@ fun BossHudBar(
                 }
             }
         )
+    }
+}
+
+@Composable
+fun SquadTelemetryWidget(
+    squad: List<RemotePlayerState>,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.width(135.dp),
+        shape = RoundedCornerShape(8.dp),
+        color = Color(0xDD090D16),
+        border = androidx.compose.foundation.BorderStroke(1.dp, AeroCyan.copy(alpha = 0.5f))
+    ) {
+        Column(modifier = Modifier.padding(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = "⚡ SQUAD WINGMEN (4P)",
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp, fontWeight = FontWeight.Black),
+                color = AeroCyan
+            )
+            squad.forEach { member ->
+                val hpRatio = (member.health / member.maxHealth).coerceIn(0f, 1f)
+                val shdRatio = (member.shield / member.maxShield).coerceIn(0f, 1f)
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = member.callsign.take(10),
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 7.5.sp),
+                            color = member.primaryColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "${(hpRatio * 100).toInt()}%",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 7.sp),
+                            color = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    // Health bar
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .clip(RoundedCornerShape(1.5.dp))
+                            .background(DarkSurfaceBorder)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(hpRatio)
+                                .fillMaxHeight()
+                                .background(AeroEmerald)
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

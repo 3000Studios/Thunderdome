@@ -382,12 +382,33 @@ class GameEngine(
             vfx.spawnSpeedStreaks(screenWidth, screenHeight)
         }
 
+        // Update 4-Player Co-op Squad Formation AI & Multiplayer Telemetry
+        if (isMultiplayerMatchActive) {
+            multiplayerManager.updateSquadAi(clampedDt, playerState.x, playerState.y, playerState.isBoosting)
+            multiplayerManager.sendLocalState(
+                x = playerState.x,
+                y = playerState.y,
+                vx = playerState.vx,
+                vy = playerState.vy,
+                bankAngle = playerState.bankAngle,
+                health = playerState.health,
+                shield = playerState.shield,
+                isFiring = isFireHeld,
+                isBoosting = playerState.isBoosting,
+                score = combatStats.score
+            )
+        }
+
+        // Dynamic Adaptive Difficulty (Scales challenge to player ability & squad size)
+        val healthRatio = (playerState.health / playerState.maxHealth).coerceIn(0f, 1f)
+        val skillMult = if (combatStats.comboCount > 15) 1.25f else if (healthRatio < 0.35f) 0.75f else 1.0f
+
         // 4. Update Multi-layered Environment
         environment.update(clampedDt, screenWidth, screenHeight, playerState.isBoosting)
 
         // 5. Update Projectiles & Homing Physics
         weaponSystem.updateProjectiles(
-            dt = clampedDt,
+            dt = clampedDt * skillMult,
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             enemies = enemySystem.enemies,
@@ -875,7 +896,7 @@ class GameEngine(
         while (puIter.hasNext()) {
             val pu = puIter.next()
             val dist = hypot(playerState.x - pu.x, playerState.y - pu.y)
-            if (dist < 38f) {
+            if (dist < 50f) { // Larger, more satisfying pickup radius
                 puIter.remove()
                 audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
                 audioHaptics.triggerExplosionHaptic(false)
@@ -883,38 +904,39 @@ class GameEngine(
                 when (pu.type) {
                     PowerUpType.SHIELD_REFILL -> {
                         playerState.shield = playerState.maxShield
-                        combatStats.score += 500L
-                        vfx.addText("📢 SHIELDS RESTORED! (+500 PTS)", playerState.x, playerState.y - 30f, Color(0xFF38BDF8))
+                        combatStats.score += 800L
+                        vfx.addText("🛡️ SHIELDS RESTORED! (+800 PTS)", playerState.x, playerState.y - 35f, Color(0xFF38BDF8))
                     }
                     PowerUpType.REPAIR_NANO -> {
-                        playerState.health = min(playerState.maxHealth, playerState.health + playerState.maxHealth * 0.35f)
-                        combatStats.score += 750L
-                        vfx.addText("📢 NANO REPAIR ACTIVE! (+750 PTS)", playerState.x, playerState.y - 30f, Color(0xFF22C55E))
+                        playerState.health = min(playerState.maxHealth, playerState.health + playerState.maxHealth * 0.40f)
+                        combatStats.score += 1000L
+                        vfx.addText("💚 NANO REPAIR OVERDRIVE! (+1000 PTS)", playerState.x, playerState.y - 35f, Color(0xFF22C55E))
                     }
                     PowerUpType.WEAPON_OVERDRIVE -> {
                         playerState.heat = 0f
                         playerState.isOverheated = false
-                        combatStats.score += 600L
-                        vfx.addText("📢 WEAPON OVERDRIVE! (+600 PTS)", playerState.x, playerState.y - 30f, Color(0xFFF59E0B))
+                        combatStats.score += 900L
+                        vfx.addText("🔥 WEAPON OVERDRIVE! (+900 PTS)", playerState.x, playerState.y - 35f, Color(0xFFF59E0B))
                     }
                     PowerUpType.MEGA_BOMB -> {
                         weaponSystem.projectiles.removeAll { !it.isPlayer }
                         for (e in enemySystem.enemies) {
-                            e.health -= 350f
-                            vfx.spawnExplosion(e.x, e.y, isHeavy = false, colorScheme = Color(0xFFFF2200))
+                            e.health -= 450f
+                            vfx.spawnExplosion(e.x, e.y, isHeavy = true, colorScheme = Color(0xFFFF2200))
                         }
-                        combatStats.score += 1000L
-                        vfx.addText("📢 MEGA NUKE CLEARED! (+1000 PTS)", playerState.x, playerState.y - 30f, Color(0xFFEF4444))
+                        combatStats.score += 2500L
+                        vfx.addText("💣 APOCALYPSE NUKE DETONATED! (+2500 PTS)", playerState.x, playerState.y - 35f, Color(0xFFEF4444))
+                        audioHaptics.triggerExplosionHaptic(true)
                     }
                     PowerUpType.BOOST_INFINITY -> {
                         playerState.boost = playerState.maxBoost
-                        combatStats.score += 500L
-                        vfx.addText("📢 SPEED BURST! (+500 PTS)", playerState.x, playerState.y - 30f, Color(0xFF00F0FF))
+                        combatStats.score += 750L
+                        vfx.addText("⚡ SPEED BURST REFILLED! (+750 PTS)", playerState.x, playerState.y - 35f, Color(0xFF00F0FF))
                     }
                     PowerUpType.TECH_CORE -> {
                         combatStats.plasmaCoresEarned += 1
-                        combatStats.score += 1200L
-                        vfx.addText("📢 +1 PLASMA CORE! (+1200 PTS)", playerState.x, playerState.y - 30f, Color(0xFFA855F7))
+                        combatStats.score += 2000L
+                        vfx.addText("💎 +1 PLASMA CORE CLAIMED! (+2000 PTS)", playerState.x, playerState.y - 35f, Color(0xFFA855F7))
                     }
                 }
             }
@@ -969,12 +991,12 @@ class GameEngine(
     private fun onEnemyKilled(enemy: EnemyEntity) {
         combatStats.kills++
         combatStats.comboCount++
-        combatStats.comboTimer = 2.8f
-        val comboMultiplier = 1.0f + (combatStats.comboCount * 0.1f)
+        combatStats.comboTimer = 3.2f
+        val comboMultiplier = 1.0f + (combatStats.comboCount * 0.12f)
         val gainedScore = (enemy.type.score * comboMultiplier).toLong()
         combatStats.score += gainedScore
 
-        combatStats.creditsEarned += (enemy.type.score / 8) + Random.nextInt(15)
+        combatStats.creditsEarned += (enemy.type.score / 6) + Random.nextInt(20)
 
         // VFX & Audio
         vfx.spawnExplosion(enemy.x, enemy.y, isHeavy = enemy.type == EnemyType.HEAVY_GUNSHIP, colorScheme = Color(0xFFFF5500))
@@ -984,8 +1006,34 @@ class GameEngine(
         audioHaptics.triggerExplosionHaptic(enemy.type == EnemyType.HEAVY_GUNSHIP)
         physics.addTrauma(if (enemy.type == EnemyType.HEAVY_GUNSHIP) 0.18f else 0.08f)
 
+        // Big-Time Award Bonuses & Combat Announcements
+        when (combatStats.comboCount) {
+            10 -> {
+                combatStats.score += 2500L
+                audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+                vfx.addText("⚡ 10x COMBO! AIR ACE! (+2,500) ⚡", playerState.x, playerState.y - 65f, Color(0xFF00F0FF))
+            }
+            25 -> {
+                combatStats.score += 10000L
+                combatStats.creditsEarned += 250L
+                audioHaptics.playSound(AudioHapticSystem.SoundType.WARP_ENGAGE)
+                vfx.addText("🔥 25x RAMPAGE! +10,000 BONUS! 🔥", playerState.x, playerState.y - 65f, Color(0xFFFF9500))
+            }
+            50 -> {
+                combatStats.score += 50000L
+                combatStats.plasmaCoresEarned += 2
+                audioHaptics.playSound(AudioHapticSystem.SoundType.WARP_ENGAGE)
+                vfx.addText("👑 50x GODLIKE STREAK! +50,000 BONUS! 👑", playerState.x, playerState.y - 65f, Color(0xFFFFD700))
+            }
+        }
+
+        if (enemy.type == EnemyType.HEAVY_GUNSHIP) {
+            combatStats.creditsEarned += 100L
+            vfx.addText("💎 ELITE ANNIHILATED! +100 CR 💎", enemy.x, enemy.y, Color(0xFF38BDF8))
+        }
+
         // Chance to spawn power-up
-        if (Random.nextFloat() < 0.22f || enemy.type == EnemyType.HEAVY_GUNSHIP) {
+        if (Random.nextFloat() < 0.25f || enemy.type == EnemyType.HEAVY_GUNSHIP) {
             weaponSystem.spawnPowerUp(enemy.x, enemy.y)
         }
 

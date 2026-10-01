@@ -315,15 +315,39 @@ fun TitleScreen(
                 ) {
                     Icon(Icons.Default.FlightTakeoff, contentDescription = null)
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text("CAMPAIGN SORTIE (24 THEATERS)", fontWeight = FontWeight.Black, fontSize = 14.5.sp)
+                    Text("CAMPAIGN SORTIE (SOLO)", fontWeight = FontWeight.Black, fontSize = 14.5.sp)
                 }
 
-                // 2. Real-Time 1v1 PvP Multiplayer Dogfight Mode
+                // 2. 4-Player Squad Co-op Campaign Mode
                 com.example.ui.components.TacticalGlossButton(
                     onClick = {
+                        viewModel.gameEngine.isMultiplayerMatchActive = true
                         viewModel.gameEngine.multiplayerManager.connectToMatchmaking(
                             playerCallsign = profile.callsign,
-                            aircraftId = profile.selectedAircraftId
+                            aircraftId = profile.selectedAircraftId,
+                            mode = com.example.game.multiplayer.MultiplayerMode.SQUAD_COOP_4P
+                        )
+                        onStartCampaign()
+                    },
+                    containerColor = AeroEmerald,
+                    contentColor = DarkVoid,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("start_coop_campaign_button")
+                ) {
+                    Icon(Icons.Default.Groups, contentDescription = null)
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text("4-PLAYER CO-OP SQUAD (CAMPAIGN)", fontWeight = FontWeight.Black, fontSize = 14.5.sp)
+                }
+
+                // 3. Real-Time 1v1 PvP Multiplayer Dogfight Mode
+                com.example.ui.components.TacticalGlossButton(
+                    onClick = {
+                        viewModel.gameEngine.isMultiplayerMatchActive = true
+                        viewModel.gameEngine.multiplayerManager.connectToMatchmaking(
+                            playerCallsign = profile.callsign,
+                            aircraftId = profile.selectedAircraftId,
+                            mode = com.example.game.multiplayer.MultiplayerMode.PVP_DOGFIGHT_1V1
                         )
                         onStartMultiplayer()
                     },

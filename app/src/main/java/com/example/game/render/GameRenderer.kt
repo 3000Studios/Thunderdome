@@ -31,11 +31,12 @@ object GameRenderer {
         val player = engine.playerState
         val biome = engine.currentBiome
 
-        val scaleFactor = when (engine.screenSizeScale) {
-            "COMPACT" -> 0.90f
-            "MAX_IMMERSIVE" -> 1.15f
-            else -> 1.0f
-        }
+        val baseZoom = 1.05f // +5% zoom making aircraft and battlefield 5% bigger
+        val scaleFactor = (when (engine.screenSizeScale) {
+            "COMPACT" -> 0.95f
+            "MAX_IMMERSIVE" -> 1.20f
+            else -> 1.05f
+        }) * baseZoom
 
         val isCockpit = engine.cameraViewMode == "COCKPIT_1ST"
         val isTopDown = engine.cameraViewMode == "TOP_DOWN_CHASE"
@@ -160,19 +161,33 @@ object GameRenderer {
                 )
             }
 
-            // 7. Power-up Pickups
+            // 7. Larger 3D High-Vis Power-up Pickups
             for (pu in engine.weaponSystem.powerUps) {
-                val bob = sin(pu.bobTimer * 4f) * 6f
+                val bob = sin(pu.bobTimer * 4f) * 8f
+                val pulse = 1.0f + 0.2f * sin(pu.bobTimer * 6f)
+                // Outer Pulsating Aura
                 drawCircle(
-                    color = pu.type.color.copy(alpha = 0.35f),
-                    radius = 20f,
+                    color = pu.type.color.copy(alpha = 0.30f),
+                    radius = 32f * pulse,
                     center = Offset(pu.x, pu.y + bob)
                 )
+                // Middle Glowing Ring
                 drawCircle(
                     color = pu.type.color,
-                    radius = 12f,
-                    center = Offset(pu.x, pu.y + bob)
+                    radius = 20f,
+                    center = Offset(pu.x, pu.y + bob),
+                    style = Stroke(width = 3.5f)
                 )
+                // Inner Diamond Facet Crystal
+                val diaPath = Path().apply {
+                    moveTo(pu.x, pu.y + bob - 14f)
+                    lineTo(pu.x + 12f, pu.y + bob)
+                    lineTo(pu.x, pu.y + bob + 14f)
+                    lineTo(pu.x - 12f, pu.y + bob)
+                    close()
+                }
+                drawPath(diaPath, color = pu.type.color)
+                drawPath(diaPath, color = Color.White, style = Stroke(width = 1.5f))
                 drawCircle(
                     color = Color.White,
                     radius = 5f,
@@ -385,35 +400,79 @@ object GameRenderer {
                 }
             }
 
-            // 12. Remote Multiplayer Opponent Fighter (Only when explicit 1v1 PvP is active)
+            // 12. 4-Player Co-op Squad Wingmen & Multiplayer Fighters
             if (engine.isMultiplayerMatchActive) {
-                engine.multiplayerManager.remotePlayer.value?.let { remote ->
-                    drawScope.withTransform({
-                        translate(remote.x, remote.y)
-                        rotate(remote.bankAngle)
-                    }) {
-                        drawEnemyCraft(
-                            scope = this,
-                            enemy = EnemyEntity(
-                                id = 999999L,
-                                type = EnemyType.FAST_INTERCEPTOR,
-                                x = remote.x,
-                                y = remote.y,
-                                health = remote.health,
-                                maxHealth = remote.maxHealth
-                            ),
-                            flash = false,
-                            alpha = 1.0f
-                        )
-                    }
+                val squad = engine.multiplayerManager.squadMembers.value
+                val isCoop = engine.multiplayerManager.currentMode.value == com.example.game.multiplayer.MultiplayerMode.SQUAD_COOP_4P
 
-                    // Opponent Radar Target Lock Box & Callsign Text
-                    drawRect(
-                        color = AeroCrimson,
-                        topLeft = Offset(remote.x - 30f, remote.y - 30f),
-                        size = androidx.compose.ui.geometry.Size(60f, 60f),
-                        style = Stroke(width = 1.5f)
-                    )
+                if (isCoop && squad.isNotEmpty()) {
+                    for (member in squad) {
+                        drawScope.withTransform({
+                            translate(member.x, member.y)
+                            rotate(member.bankAngle)
+                        }) {
+                            val mockSpec = when (member.aircraftId) {
+                                "aircraft_phantom" -> AircraftCatalog.ALL_AIRCRAFT.find { it.id == "aircraft_phantom" }
+                                "aircraft_titan" -> AircraftCatalog.ALL_AIRCRAFT.find { it.id == "aircraft_titan" }
+                                else -> AircraftCatalog.ALL_AIRCRAFT.find { it.id == "aircraft_valkyrie" }
+                            } ?: AircraftCatalog.ALL_AIRCRAFT[0]
+
+                            val mockPaint = PaintScheme(
+                                id = "squad_scheme_${member.slotId}",
+                                name = member.callsign,
+                                bodyColor = Color(0xFF1E293B),
+                                trimColor = member.primaryColor,
+                                costCredits = 0L
+                            )
+                            drawPlayerAircraft(
+                                scope = this,
+                                spec = mockSpec,
+                                paint = mockPaint,
+                                isBoosting = member.isBoosting,
+                                isInvulnerable = false
+                            )
+                        }
+
+                        // Tactical Wingman Callsign Tag
+                        drawRoundRect(
+                            color = Color(0xFF0F172A).copy(alpha = 0.8f),
+                            topLeft = Offset(member.x - 45f, member.y + 36f),
+                            size = Size(90f, 18f),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4f, 4f)
+                        )
+                        drawRoundRect(
+                            color = member.primaryColor,
+                            topLeft = Offset(member.x - 45f, member.y + 36f),
+                            size = Size(90f, 18f),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4f, 4f),
+                            style = Stroke(width = 1f)
+                        )
+                        textPaint.textSize = 9f
+                        val (r, g, b) = Triple((member.primaryColor.red * 255).toInt(), (member.primaryColor.green * 255).toInt(), (member.primaryColor.blue * 255).toInt())
+                        textPaint.setARGB(255, r, g, b)
+                        drawScope.drawContext.canvas.nativeCanvas.drawText(member.callsign.take(12), member.x, member.y + 49f, textPaint)
+                    }
+                } else {
+                    engine.multiplayerManager.remotePlayer.value?.let { remote ->
+                        drawScope.withTransform({
+                            translate(remote.x, remote.y)
+                            rotate(remote.bankAngle)
+                        }) {
+                            drawEnemyCraft(
+                                scope = this,
+                                enemy = EnemyEntity(
+                                    id = 999999L,
+                                    type = EnemyType.FAST_INTERCEPTOR,
+                                    x = remote.x,
+                                    y = remote.y,
+                                    health = remote.health,
+                                    maxHealth = remote.maxHealth
+                                ),
+                                flash = false,
+                                alpha = 1.0f
+                            )
+                        }
+                    }
                 }
             }
 
