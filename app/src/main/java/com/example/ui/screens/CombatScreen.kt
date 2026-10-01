@@ -728,6 +728,14 @@ fun BossHudBar(
     boss: com.example.game.model.BossEntity,
     modifier: Modifier = Modifier
 ) {
+    var isCollapsed by remember { mutableStateOf(false) }
+    var showIntelDialog by remember { mutableStateOf(false) }
+
+    val prof = boss.profile
+    val pCol = prof?.primaryColor ?: DangerRed
+    val aCol = prof?.accentColor ?: AeroAmber
+    val hullRatio = (boss.health / boss.maxHealth).coerceIn(0f, 1f)
+
     Card(
         modifier = modifier
             .fillMaxWidth(0.92f)
@@ -738,49 +746,101 @@ fun BossHudBar(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp)
+                .padding(horizontal = 10.dp, vertical = 6.dp)
         ) {
-            val prof = boss.profile
-            val pCol = prof?.primaryColor ?: DangerRed
-            val aCol = prof?.accentColor ?: AeroAmber
-
+            // Header Row: Boss Name, Phase, Collapse Toggle, Intel Button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = boss.name,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = pCol,
-                        fontWeight = FontWeight.Bold
-                    )
-                    prof?.epithet?.let { ep ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = boss.name,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = pCol,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "(${ (hullRatio * 100).toInt() }%)",
+                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                                color = aCol
+                            )
+                        }
+                        if (!isCollapsed) {
+                            prof?.epithet?.let { ep ->
+                                Text(
+                                    text = ep,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                    color = aCol,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    // Phase Tag
+                    Surface(
+                        color = aCol.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(4.dp),
+                        border = androidx.compose.foundation.BorderStroke(0.5.dp, aCol.copy(alpha = 0.5f))
+                    ) {
                         Text(
-                            text = ep,
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                            text = boss.phase.name.replace("_", " "),
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
                             color = aCol,
-                            fontWeight = FontWeight.SemiBold
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                        )
+                    }
+
+                    // Intel Briefing Button
+                    IconButton(
+                        onClick = { showIntelDialog = true },
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Boss Intel",
+                            tint = AeroCyan,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+
+                    // Collapse / Expand Toggle
+                    IconButton(
+                        onClick = { isCollapsed = !isCollapsed },
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isCollapsed) Icons.Default.ExpandMore else Icons.Default.ExpandLess,
+                            contentDescription = if (isCollapsed) "Expand HUD" else "Collapse HUD",
+                            tint = TextSecondary,
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
-                Text(
-                    text = boss.phase.name.replace("_", " "),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = aCol
-                )
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Main Boss Hull Bar
-            val hullRatio = (boss.health / boss.maxHealth).coerceIn(0f, 1f)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(10.dp)
-                    .clip(RoundedCornerShape(5.dp))
+                    .height(if (isCollapsed) 6.dp else 9.dp)
+                    .clip(RoundedCornerShape(if (isCollapsed) 3.dp else 4.dp))
                     .background(DarkSurfaceBorder)
             ) {
                 Box(
@@ -791,41 +851,88 @@ fun BossHudBar(
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Destructible Sub-Components Indicator
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                boss.components.forEach { comp ->
-                    val ratio = (comp.health / comp.maxHealth).coerceIn(0f, 1f)
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = if (comp.isDestroyed) "${comp.name} [DESTROYED]" else comp.name,
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                            color = if (comp.isDestroyed) TextMuted else TextSecondary
-                        )
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(4.dp)
-                                .clip(RoundedCornerShape(2.dp))
-                                .background(DarkSurfaceBorder)
-                        ) {
-                            if (!comp.isDestroyed) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth(ratio)
-                                        .fillMaxHeight()
-                                        .background(AeroOrange)
-                                )
+            // Destructible Sub-Components Indicator (Visible in expanded mode)
+            if (!isCollapsed && boss.components.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    boss.components.forEach { comp ->
+                        val ratio = (comp.health / comp.maxHealth).coerceIn(0f, 1f)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (comp.isDestroyed) "${comp.name} [OFF]" else comp.name,
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                                color = if (comp.isDestroyed) TextMuted else TextSecondary
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(3.dp)
+                                    .clip(RoundedCornerShape(1.5.dp))
+                                    .background(DarkSurfaceBorder)
+                            ) {
+                                if (!comp.isDestroyed) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(ratio)
+                                            .fillMaxHeight()
+                                            .background(AeroOrange)
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+
+    // Boss Tactical Intel Dialog
+    if (showIntelDialog && prof != null) {
+        AlertDialog(
+            onDismissRequest = { showIntelDialog = false },
+            containerColor = DarkSurfaceElevated,
+            titleContentColor = pCol,
+            textContentColor = Color.White,
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Shield, contentDescription = null, tint = pCol, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "TACTICAL INTEL // ${prof.name}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(text = prof.epithet, color = aCol, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Text(text = prof.profileDescription, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+
+                    Divider(color = DarkSurfaceBorder, thickness = 1.dp)
+
+                    Text(text = "KNOWN WEAPON SYSTEMS:", color = AeroCyan, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                    prof.weaponMoves.forEach { move ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = "• ", color = AeroAmber, style = MaterialTheme.typography.bodySmall)
+                            Text(text = move, color = Color.White, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+
+                    if (prof.renderNotes.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(text = "FIELD THREAT PROFILE:", color = AeroEmerald, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        prof.renderNotes.forEach { note ->
+                            Text(text = "- $note", color = TextSecondary, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showIntelDialog = false }) {
+                    Text("CLOSE INTEL", color = AeroCyan, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
     }
 }
 

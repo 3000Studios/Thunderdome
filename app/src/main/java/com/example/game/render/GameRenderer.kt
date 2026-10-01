@@ -359,6 +359,18 @@ object GameRenderer {
                             style = Stroke(width = 1.8f)
                         )
                     }
+
+                    // Tactical Core Hitbox Center Pip (Precision Flight Indicator)
+                    drawCircle(
+                        color = AeroCyan.copy(alpha = 0.85f),
+                        radius = 3.5f,
+                        center = Offset(player.x, player.y)
+                    )
+                    drawCircle(
+                        color = Color.White,
+                        radius = 1.5f,
+                        center = Offset(player.x, player.y)
+                    )
                 } else {
                     // In Cockpit View: draw sleek fighter nose cone at the bottom of the viewport
                     drawScope.withTransform({

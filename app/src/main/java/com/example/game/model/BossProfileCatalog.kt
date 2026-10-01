@@ -470,6 +470,254 @@ object BossProfileCatalog {
             )
         ),
 
+        // 13: BIOSYNTH HYDRA
+        BossProfileSpec(
+            index = 13,
+            id = "biosynth_hydra",
+            name = "BIOSYNTH HYDRA",
+            epithet = "THE VIRAL ARCHITECT",
+            matchedBiomeId = "bio_labs",
+            matchedBiomeName = "13. Bio Labs",
+            profileDescription = "Viral bio-engineered sovereign craft that regenerates damaged segments and deploys neurotoxin clouds.",
+            primaryColor = Color(0xFF10B981),
+            accentColor = Color(0xFF4ADE80),
+            glowColor = Color(0x8810B981),
+            weaponMoves = listOf("Neurotoxin Spores", "Acid Bile Wave", "Hydra Segment Spawn", "Bio-Shield Regeneration"),
+            renderNotes = listOf("Living biological hull pulses", "Viral mist emission", "Regenerating flesh plating"),
+            taunts = HoloTauntScript(
+                trigger1 = "Your metal will corrode into fuel for our growth.",
+                trigger2 = "Every hit only accelerates our evolution.",
+                trigger3 = "The laboratory belongs to the specimens now."
+            ),
+            comms = HoloCommsExchange(
+                quickReplies = listOf("I have a cure for you.", "Evolution ends here."),
+                enemyCounterResponses = mapOf(
+                    "I have a cure for you." to "You are merely an infection to be purged.",
+                    "Evolution ends here." to "You are merely an infection to be purged."
+                ),
+                defaultCounter = "Dissolve in the growth medium."
+            ),
+            baseHealth = 7500f,
+            baseShield = 3200f
+        ),
+
+        // 14: AQUA STRIKE
+        BossProfileSpec(
+            index = 14,
+            id = "aqua_strike",
+            name = "AQUA STRIKE",
+            epithet = "THE ABYSSAL LEVIATHAN",
+            matchedBiomeId = "underwater_ruins",
+            matchedBiomeName = "14. Underwater Ruins",
+            profileDescription = "Submersible supersonic dreadnought wielding abyssal vortexes, hydro-plasma torpedoes and sonar cloaking.",
+            primaryColor = Color(0xFF0284C7),
+            accentColor = Color(0xFF38BDF8),
+            glowColor = Color(0x880284C7),
+            weaponMoves = listOf("Hydro-Plasma Torpedo", "Abyssal Singularity Whirlpool", "Sonar Shockwave", "Depth Charge Barrage"),
+            renderNotes = listOf("Bioluminescent underwater lighting", "Water displacement waves", "Sunken ruin caustics"),
+            taunts = HoloTauntScript(
+                trigger1 = "The abyssal depths will crush your hull.",
+                trigger2 = "You cannot fight the crushing weight of the sea.",
+                trigger3 = "Drown in the forgotten ruins."
+            ),
+            comms = HoloCommsExchange(
+                quickReplies = listOf("I breathe fire.", "Surface incoming."),
+                enemyCounterResponses = mapOf(
+                    "I breathe fire." to "Water extinguishes all flames.",
+                    "Surface incoming." to "Water extinguishes all flames."
+                ),
+                defaultCounter = "Dragged to the ocean floor."
+            ),
+            baseHealth = 7800f,
+            baseShield = 3400f
+        ),
+
+        // 15: CELESTIAL GUARD
+        BossProfileSpec(
+            index = 15,
+            id = "celestial_guard",
+            name = "CELESTIAL GUARD",
+            epithet = "THE SKY MONARCH",
+            matchedBiomeId = "sky_temple",
+            matchedBiomeName = "15. Sky Temple",
+            profileDescription = "Golden avian cruiser guarding the high-altitude sanctuaries with piercing divine solar rays and light rings.",
+            primaryColor = Color(0xFFFDE047),
+            accentColor = Color(0xFFFFFBEB),
+            glowColor = Color(0x88FDE047),
+            weaponMoves = listOf("Divine Beam Sweep", "Solar Halo Burst", "Golden Feather Darts", "Sanctuary Dome"),
+            renderNotes = listOf("Prismatic sky reflections", "Golden feather particle bursts", "High-altitude auroras"),
+            taunts = HoloTauntScript(
+                trigger1 = "No trespassers in the Celestial Sanctuary.",
+                trigger2 = "Your flight path is unworthy of the heights.",
+                trigger3 = "Cast down to the clouds below."
+            ),
+            comms = HoloCommsExchange(
+                quickReplies = listOf("I fly where I choose.", "Clear my path."),
+                enemyCounterResponses = mapOf(
+                    "I fly where I choose." to "Then choose to fall gracefully.",
+                    "Clear my path." to "Then choose to fall gracefully."
+                ),
+                defaultCounter = "Cast from the heavens."
+            ),
+            baseHealth = 8200f,
+            baseShield = 3600f
+        ),
+
+        // 19: STORM LORD
+        BossProfileSpec(
+            index = 19,
+            id = "storm_lord",
+            name = "STORM LORD",
+            epithet = "THE JUNGLE APEX PREDATOR",
+            matchedBiomeId = "alien_jungle",
+            matchedBiomeName = "19. Alien Jungle",
+            profileDescription = "Camouflaged heavy gunship utilizing biome-mimicry, lightning vine whips, and bioluminescent spore missiles.",
+            primaryColor = Color(0xFF22C55E),
+            accentColor = Color(0xFFA3E635),
+            glowColor = Color(0x8822C55E),
+            weaponMoves = listOf("Lightning Vine Whip", "Spore Pod Artillery", "Canopy Ambush Dive", "Bio-Electric Cage"),
+            renderNotes = listOf("Jungle canopy shadows", "Bio-luminescent green lightning", "Spore cloud dissipation"),
+            taunts = HoloTauntScript(
+                trigger1 = "The canopy swallows every fool who enters.",
+                trigger2 = "You are prey in my territory.",
+                trigger3 = "Feed the roots of the world."
+            ),
+            comms = HoloCommsExchange(
+                quickReplies = listOf("I'm the apex hunter.", "Just weeds to cut."),
+                enemyCounterResponses = mapOf(
+                    "I'm the apex hunter." to "Hunters don't fly in metal cages.",
+                    "Just weeds to cut." to "Hunters don't fly in metal cages."
+                ),
+                defaultCounter = "Claimed by the wild."
+            ),
+            baseHealth = 9000f,
+            baseShield = 4000f
+        ),
+
+        // 20: GRAVITY TITAN
+        BossProfileSpec(
+            index = 20,
+            id = "gravity_titan",
+            name = "GRAVITY TITAN",
+            epithet = "THE DERELICT DREADNOUGHT",
+            matchedBiomeId = "space_graveyard",
+            matchedBiomeName = "20. Space Graveyard",
+            profileDescription = "Massive scavenger super-dreadnought built from wrecked capital hulls, firing magnetized scrap cannonades.",
+            primaryColor = Color(0xFF64748B),
+            accentColor = Color(0xFF94A3B8),
+            glowColor = Color(0x8864748B),
+            weaponMoves = listOf("Debris Catapult", "Magnetic Crush Well", "Scrap Flak Scatter", "Armored Prow Ram"),
+            renderNotes = listOf("Floating starship wreckage", "Magnetic arc sparks", "Deep space asteroid shadows"),
+            taunts = HoloTauntScript(
+                trigger1 = "Another scrap hull to add to my armor.",
+                trigger2 = "Wreckage is all that endures out here.",
+                trigger3 = "Crushed between the grav-wells."
+            ),
+            comms = HoloCommsExchange(
+                quickReplies = listOf("I'm not scrap yet.", "You're next on the pile."),
+                enemyCounterResponses = mapOf(
+                    "I'm not scrap yet." to "Give it thirty seconds.",
+                    "You're next on the pile." to "Give it thirty seconds."
+                ),
+                defaultCounter = "Joined with the debris."
+            ),
+            baseHealth = 9500f,
+            baseShield = 4200f
+        ),
+
+        // 21: CRYSTAL REVENANT
+        BossProfileSpec(
+            index = 21,
+            id = "crystal_revenant",
+            name = "CRYSTAL REVENANT",
+            epithet = "THE RIFT SPECTRE",
+            matchedBiomeId = "dimension_rift",
+            matchedBiomeName = "21. Dimension Rift",
+            profileDescription = "Fractured dimensional spectre that refracts incoming laser fire into multiple counter-beams.",
+            primaryColor = Color(0xFFA855F7),
+            accentColor = Color(0xFFE879F9),
+            glowColor = Color(0x88A855F7),
+            weaponMoves = listOf("Refraction Prism Lance", "Reality Fracture Split", "Time Dilation Burst", "Prismatic Nova"),
+            renderNotes = listOf("Reality tear distortion", "Purple crystal light rays", "Chromatic phase shifts"),
+            taunts = HoloTauntScript(
+                trigger1 = "Space bends. Time breaks. You shatter.",
+                trigger2 = "Which timeline do you think you survive in?",
+                trigger3 = "Reflected into infinity."
+            ),
+            comms = HoloCommsExchange(
+                quickReplies = listOf("This timeline.", "Watch me shatter you."),
+                enemyCounterResponses = mapOf(
+                    "This timeline." to "Statistically impossible.",
+                    "Watch me shatter you." to "Statistically impossible."
+                ),
+                defaultCounter = "Erased from continuity."
+            ),
+            baseHealth = 10000f,
+            baseShield = 4400f
+        ),
+
+        // 22: CITADEL COMMANDER
+        BossProfileSpec(
+            index = 22,
+            id = "citadel_commander",
+            name = "CITADEL COMMANDER",
+            epithet = "THE IRON WARLORD",
+            matchedBiomeId = "the_citadel",
+            matchedBiomeName = "22. The Citadel",
+            profileDescription = "The supreme military defender of the inner gates. Wields twin kinetic rail-cannons and automated flak walls.",
+            primaryColor = Color(0xFFDC2626),
+            accentColor = Color(0xFFF97316),
+            glowColor = Color(0x88DC2626),
+            weaponMoves = listOf("Twin Heavy Rail-Cannons", "Citadel Flak Wall", "Cruise Missile Salvo", "Command Shield Matrix"),
+            renderNotes = listOf("Fortress searchlights", "Massive artillery muzzle flashes", "Red warning sirens"),
+            taunts = HoloTauntScript(
+                trigger1 = "The Citadel has stood unbroken for centuries.",
+                trigger2 = "You have reached the limit of your luck, pilot.",
+                trigger3 = "All guns, converge on the intruder."
+            ),
+            comms = HoloCommsExchange(
+                quickReplies = listOf("Walls fall.", "Open the gates."),
+                enemyCounterResponses = mapOf(
+                    "Walls fall." to "Not while I draw breath.",
+                    "Open the gates." to "Not while I draw breath."
+                ),
+                defaultCounter = "Denied entry. Termination confirmed."
+            ),
+            baseHealth = 10500f,
+            baseShield = 4600f
+        ),
+
+        // 23: INFERNO RIDER
+        BossProfileSpec(
+            index = 23,
+            id = "inferno_rider",
+            name = "INFERNO RIDER",
+            epithet = "THE VANGUARD HARBINGER",
+            matchedBiomeId = "final_approach",
+            matchedBiomeName = "23. Final Approach",
+            profileDescription = "The last vanguard protector before the Colosseum. Extreme speed, hyper-plasma burners, and cluster nuke ordnance.",
+            primaryColor = Color(0xFFFF2200),
+            accentColor = Color(0xFFFF9500),
+            glowColor = Color(0x88FF2200),
+            weaponMoves = listOf("Hyper-Plasma Afterburner", "Cluster Nuke Salvo", "Hellfire Wave", "Tachyon Ramming Rush"),
+            renderNotes = listOf("Blazing atmospheric burn", "Trailing firestorm particles", "Heat distortion wake"),
+            taunts = HoloTauntScript(
+                trigger1 = "Beyond me lies the Thunder Dome. You won't make it.",
+                trigger2 = "Burn in the vanguard approach!",
+                trigger3 = "The Sovereign will not be bothered by insects."
+            ),
+            comms = HoloCommsExchange(
+                quickReplies = listOf("Step aside.", "I came for the Dome."),
+                enemyCounterResponses = mapOf(
+                    "Step aside." to "Over my burning hull.",
+                    "I came for the Dome." to "Over my burning hull."
+                ),
+                defaultCounter = "Consumed in the vanguard fire."
+            ),
+            baseHealth = 11000f,
+            baseShield = 4800f
+        ),
+
         // 24: NEXUS OBLITERATOR (Colosseum Final Boss)
         BossProfileSpec(
             index = 24,
