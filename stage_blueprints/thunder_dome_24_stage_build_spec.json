@@ -16,6 +16,8 @@
       "name": "NEON OUTPOST",
       "weather": "NEON RAIN",
       "boss": "SHADOW WRAITH",
+      "boss_quote": "You can't see me.",
+      "boss_class": "STEALTH CLASS",
       "palette": [
         "#08121E",
         "#00D9FF",
@@ -35,9 +37,9 @@
         "76% rail-sling war-speed strip"
       ],
       "boss_abilities": [
-        "crossfire laser lattice",
-        "hologram decoy wings",
-        "radial micro-missile burst"
+        "Stealth Field (3s Invisible)",
+        "Shadow Missiles (Homing Swarm)",
+        "Crossfire Laser Lattice"
       ],
       "hero_plane_skin": "Black chrome + cyan edge light + magenta circuit filigree; reflective wet-look clearcoat.",
       "route_events": [
@@ -93,7 +95,9 @@
       "stage": 2,
       "name": "ASTEROID BELT",
       "weather": "SPACE DUST",
-      "boss": "BLADE STORM",
+      "boss": "VOLT SPIKE",
+      "boss_quote": "Feel the current.",
+      "boss_class": "CHAIN CLASS",
       "palette": [
         "#120B08",
         "#D65A0A",
@@ -113,9 +117,9 @@
         "72% twin-asteroid gravity boost"
       ],
       "boss_abilities": [
-        "broadside cannon walls",
-        "gravity tractor cone",
-        "armor-plate break phases"
+        "Chain Lightning (Bounces Targets)",
+        "EMP Burst (Disables Speed)",
+        "Broadside Flak Cannon"
       ],
       "hero_plane_skin": "Gunmetal hull + amber hazard stripes + violet anti-grav cores; chipped rock-scar decals.",
       "route_events": [
@@ -171,7 +175,9 @@
       "stage": 3,
       "name": "VOID GATE",
       "weather": "VOID WARP",
-      "boss": "NEON PHANTOM",
+      "boss": "CRIMSON FANG",
+      "boss_quote": "Three shots, your end.",
+      "boss_class": "BURST CLASS",
       "palette": [
         "#09020F",
         "#8A2BE2",
@@ -191,9 +197,9 @@
         "74% vortex acceleration tunnel"
       ],
       "boss_abilities": [
-        "teleport ambush",
-        "void clone split",
-        "screen-edge gravity scythe"
+        "Rapid Fire (Triple Shot)",
+        "Blood Orb (Life Drain On Hit)",
+        "Teleport Ambush"
       ],
       "hero_plane_skin": "Obsidian ceramic + violet plasma veins + magenta portal glyphs; starfield panel texture.",
       "route_events": [
@@ -249,7 +255,9 @@
       "stage": 4,
       "name": "TOXIC SECTOR",
       "weather": "TOXIC MIST",
-      "boss": "OMEGA DRONE",
+      "boss": "TOXIN HAZE",
+      "boss_quote": "Breathe deeper.",
+      "boss_class": "HAZARD CLASS",
       "palette": [
         "#061006",
         "#42FF30",
@@ -269,9 +277,9 @@
         "78% reactor exhaust warp strip"
       ],
       "boss_abilities": [
-        "poison cloud bloom",
-        "corrosion beam",
-        "toxic clone spores"
+        "Gas Cloud (Area Damage)",
+        "Corrosion Beam (Armor Reduce)",
+        "Toxic Spore Swarm"
       ],
       "hero_plane_skin": "Matte black + luminous toxic green vents + yellow warning chevrons; biohazard stencil skin.",
       "route_events": [
@@ -328,6 +336,8 @@
       "name": "ICE FORTRESS",
       "weather": "BLIZZARD",
       "boss": "FROST NOVA",
+      "boss_quote": "Everything freezes.",
+      "boss_class": "CONTROL CLASS",
       "palette": [
         "#061420",
         "#56C8FF",
@@ -347,9 +357,9 @@
         "71% frozen launch rail"
       ],
       "boss_abilities": [
-        "freeze pulse",
-        "ice shard fan",
-        "crystal armor rebuild"
+        "Freeze Pulse (Slows Player)",
+        "Ice Shards (Spread Shot)",
+        "Crystal Armor Rebuild"
       ],
       "hero_plane_skin": "Brushed steel + ice-blue emissive ribs + white frost fade; faceted crystal wing tips.",
       "route_events": [
@@ -406,6 +416,8 @@
       "name": "SOLAR CORE",
       "weather": "SOLAR FLARES",
       "boss": "SOLAR FLARE",
+      "boss_quote": "Burn brighter.",
+      "boss_class": "AREA CLASS",
       "palette": [
         "#1A0900",
         "#FFB000",
@@ -425,9 +437,9 @@
         "77% corona slingshot"
       ],
       "boss_abilities": [
-        "piercing solar beam",
-        "burning trail cage",
-        "corona overload pulse"
+        "Burning Trail (Damage Over Time)",
+        "Solar Beam (Piercing Shot)",
+        "Corona Overload Pulse"
       ],
       "hero_plane_skin": "Mirror black + molten gold trim + orange heat vents; sunburst wing graphics with ember clearcoat.",
       "route_events": [
@@ -483,7 +495,9 @@
       "stage": 7,
       "name": "CYBER CITY",
       "weather": "NEON RAIN",
-      "boss": "CYBER HAWK",
+      "boss": "VOID REAPER",
+      "boss_quote": "All things end here.",
+      "boss_class": "GRAVITY CLASS",
       "palette": [
         "#070916",
         "#FF22CB",
@@ -503,9 +517,9 @@
         "73% neon transit warp lane"
       ],
       "boss_abilities": [
-        "black-hole pull",
-        "void orb barrage",
-        "shadow dash ram"
+        "Black Hole (Pulls Player)",
+        "Void Orbs (Explode On Contact)",
+        "Shadow Dash Ram"
       ],
       "hero_plane_skin": "Carbon fiber + cyan/magenta racing graphics + animated equalizer strips along the fuselage.",
       "route_events": [
@@ -561,7 +575,9 @@
       "stage": 8,
       "name": "JUNKYARD",
       "weather": "RUST STORM",
-      "boss": "OMEGA DRONE",
+      "boss": "BLADE STORM",
+      "boss_quote": "Spin until you break.",
+      "boss_class": "SPIN CLASS",
       "palette": [
         "#130D08",
         "#F36B17",
@@ -581,9 +597,9 @@
         "70% turbine-corridor boost"
       ],
       "boss_abilities": [
-        "spinning blade halo",
-        "ricochet shot",
-        "scrap cyclone"
+        "Spinning Blades (Circular Attack)",
+        "Ricochet Shot (Bounces)",
+        "Scrap Cyclone Blast"
       ],
       "hero_plane_skin": "Weathered titanium + orange weld seams + stenciled serial numbers; patchwork armored panels.",
       "route_events": [
@@ -639,7 +655,9 @@
       "stage": 9,
       "name": "BLACK HOLE",
       "weather": "GRAVITY PULL",
-      "boss": "VOID REAPER",
+      "boss": "NEON PHANTOM",
+      "boss_quote": "I am everywhere.",
+      "boss_class": "PHASE CLASS",
       "palette": [
         "#05030A",
         "#6E35E7",
@@ -659,9 +677,9 @@
         "79% horizon-surf warp burst"
       ],
       "boss_abilities": [
-        "phase dash",
-        "neon laser sweep",
-        "afterimage swarm"
+        "Phase Dash (Fast Movement)",
+        "Neon Lasers (Wide Spread)",
+        "Afterimage Swarm"
       ],
       "hero_plane_skin": "Ultra-black hull + purple lensing rings + violet star specks; curved gravitational distortion graphics.",
       "route_events": [
@@ -717,7 +735,9 @@
       "stage": 10,
       "name": "LAVA PLANET",
       "weather": "LAVA RAIN",
-      "boss": "MAGMA BRUTE",
+      "boss": "OMEGA DRONE",
+      "boss_quote": "Many become one.",
+      "boss_class": "SWARM CLASS",
       "palette": [
         "#130500",
         "#FF5218",
@@ -737,9 +757,9 @@
         "74% furnace-jet warp strip"
       ],
       "boss_abilities": [
-        "summon attack drones",
-        "laser grid",
-        "molten missile spread"
+        "Summon Drones (3 Mini Ships)",
+        "Laser Grid (Cross Pattern)",
+        "Molten Missile Spread"
       ],
       "hero_plane_skin": "Charcoal armor + red-hot cracks + orange underside glow; volcanic fracture graphic across wings.",
       "route_events": [
@@ -796,6 +816,8 @@
       "name": "ORBITAL ARRAY",
       "weather": "ION DUST",
       "boss": "LIQUID METAL",
+      "boss_quote": "Adapt, consume, repeat.",
+      "boss_class": "MORPH CLASS",
       "palette": [
         "#05111B",
         "#21A7F3",
@@ -815,9 +837,9 @@
         "75% ring-orbit catapult"
       ],
       "boss_abilities": [
-        "shape shift",
-        "reflective skin",
-        "metal-wave projectile"
+        "Morph Form (Shape Shift)",
+        "Metal Wave (Reflects Player Shot)",
+        "Reflective Quicksilver Armor"
       ],
       "hero_plane_skin": "Polished silver + electric-blue circuitry + white ion streaks; satellite-ring insignia.",
       "route_events": [
@@ -874,6 +896,8 @@
       "name": "SAND WASTES",
       "weather": "SAND STORM",
       "boss": "SAND VIPER",
+      "boss_quote": "The storm obliterates.",
+      "boss_class": "STORM CLASS",
       "palette": [
         "#1A120B",
         "#D58A2B",
@@ -893,9 +917,9 @@
         "69% canyon vent war-speed"
       ],
       "boss_abilities": [
-        "sand tornado pull",
-        "razor-dart spread",
-        "burrow strike"
+        "Sand Tornado (Area Pull)",
+        "Razor Darts (High Speed)",
+        "Burrow Strike Ambush"
       ],
       "hero_plane_skin": "Desert tan + black belly + gold edge guards; viper-scale wing graphics and dust-worn nose.",
       "route_events": [
@@ -951,7 +975,9 @@
       "stage": 13,
       "name": "BIO LABS",
       "weather": "BIO SPORES",
-      "boss": "ALIEN JUNGLE",
+      "boss": "CELESTIAL GUARD",
+      "boss_quote": "Judgment from above.",
+      "boss_class": "DIVINE CLASS",
       "palette": [
         "#071008",
         "#6FE51C",
@@ -971,9 +997,9 @@
         "77% gene-tube acceleration rail"
       ],
       "boss_abilities": [
-        "multi-head plasma spit",
-        "regeneration phase",
-        "bio missile homing swarm"
+        "Divine Shield (Deflects Shots)",
+        "Holy Pulse (Stun)",
+        "Bio-Weapon Colossus Beam"
       ],
       "hero_plane_skin": "Gloss black + luminous green vein lattice + translucent bio-cells; gene-helix wing markings.",
       "route_events": [
@@ -1029,7 +1055,9 @@
       "stage": 14,
       "name": "UNDERWATER RUINS",
       "weather": "HYDRO STREAM",
-      "boss": "STORM LORD",
+      "boss": "RADIATION CORE",
+      "boss_quote": "Contamination spreads.",
+      "boss_class": "MUTATE CLASS",
       "palette": [
         "#051620",
         "#0DAED0",
@@ -1049,9 +1077,9 @@
         "72% hydro-tunnel slingshot"
       ],
       "boss_abilities": [
-        "water cannon knockback",
-        "bubble shield",
-        "torpedo spiral"
+        "Radiation Burst (Area Damage)",
+        "Mutate Beacons (Slower Below 50% HP)",
+        "Abyssal Torpedo Spiral"
       ],
       "hero_plane_skin": "Deep navy + cyan caustic shimmer + pearl-white trim; scale-like hydrodynamic pattern.",
       "route_events": [
@@ -1107,7 +1135,9 @@
       "stage": 15,
       "name": "SKY TEMPLE",
       "weather": "AURA BREEZE",
-      "boss": "CELESTIAL GUARD",
+      "boss": "AQUA STRIKE",
+      "boss_quote": "The depths claim you.",
+      "boss_class": "WATER CLASS",
       "palette": [
         "#10233A",
         "#8CCAF0",
@@ -1127,9 +1157,9 @@
         "75% celestial launch beam"
       ],
       "boss_abilities": [
-        "divine shield",
-        "holy pulse",
-        "wing-lance rain"
+        "Water Cannon (Knockback)",
+        "Bubble Shield (Temporary Invincibility)",
+        "Wing-Lance Holy Rain"
       ],
       "hero_plane_skin": "Pearl white + sky-blue inlays + gold micro-trim; feathered geometric graphics on wings.",
       "route_events": [
@@ -1185,7 +1215,9 @@
       "stage": 16,
       "name": "MACHINE WORLD",
       "weather": "SMELTER ASH",
-      "boss": "OMEGA DRONE",
+      "boss": "MAGMA BRUTE",
+      "boss_quote": "The planet bleeds.",
+      "boss_class": "SIEGE CLASS",
       "palette": [
         "#120A07",
         "#C94B18",
@@ -1205,9 +1237,9 @@
         "78% smelter exhaust warp"
       ],
       "boss_abilities": [
-        "magma ball barrage",
-        "lava trail ram",
-        "hydraulic shockwave"
+        "Magma Balls (Explosive Spread)",
+        "Lava Trail (Damage On Touch)",
+        "Hydraulic Smelter Shockwave"
       ],
       "hero_plane_skin": "Blackened steel + copper welds + hot orange mechanical glyphs; gear-tooth wing striping.",
       "route_events": [
@@ -1263,7 +1295,9 @@
       "stage": 17,
       "name": "CRYSTAL CAVERNS",
       "weather": "CRYSTAL DUST",
-      "boss": "QUANTUM SHIFT",
+      "boss": "CYBER HAWK",
+      "boss_quote": "Target locked.",
+      "boss_class": "HUNTER CLASS",
       "palette": [
         "#0B0715",
         "#7A2AE8",
@@ -1283,9 +1317,9 @@
         "73% crystal resonance warp"
       ],
       "boss_abilities": [
-        "target lock pursuit",
-        "missile swarm",
-        "reflective feather shield"
+        "Target Lock (Tracks Player)",
+        "Missile Swarm (5 Homing)",
+        "Reflective Feather Shield"
       ],
       "hero_plane_skin": "Dark violet + iridescent crystal facets + cyan laser lines; holographic prismatic wing skin.",
       "route_events": [
@@ -1341,7 +1375,9 @@
       "stage": 18,
       "name": "STORM FRONT",
       "weather": "LIGHTNING",
-      "boss": "NEXUS OBLITERATOR",
+      "boss": "QUANTUM SHIFT",
+      "boss_quote": "Reality bends.",
+      "boss_class": "TIME CLASS",
       "palette": [
         "#090C1A",
         "#6947D9",
@@ -1361,9 +1397,9 @@
         "76% lightning-rail war-speed"
       ],
       "boss_abilities": [
-        "time warp slow field",
-        "quantum teleport",
-        "temporal blade strike"
+        "Time Warp (Slows Time)",
+        "Quantum Blades (Teleporting Attack)",
+        "Temporal Shock Curtain"
       ],
       "hero_plane_skin": "Midnight blue + white lightning forks + violet quantum rings; animated pulse texture on tail.",
       "route_events": [
@@ -1418,8 +1454,10 @@
     {
       "stage": 19,
       "name": "ALIEN JUNGLE",
-      "weather": "NEURO MIST",
+      "weather": "GREEN-YELLOW LIGHTNING",
       "boss": "STORM LORD",
+      "boss_quote": "Nature strikes back.",
+      "boss_class": "NATURE CLASS",
       "palette": [
         "#06100C",
         "#57D71D",
@@ -1439,9 +1477,9 @@
         "72% bio-electric surge lane"
       ],
       "boss_abilities": [
-        "random thunder strike",
-        "persistent storm field",
-        "charged wing dive"
+        "Thunder Strike (Random Lightning)",
+        "Storm Field (Constant Damage)",
+        "Charged Wing Dive"
       ],
       "hero_plane_skin": "Forest-black + acid-green edge veins + purple bio-lights; alien leaf/fractal graphics.",
       "route_events": [
@@ -1496,8 +1534,10 @@
     {
       "stage": 20,
       "name": "SPACE GRAVEYARD",
-      "weather": "DEBRIS HAZARD",
-      "boss": "GRAVITY TITAN",
+      "weather": "COLD SPECTRAL GLOW",
+      "boss": "CRYSTAL REVENANT",
+      "boss_quote": "The dead still fly.",
+      "boss_class": "REFLECT CLASS",
       "palette": [
         "#050912",
         "#2860D9",
@@ -1517,9 +1557,9 @@
         "69% wreck-corridor gravity sling"
       ],
       "boss_abilities": [
-        "gravity field",
-        "meteor drop",
-        "hull-fragment shield"
+        "Crystal Spikes (Multi-Direction)",
+        "Reflective Armor (Bounces Shots)",
+        "Hull-Fragment Shield"
       ],
       "hero_plane_skin": "Cold gunmetal + spectral blue-violet exhaust + ghosted fleet emblems; battle-scar skin.",
       "route_events": [
@@ -1574,8 +1614,10 @@
     {
       "stage": 21,
       "name": "DIMENSION RIFT",
-      "weather": "PHASE SHIFT",
-      "boss": "CRYSTAL REVENANT",
+      "weather": "PURPLE-VIOLET GLITCHES",
+      "boss": "INFERNO RIDER",
+      "boss_quote": "Ride the flames.",
+      "boss_class": "SPEED CLASS",
       "palette": [
         "#0B0414",
         "#7720E8",
@@ -1595,9 +1637,9 @@
         "77% multiverse tear warp"
       ],
       "boss_abilities": [
-        "multi-direction crystal spikes",
-        "reflective armor",
-        "phase inversion"
+        "Fire Dash (Charges At Player)",
+        "Inferno Wave (Wide Flame)",
+        "Reality Phase Inversion"
       ],
       "hero_plane_skin": "Black-violet base + magenta/red glitch slices + fractured mirror panels; chromatic split graphics.",
       "route_events": [
@@ -1652,8 +1694,10 @@
     {
       "stage": 22,
       "name": "THE CITADEL",
-      "weather": "FLAK BURSTS",
-      "boss": "CITADEL COMMANDER",
+      "weather": "RED WAR HAZE",
+      "boss": "BIOSYNTH",
+      "boss_quote": "Evolution continues.",
+      "boss_class": "REGEN CLASS",
       "palette": [
         "#110708",
         "#982123",
@@ -1673,9 +1717,9 @@
         "74% reactor trench overdrive"
       ],
       "boss_abilities": [
-        "flak grid command",
-        "shielded turret ring",
-        "command missile swarm"
+        "Bio Missiles (Split On Hit)",
+        "Heal Over Time (Regenerate)",
+        "Command Defense Ring"
       ],
       "hero_plane_skin": "Dark armor + crimson command stripes + metallic silver insignia; angular military geometry.",
       "route_events": [
@@ -1730,8 +1774,10 @@
     {
       "stage": 23,
       "name": "FINAL APPROACH",
-      "weather": "WAR HAZE",
-      "boss": "INFERNO RIDER",
+      "weather": "RED WAR HAZE",
+      "boss": "GRAVITY TITAN",
+      "boss_quote": "You belong to me.",
+      "boss_class": "GRAVITY CLASS",
       "palette": [
         "#140707",
         "#7E151B",
@@ -1751,9 +1797,9 @@
         "80% final assault war-speed corridor"
       ],
       "boss_abilities": [
-        "fire dash",
-        "inferno wave",
-        "flame-lance pursuit"
+        "Gravity Field (Slows Movement)",
+        "Meteor Drop (Falling Rocks)",
+        "Final Fleet Armada Beam"
       ],
       "hero_plane_skin": "Satin black + deep red spear graphics + orange afterburner blades; campaign kill-mark decals.",
       "route_events": [
@@ -1810,6 +1856,8 @@
       "name": "THUNDER DOME",
       "weather": "COLOSSEUM LIGHTNING",
       "boss": "NEXUS OBLITERATOR",
+      "boss_quote": "All worlds collapse.",
+      "boss_class": "FINAL CLASS",
       "palette": [
         "#110D05",
         "#FFC42D",
@@ -1829,10 +1877,10 @@
         "70% inner-ring war-speed launch"
       ],
       "boss_abilities": [
-        "universe collapse screen pulse",
-        "multi-phase form change",
-        "nexus laser crown",
-        "arena-ring shockwave"
+        "Universe Collapse (Screen Wide)",
+        "Multi-Phase Attack (Changes Form)",
+        "Nexus Laser Crown",
+        "Arena-Ring Shockwave"
       ],
       "hero_plane_skin": "Mirror black + championship gold + electric-blue core lines; 3000 Studios thunder crest across wings.",
       "route_events": [

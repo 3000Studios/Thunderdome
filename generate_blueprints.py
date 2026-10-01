@@ -11,12 +11,12 @@ ARTIFACT_OUT.mkdir(parents=True, exist_ok=True)
 
 USER_UPLOADED_DIR = Path(r"C:\Users\MrJws\.gemini\antigravity\brain\15baa7c6-3701-4d45-8501-acc79ffd3170\.user_uploaded")
 
-# User-supplied reference sheets
+# Official 3000 Studios 6-Panel Storyboard Reference Sheets
 sheets = {
     (1,6): USER_UPLOADED_DIR / "media_1790893492205.jpg",   # Cinematic Cutscenes Stages 01-06
     (7,12): USER_UPLOADED_DIR / "media_1790893492167.jpg",  # Cinematic Cutscenes Stages 07-12
     (13,18): USER_UPLOADED_DIR / "media_1790893492188.jpg", # Cinematic Cutscenes Stages 13-18
-    (19,24): USER_UPLOADED_DIR / "media_1790893492229.jpg", # Showcase, Nexus Obliterator & 24 Stages
+    (19,24): USER_UPLOADED_DIR / "media_1790893533398.jpg", # Cinematic Cutscenes Stages 19-24
 }
 
 # Fonts
@@ -45,149 +45,149 @@ F_TINY = load_font(17, False)
 F_TAG = load_font(22, True)
 
 stages = [
-    dict(n=1, name="NEON OUTPOST", weather="NEON RAIN", boss="SHADOW WRAITH",
+    dict(n=1, name="NEON OUTPOST", weather="NEON RAIN", boss="SHADOW WRAITH", boss_quote="You can't see me.", boss_class="STEALTH CLASS",
          palette=("#08121E","#00D9FF","#FF2C9C","#2478FF","#7B2CFF"),
          obstacles=["AA turret nests","holo-billboard canyon","laser-road gates","wet rooftop pylons","drone traffic"],
          speed=["40% cyan booster lane","76% rail-sling war-speed strip"],
-         boss_abilities=["crossfire laser lattice","hologram decoy wings","radial micro-missile burst"],
+         boss_abilities=["Stealth Field (3s Invisible)","Shadow Missiles (Homing Swarm)","Crossfire Laser Lattice"],
          hero="Black chrome + cyan edge light + magenta circuit filigree; reflective wet-look clearcoat."),
-    dict(n=2, name="ASTEROID BELT", weather="SPACE DUST", boss="BLADE STORM",
+    dict(n=2, name="ASTEROID BELT", weather="SPACE DUST", boss="VOLT SPIKE", boss_quote="Feel the current.", boss_class="CHAIN CLASS",
          palette=("#120B08","#D65A0A","#FF7A00","#6E2AD8","#2A221F"),
          obstacles=["rotating asteroid clusters","magnetic purple mines","cratered rock arches","debris fields","tumbling boulders"],
          speed=["38% debris slingshot","72% twin-asteroid gravity boost"],
-         boss_abilities=["broadside cannon walls","gravity tractor cone","armor-plate break phases"],
+         boss_abilities=["Chain Lightning (Bounces Targets)","EMP Burst (Disables Speed)","Broadside Flak Cannon"],
          hero="Gunmetal hull + amber hazard stripes + violet anti-grav cores; chipped rock-scar decals."),
-    dict(n=3, name="VOID GATE", weather="VOID WARP", boss="NEON PHANTOM",
+    dict(n=3, name="VOID GATE", weather="VOID WARP", boss="CRIMSON FANG", boss_quote="Three shots, your end.", boss_class="BURST CLASS",
          palette=("#09020F","#8A2BE2","#FF21D6","#5D35B8","#050505"),
          obstacles=["gravity shear rings","void spike corridors","warp-orb mines","fractured obsidian slabs","portal turbulence"],
          speed=["34% portal sling","74% vortex acceleration tunnel"],
-         boss_abilities=["teleport ambush","void clone split","screen-edge gravity scythe"],
+         boss_abilities=["Rapid Fire (Triple Shot)","Blood Orb (Life Drain On Hit)","Teleport Ambush"],
          hero="Obsidian ceramic + violet plasma veins + magenta portal glyphs; starfield panel texture."),
-    dict(n=4, name="TOXIC SECTOR", weather="TOXIC MIST", boss="OMEGA DRONE",
+    dict(n=4, name="TOXIC SECTOR", weather="TOXIC MIST", boss="TOXIN HAZE", boss_quote="Breathe deeper.", boss_class="HAZARD CLASS",
          palette=("#061006","#42FF30","#92D811","#D8EA23","#121212"),
          obstacles=["caustic gas clouds","acid puddle vents","corroded pipe towers","sludge channels","biohazard fans"],
          speed=["42% pressure-vent thrust lane","78% reactor exhaust warp strip"],
-         boss_abilities=["poison cloud bloom","corrosion beam","toxic clone spores"],
+         boss_abilities=["Gas Cloud (Area Damage)","Corrosion Beam (Armor Reduce)","Toxic Spore Swarm"],
          hero="Matte black + luminous toxic green vents + yellow warning chevrons; biohazard stencil skin."),
-    dict(n=5, name="ICE FORTRESS", weather="BLIZZARD", boss="FROST NOVA",
+    dict(n=5, name="ICE FORTRESS", weather="BLIZZARD", boss="FROST NOVA", boss_quote="Everything freezes.", boss_class="CONTROL CLASS",
          palette=("#061420","#56C8FF","#F2FAFF","#5B8FCC","#1F5A99"),
          obstacles=["ice spike walls","frost turrets","glacier crevasses","wind shear zones","frozen bridge arches"],
          speed=["36% ice-canyon slipstream","71% frozen launch rail"],
-         boss_abilities=["freeze pulse","ice shard fan","crystal armor rebuild"],
+         boss_abilities=["Freeze Pulse (Slows Player)","Ice Shards (Spread Shot)","Crystal Armor Rebuild"],
          hero="Brushed steel + ice-blue emissive ribs + white frost fade; faceted crystal wing tips."),
-    dict(n=6, name="SOLAR CORE", weather="SOLAR FLARES", boss="SOLAR FLARE",
+    dict(n=6, name="SOLAR CORE", weather="SOLAR FLARES", boss="SOLAR FLARE", boss_quote="Burn brighter.", boss_class="AREA CLASS",
          palette=("#1A0900","#FFB000","#FF6A00","#FF2A1A","#4A1200"),
          obstacles=["solar flare curtains","plasma jets","heat-plate rings","burning trails","corona shockwaves"],
          speed=["41% plasma draft","77% corona slingshot"],
-         boss_abilities=["piercing solar beam","burning trail cage","corona overload pulse"],
+         boss_abilities=["Burning Trail (Damage Over Time)","Solar Beam (Piercing Shot)","Corona Overload Pulse"],
          hero="Mirror black + molten gold trim + orange heat vents; sunburst wing graphics with ember clearcoat."),
-    dict(n=7, name="CYBER CITY", weather="NEON RAIN", boss="CYBER HAWK",
+    dict(n=7, name="CYBER CITY", weather="NEON RAIN", boss="VOID REAPER", boss_quote="All things end here.", boss_class="GRAVITY CLASS",
          palette=("#070916","#FF22CB","#00CFFF","#3B45FF","#7E2FB3"),
          obstacles=["skyscraper canyon","traffic drones","holo-ad minefields","service bridges","electric rooftop fences"],
          speed=["39% maglev corridor","73% neon transit warp lane"],
-         boss_abilities=["black-hole pull","void orb barrage","shadow dash ram"],
+         boss_abilities=["Black Hole (Pulls Player)","Void Orbs (Explode On Contact)","Shadow Dash Ram"],
          hero="Carbon fiber + cyan/magenta racing graphics + animated equalizer strips along the fuselage."),
-    dict(n=8, name="JUNKYARD", weather="RUST STORM", boss="OMEGA DRONE",
+    dict(n=8, name="JUNKYARD", weather="RUST STORM", boss="BLADE STORM", boss_quote="Spin until you break.", boss_class="SPIN CLASS",
          palette=("#130D08","#F36B17","#8C3D1F","#64412B","#181818"),
          obstacles=["sawblade debris","capital hull wrecks","scrap ambushes","explosive piles","crane arms"],
          speed=["35% salvage-catapult lane","70% turbine-corridor boost"],
-         boss_abilities=["spinning blade halo","ricochet shot","scrap cyclone"],
+         boss_abilities=["Spinning Blades (Circular Attack)","Ricochet Shot (Bounces)","Scrap Cyclone Blast"],
          hero="Weathered titanium + orange weld seams + stenciled serial numbers; patchwork armored panels."),
-    dict(n=9, name="BLACK HOLE", weather="GRAVITY PULL", boss="VOID REAPER",
+    dict(n=9, name="BLACK HOLE", weather="GRAVITY PULL", boss="NEON PHANTOM", boss_quote="I am everywhere.", boss_class="PHASE CLASS",
          palette=("#05030A","#6E35E7","#A647FF","#341D78","#000000"),
          obstacles=["singularity pull zones","lensing rings","distorted asteroids","event-horizon lanes","tidal debris"],
          speed=["43% gravity-assist arc","79% horizon-surf warp burst"],
-         boss_abilities=["phase dash","neon laser sweep","afterimage swarm"],
+         boss_abilities=["Phase Dash (Fast Movement)","Neon Lasers (Wide Spread)","Afterimage Swarm"],
          hero="Ultra-black hull + purple lensing rings + violet star specks; curved gravitational distortion graphics."),
-    dict(n=10, name="LAVA PLANET", weather="LAVA RAIN", boss="MAGMA BRUTE",
+    dict(n=10, name="LAVA PLANET", weather="LAVA RAIN", boss="OMEGA DRONE", boss_quote="Many become one.", boss_class="SWARM CLASS",
          palette=("#130500","#FF5218","#E62717","#3A3635","#050505"),
          obstacles=["magma bombs","lava eruptions","basalt spires","factory platforms","heat distortion pockets"],
          speed=["37% magma updraft lane","74% furnace-jet warp strip"],
-         boss_abilities=["summon attack drones","laser grid","molten missile spread"],
+         boss_abilities=["Summon Drones (3 Mini Ships)","Laser Grid (Cross Pattern)","Molten Missile Spread"],
          hero="Charcoal armor + red-hot cracks + orange underside glow; volcanic fracture graphic across wings."),
-    dict(n=11, name="ORBITAL ARRAY", weather="ION DUST", boss="LIQUID METAL",
+    dict(n=11, name="ORBITAL ARRAY", weather="ION DUST", boss="LIQUID METAL", boss_quote="Adapt, consume, repeat.", boss_class="MORPH CLASS",
          palette=("#05111B","#21A7F3","#9FD9FF","#1B64D4","#DCE8F1"),
          obstacles=["laser sweep rings","ion pulse nodes","station modules","satellite spokes","antenna fields"],
          speed=["40% ion conduit","75% ring-orbit catapult"],
-         boss_abilities=["shape shift","reflective skin","metal-wave projectile"],
+         boss_abilities=["Morph Form (Shape Shift)","Metal Wave (Reflects Player Shot)","Reflective Quicksilver Armor"],
          hero="Polished silver + electric-blue circuitry + white ion streaks; satellite-ring insignia."),
-    dict(n=12, name="SAND WASTES", weather="SAND STORM", boss="SAND VIPER",
+    dict(n=12, name="SAND WASTES", weather="SAND STORM", boss="SAND VIPER", boss_quote="The storm obliterates.", boss_class="STORM CLASS",
          palette=("#1A120B","#D58A2B","#A25D27","#6D4527","#E9B64A"),
          obstacles=["sand tornadoes","EM dust bursts","canyon spires","buried ruins","rock arches"],
          speed=["33% dune crest tailwind","69% canyon vent war-speed"],
-         boss_abilities=["sand tornado pull","razor-dart spread","burrow strike"],
+         boss_abilities=["Sand Tornado (Area Pull)","Razor Darts (High Speed)","Burrow Strike Ambush"],
          hero="Desert tan + black belly + gold edge guards; viper-scale wing graphics and dust-worn nose."),
-    dict(n=13, name="BIO LABS", weather="BIO SPORES", boss="ALIEN JUNGLE",
+    dict(n=13, name="BIO LABS", weather="BIO SPORES", boss="CELESTIAL GUARD", boss_quote="Judgment from above.", boss_class="DIVINE CLASS",
          palette=("#071008","#6FE51C","#A8E72B","#1F6D38","#D8E74A"),
          obstacles=["mutagen domes","glass tube towers","spore clouds","bio-weapon pods","slime channels"],
          speed=["41% nutrient-flow booster","77% gene-tube acceleration rail"],
-         boss_abilities=["multi-head plasma spit","regeneration phase","bio missile homing swarm"],
+         boss_abilities=["Divine Shield (Deflects Shots)","Holy Pulse (Stun)","Bio-Weapon Colossus Beam"],
          hero="Gloss black + luminous green vein lattice + translucent bio-cells; gene-helix wing markings."),
-    dict(n=14, name="UNDERWATER RUINS", weather="HYDRO STREAM", boss="STORM LORD",
+    dict(n=14, name="UNDERWATER RUINS", weather="HYDRO STREAM", boss="RADIATION CORE", boss_quote="Contamination spreads.", boss_class="MUTATE CLASS",
          palette=("#051620","#0DAED0","#53E7FF","#1B627C","#87F0ED"),
          obstacles=["sunken towers","hydro current lanes","bubble mines","caustic pillars","collapsed arches"],
          speed=["36% current jet","72% hydro-tunnel slingshot"],
-         boss_abilities=["water cannon knockback","bubble shield","torpedo spiral"],
+         boss_abilities=["Radiation Burst (Area Damage)","Mutate Beacons (Slower Below 50% HP)","Abyssal Torpedo Spiral"],
          hero="Deep navy + cyan caustic shimmer + pearl-white trim; scale-like hydrodynamic pattern."),
-    dict(n=15, name="SKY TEMPLE", weather="AURA BREEZE", boss="CELESTIAL GUARD",
+    dict(n=15, name="SKY TEMPLE", weather="AURA BREEZE", boss="AQUA STRIKE", boss_quote="The depths claim you.", boss_class="WATER CLASS",
          palette=("#10233A","#8CCAF0","#F7FBFF","#7EA6C9","#D2EEF8"),
          obstacles=["floating island gaps","crystal shards","wind columns","temple gates","god-ray blind zones"],
          speed=["39% jetstream lane","75% celestial launch beam"],
-         boss_abilities=["divine shield","holy pulse","wing-lance rain"],
+         boss_abilities=["Water Cannon (Knockback)","Bubble Shield (Temporary Invincibility)","Wing-Lance Holy Rain"],
          hero="Pearl white + sky-blue inlays + gold micro-trim; feathered geometric graphics on wings."),
-    dict(n=16, name="MACHINE WORLD", weather="SMELTER ASH", boss="OMEGA DRONE",
+    dict(n=16, name="MACHINE WORLD", weather="SMELTER ASH", boss="MAGMA BRUTE", boss_quote="The planet bleeds.", boss_class="SIEGE CLASS",
          palette=("#120A07","#C94B18","#FF7A22","#633020","#181818"),
          obstacles=["crusher presses","moving belts","gear walls","molten drains","robotic foundry arms"],
          speed=["42% conveyor overdrive","78% smelter exhaust warp"],
-         boss_abilities=["magma ball barrage","lava trail ram","hydraulic shockwave"],
+         boss_abilities=["Magma Balls (Explosive Spread)","Lava Trail (Damage On Touch)","Hydraulic Smelter Shockwave"],
          hero="Blackened steel + copper welds + hot orange mechanical glyphs; gear-tooth wing striping."),
-    dict(n=17, name="CRYSTAL CAVERNS", weather="CRYSTAL DUST", boss="QUANTUM SHIFT",
+    dict(n=17, name="CRYSTAL CAVERNS", weather="CRYSTAL DUST", boss="CYBER HAWK", boss_quote="Target locked.", boss_class="HUNTER CLASS",
          palette=("#0B0715","#7A2AE8","#B44DFF","#34C9FF","#E0EAFF"),
          obstacles=["mirror crystal fields","laser reflections","shard avalanches","prism gates","fracture pits"],
          speed=["38% prism-refraction boost","73% crystal resonance warp"],
-         boss_abilities=["target lock pursuit","missile swarm","reflective feather shield"],
+         boss_abilities=["Target Lock (Tracks Player)","Missile Swarm (5 Homing)","Reflective Feather Shield"],
          hero="Dark violet + iridescent crystal facets + cyan laser lines; holographic prismatic wing skin."),
-    dict(n=18, name="STORM FRONT", weather="LIGHTNING", boss="NEXUS OBLITERATOR",
+    dict(n=18, name="STORM FRONT", weather="LIGHTNING", boss="QUANTUM SHIFT", boss_quote="Reality bends.", boss_class="TIME CLASS",
          palette=("#090C1A","#6947D9","#A157FF","#48B7FF","#D6E7FF"),
          obstacles=["lightning curtains","EMP arcs","storm vortices","charged cloud walls","temporal turbulence"],
          speed=["40% thunderhead updraft","76% lightning-rail war-speed"],
-         boss_abilities=["time warp slow field","quantum teleport","temporal blade strike"],
+         boss_abilities=["Time Warp (Slows Time)","Quantum Blades (Teleporting Attack)","Temporal Shock Curtain"],
          hero="Midnight blue + white lightning forks + violet quantum rings; animated pulse texture on tail."),
-    dict(n=19, name="ALIEN JUNGLE", weather="NEURO MIST", boss="STORM LORD",
+    dict(n=19, name="ALIEN JUNGLE", weather="GREEN-YELLOW LIGHTNING", boss="STORM LORD", boss_quote="Nature strikes back.", boss_class="NATURE CLASS",
          palette=("#06100C","#57D71D","#B8EA24","#1B6D54","#6639A5"),
          obstacles=["predatory vines","bioluminescent canopy","spore pods","living root gates","acid flower turrets"],
          speed=["37% canopy wind tunnel","72% bio-electric surge lane"],
-         boss_abilities=["random thunder strike","persistent storm field","charged wing dive"],
+         boss_abilities=["Thunder Strike (Random Lightning)","Storm Field (Constant Damage)","Charged Wing Dive"],
          hero="Forest-black + acid-green edge veins + purple bio-lights; alien leaf/fractal graphics."),
-    dict(n=20, name="SPACE GRAVEYARD", weather="DEBRIS HAZARD", boss="GRAVITY TITAN",
+    dict(n=20, name="SPACE GRAVEYARD", weather="COLD SPECTRAL GLOW", boss="CRYSTAL REVENANT", boss_quote="The dead still fly.", boss_class="REFLECT CLASS",
          palette=("#050912","#2860D9","#443CB4","#7569E7","#292151"),
          obstacles=["wrecked battleship hulls","debris collisions","sniper corridors","engine carcasses","floating armor plates"],
          speed=["34% reactor-remnant boost","69% wreck-corridor gravity sling"],
-         boss_abilities=["gravity field","meteor drop","hull-fragment shield"],
+         boss_abilities=["Crystal Spikes (Multi-Direction)","Reflective Armor (Bounces Shots)","Hull-Fragment Shield"],
          hero="Cold gunmetal + spectral blue-violet exhaust + ghosted fleet emblems; battle-scar skin."),
-    dict(n=21, name="DIMENSION RIFT", weather="PHASE SHIFT", boss="CRYSTAL REVENANT",
+    dict(n=21, name="DIMENSION RIFT", weather="PURPLE-VIOLET GLITCHES", boss="INFERNO RIDER", boss_quote="Ride the flames.", boss_class="SPEED CLASS",
          palette=("#0B0414","#7720E8","#A42DDC","#E1297A","#B81731"),
          obstacles=["reality seams","phase walls","fractured chunks","glitch corridors","lava-wake scars"],
          speed=["41% phase skip","77% multiverse tear warp"],
-         boss_abilities=["multi-direction crystal spikes","reflective armor","phase inversion"],
+         boss_abilities=["Fire Dash (Charges At Player)","Inferno Wave (Wide Flame)","Reality Phase Inversion"],
          hero="Black-violet base + magenta/red glitch slices + fractured mirror panels; chromatic split graphics."),
-    dict(n=22, name="THE CITADEL", weather="FLAK BURSTS", boss="CITADEL COMMANDER",
+    dict(n=22, name="THE CITADEL", weather="RED WAR HAZE", boss="BIOSYNTH", boss_quote="Evolution continues.", boss_class="REGEN CLASS",
          palette=("#110708","#982123","#D73722","#6F202A","#262626"),
          obstacles=["heavy flak walls","command spires","defense rings","missile towers","armored blast doors"],
          speed=["39% launch-bay catapult","74% reactor trench overdrive"],
-         boss_abilities=["flak grid command","shielded turret ring","command missile swarm"],
+         boss_abilities=["Bio Missiles (Split On Hit)","Heal Over Time (Regenerate)","Command Defense Ring"],
          hero="Dark armor + crimson command stripes + metallic silver insignia; angular military geometry."),
-    dict(n=23, name="FINAL APPROACH", weather="WAR HAZE", boss="INFERNO RIDER",
+    dict(n=23, name="FINAL APPROACH", weather="RED WAR HAZE", boss="GRAVITY TITAN", boss_quote="You belong to me.", boss_class="GRAVITY CLASS",
          palette=("#140707","#7E151B","#D01B12","#F04A18","#5A2B1D"),
          obstacles=["flagship armada lanes","missile walls","fighter swarms","capital cannon beams","burning wreck trails"],
          speed=["42% carrier launch wake","80% final assault war-speed corridor"],
-         boss_abilities=["fire dash","inferno wave","flame-lance pursuit"],
+         boss_abilities=["Gravity Field (Slows Movement)","Meteor Drop (Falling Rocks)","Final Fleet Armada Beam"],
          hero="Satin black + deep red spear graphics + orange afterburner blades; campaign kill-mark decals."),
-    dict(n=24, name="THUNDER DOME", weather="COLOSSEUM LIGHTNING", boss="NEXUS OBLITERATOR",
+    dict(n=24, name="THUNDER DOME", weather="COLOSSEUM LIGHTNING", boss="NEXUS OBLITERATOR", boss_quote="All worlds collapse.", boss_class="FINAL CLASS",
          palette=("#110D05","#FFC42D","#E9A400","#7B5100","#1B1B1B"),
          obstacles=["rotating arena rings","lightning spokes","energy walls","moving pylons","collapse zones"],
          speed=["35% outer-ring accelerator","70% inner-ring war-speed launch"],
-         boss_abilities=["universe collapse screen pulse","multi-phase form change","nexus laser crown","arena-ring shockwave"],
+         boss_abilities=["Universe Collapse (Screen Wide)","Multi-Phase Attack (Changes Form)","Nexus Laser Crown","Arena-Ring Shockwave"],
          hero="Mirror black + championship gold + electric-blue core lines; 3000 Studios thunder crest across wings."),
 ]
 
@@ -213,34 +213,19 @@ def crop_stage_panel(stage_num):
                 w, h = img.size
                 idx = stage_num - a
                 
-                if (a,b) in [(1,6), (7,12), (13,18)]:
-                    # 3 columns x 2 rows
-                    col = idx % 3
-                    row = idx // 3
-                    top_margin = int(h * 0.086)
-                    bottom_margin = int(h * 0.02)
-                    usable_h = h - top_margin - bottom_margin
-                    cell_w = w / 3
-                    cell_h = usable_h / 2
-                    x0 = int(col * cell_w + 4)
-                    x1 = int((col+1) * cell_w - 4)
-                    y0 = int(top_margin + row * cell_h + 3)
-                    y1 = int(top_margin + (row+1) * cell_h - 3)
-                    return img.crop((x0,y0,x1,y1))
-                elif (a,b) == (19,24):
-                    # 4-quadrant promo sheet
-                    if stage_num == 24: # Nexus Obliterator Final Boss
-                        # Bottom Left quadrant
-                        return img.crop((10, int(h * 0.50), int(w * 0.50), h - 10))
-                    elif stage_num == 23: # Final Approach
-                        # Bottom Right quadrant
-                        return img.crop((int(w * 0.50), int(h * 0.50), w - 10, h - 10))
-                    elif stage_num in [21, 22]: # Dimension Rift / Citadel
-                        # Top Right quadrant (Multiplayer Battle)
-                        return img.crop((int(w * 0.50), 10, w - 10, int(h * 0.50)))
-                    else: # 19, 20 (Alien Jungle / Space Graveyard)
-                        # Top Left quadrant (24 Stages Showcase)
-                        return img.crop((10, 10, int(w * 0.50), int(h * 0.50)))
+                # Precise 3 columns x 2 rows crop across all 4 sheets
+                col = idx % 3
+                row = idx // 3
+                top_margin = int(h * 0.086)
+                bottom_margin = int(h * 0.02)
+                usable_h = h - top_margin - bottom_margin
+                cell_w = w / 3
+                cell_h = usable_h / 2
+                x0 = int(col * cell_w + 4)
+                x1 = int((col+1) * cell_w - 4)
+                y0 = int(top_margin + row * cell_h + 3)
+                y1 = int(top_margin + (row+1) * cell_h - 3)
+                return img.crop((x0,y0,x1,y1))
             except Exception as e:
                 print(f"Error cropping panel for stage {stage_num}: {e}")
     
@@ -279,7 +264,7 @@ def wrap(draw, text, font, maxw):
     return lines
 
 specs = []
-print(f"Generating 24 Full Stage Blueprints with official 3000 Studios reference art...")
+print(f"Generating 24 Full Stage Blueprints with all 4 official 3000 Studios reference sheets...")
 
 for s in stages:
     W,H = 2048,3072
@@ -302,21 +287,20 @@ for s in stages:
     # Header
     draw.text((70,55), f"THUNDER DOME // STAGE {s['n']:02d}", font=F_H1, fill=(245,248,255))
     draw.text((70,110), s["name"], font=F_TITLE, fill=accent)
-    draw.text((70,195), f"WEATHER: {s['weather']}   //   BOSS: {s['boss']}", font=F_H2, fill=(220,230,242))
-    draw.text((70,238), "ANTIGRAVITY BUILD BLUEPRINT • VERTICAL MOBILE 3D COMBAT THEATER", font=F_SMALL, fill=(170,195,215))
+    draw.text((70,195), f"WEATHER: {s['weather']}   //   BOSS: {s['boss']} ({s['boss_class']})", font=F_H2, fill=(220,230,242))
+    draw.text((70,238), f'"{s["boss_quote"]}" • ANTIGRAVITY BUILD BLUEPRINT • VERTICAL MOBILE 3D COMBAT', font=F_SMALL, fill=(170,195,215))
 
     # Concept art panel
     panel = crop_stage_panel(s["n"])
     panel_box=(70,300,840,900)
     if panel:
         p=panel.copy()
-        # Scale to fit box preserving aspect ratio
         p.thumbnail((panel_box[2]-panel_box[0] - 16, panel_box[3]-panel_box[1] - 16))
         px=panel_box[0]+(panel_box[2]-panel_box[0]-p.width)//2
         py=panel_box[1]+(panel_box[3]-panel_box[1]-p.height)//2
         draw.rounded_rectangle(panel_box, radius=20, fill=(5,7,12), outline=accent, width=4)
         canvas.paste(p,(px,py))
-    draw.text((90,860),"CONCEPT REFERENCE",font=F_TINY,fill=(230,230,240))
+    draw.text((90,860),"CINEMATIC CONCEPT REFERENCE",font=F_TINY,fill=(230,230,240))
 
     # Core rules/info right of concept
     info_x=900; info_y=310
@@ -461,7 +445,7 @@ for s in stages:
     print(f"  Saved Stage {s['n']:02d}: {s['name']}")
     
     specs.append({
-        "stage": s["n"], "name": s["name"], "weather": s["weather"], "boss": s["boss"],
+        "stage": s["n"], "name": s["name"], "weather": s["weather"], "boss": s["boss"], "boss_quote": s["boss_quote"], "boss_class": s["boss_class"],
         "palette": s["palette"], "obstacles": s["obstacles"], "boost_war_speed": s["speed"],
         "boss_abilities": s["boss_abilities"], "hero_plane_skin": s["hero"],
         "route_events": [{"percent":p,"event":lab} for p,lab in events],
@@ -521,5 +505,5 @@ with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compressle
 # Also copy zip to artifacts
 shutil.copy(zip_path, ARTIFACT_OUT.parent / "Thunder_Dome_24_Full_Stage_Layouts_Antigravity.zip")
 
-print(f"\nSUCCESS: Created {len(stages)} annotated full-stage PNGs with official concept panels.")
+print(f"\nSUCCESS: Created {len(stages)} annotated full-stage PNGs with all 4 official 3000 Studios storyboard sheets.")
 print(f"Archive saved to: {zip_path}")
