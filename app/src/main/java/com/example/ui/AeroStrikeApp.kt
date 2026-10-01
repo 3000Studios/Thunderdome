@@ -68,7 +68,8 @@ fun AeroStrikeApp(viewModel: GameViewModel) {
                         onStartCampaign = { inCombatMode = true },
                         onStartMultiplayer = { inCombatMode = true },
                         onOpenHangar = { currentTab = MainNavTab.HANGAR },
-                        onOpenBattlePass = { currentTab = MainNavTab.BATTLE_PASS }
+                        onOpenBattlePass = { currentTab = MainNavTab.BATTLE_PASS },
+                        onOpenSettings = { currentTab = MainNavTab.SETTINGS }
                     )
                     MainNavTab.HANGAR -> HangarScreen(
                         viewModel = viewModel,

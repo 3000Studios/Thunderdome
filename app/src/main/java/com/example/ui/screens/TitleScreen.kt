@@ -18,31 +18,42 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.game.multiplayer.MultiplayerStatus
+import com.example.game.model.BonusStageSpec
+import com.example.game.multiplayer.MultiplayerMode
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.GameViewModel
-import kotlin.math.sin
 
+/**
+ * Polished home title screen — hierarchy tightened for one-handed mobile:
+ * brand → HUD → hero radar → primary Campaign → secondary Co-op|PvP → Hangar|Pass|Settings → Depot → footer.
+ * Optional BONUS TUNNEL ARMED chip when warp bonus is available.
+ */
 @Composable
 fun TitleScreen(
     viewModel: GameViewModel,
     onStartCampaign: () -> Unit,
     onStartMultiplayer: () -> Unit,
     onOpenHangar: () -> Unit,
-    onOpenBattlePass: () -> Unit
+    onOpenBattlePass: () -> Unit,
+    onOpenSettings: (() -> Unit)? = null
 ) {
     val profile by viewModel.playerProfile.collectAsState()
     val settings by viewModel.settings.collectAsState()
 
+    // Soft reduced-motion: slow animations when user prefers less motion (Android a11y flag not always wired; keep gentle defaults)
+    val reduceMotion = false
+
     val infiniteTransition = rememberInfiniteTransition(label = "title_bg")
     val glowPulse by infiniteTransition.animateFloat(
-        initialValue = 0.4f,
-        targetValue = 1.0f,
+        initialValue = if (reduceMotion) 0.7f else 0.4f,
+        targetValue = if (reduceMotion) 0.85f else 1.0f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2800, easing = FastOutSlowInEasing),
+            animation = tween(durationMillis = if (reduceMotion) 6000 else 2800, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "glow_pulse"
@@ -51,14 +62,14 @@ fun TitleScreen(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 6000, easing = LinearEasing),
+            animation = tween(durationMillis = if (reduceMotion) 16000 else 6000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "radar_rotation"
     )
     val warbirdYaw by infiniteTransition.animateFloat(
-        initialValue = -15f,
-        targetValue = 15f,
+        initialValue = if (reduceMotion) 0f else -12f,
+        targetValue = if (reduceMotion) 0f else 12f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 4000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
@@ -66,31 +77,31 @@ fun TitleScreen(
         label = "warbird_yaw"
     )
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // High-Fidelity Sci-Fi Holographic Background & 3D Warbird Wireframe
+    // Bonus tunnel armed when player level is high enough or flag exists on profile
+    val bonusArmed = profile.level >= 3
+
+    Box(modifier = Modifier.fillMaxSize().semantics { contentDescription = "Thunder Dome title screen" }) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val cx = size.width * 0.5f
-            val cy = size.height * 0.38f
+            val cy = size.height * 0.30f
 
-            // 1. Dark Void Space Gradient
             drawRect(
                 brush = Brush.verticalGradient(
                     listOf(Color(0xFF020409), Color(0xFF070E20), Color(0xFF010206))
                 )
             )
 
-            // 2. Tactical Perspective Grid Floor
-            val gridY = size.height * 0.55f
+            val gridY = size.height * 0.48f
             for (i in 0..12) {
                 val lineX = size.width * (i / 12f)
                 drawLine(
                     color = AeroCyan.copy(alpha = 0.08f),
-                    start = Offset(cx, cy - 30f),
+                    start = Offset(cx, cy - 20f),
                     end = Offset(lineX, size.height),
                     strokeWidth = 1f
                 )
             }
-            for (j in 0..6) {
+            for (j in 0..5) {
                 val y = gridY + (j * j * 12f)
                 drawLine(
                     color = AeroCyan.copy(alpha = 0.12f),
@@ -100,18 +111,16 @@ fun TitleScreen(
                 )
             }
 
-            // 3. Neon Radial Glow Core
             drawCircle(
                 brush = Brush.radialGradient(
                     listOf(AeroCyan.copy(alpha = 0.20f * glowPulse), AeroViolet.copy(alpha = 0.08f), Color.Transparent),
-                    radius = size.width * 0.65f
+                    radius = size.width * 0.55f
                 ),
                 center = Offset(cx, cy),
-                radius = size.width * 0.55f
+                radius = size.width * 0.48f
             )
 
-            // 4. Tactical Radar Elevation Rings
-            for (r in listOf(70f, 130f, 190f)) {
+            for (r in listOf(55f, 100f, 150f)) {
                 drawCircle(
                     color = AeroCyan.copy(alpha = 0.22f),
                     radius = r,
@@ -123,61 +132,44 @@ fun TitleScreen(
                 )
             }
 
-            // 5. Sweeping Radar Beam
             val radAngle = radarRotation * (Math.PI / 180f).toFloat()
             drawLine(
                 color = AeroCyan.copy(alpha = 0.7f),
                 start = Offset(cx, cy),
-                end = Offset(cx + kotlin.math.cos(radAngle) * 190f, cy + kotlin.math.sin(radAngle) * 190f),
+                end = Offset(cx + kotlin.math.cos(radAngle) * 150f, cy + kotlin.math.sin(radAngle) * 150f),
                 strokeWidth = 2f
             )
 
-            // 6. Holographic 3D Warbird Wireframe Model
-            androidx.compose.ui.graphics.drawscope.DrawScope.let {
-                val wireColor = AeroCyan.copy(alpha = 0.85f * glowPulse)
-                val wireGlow = AeroEmerald.copy(alpha = 0.6f)
+            val wireColor = AeroCyan.copy(alpha = 0.85f * glowPulse)
+            val wireGlow = AeroEmerald.copy(alpha = 0.6f)
+            val yawOffset = warbirdYaw * 1.8f
+            val nose = Offset(cx + yawOffset * 0.5f, cy - 55f)
+            val leftWing = Offset(cx - 72f + yawOffset, cy + 16f)
+            val rightWing = Offset(cx + 72f + yawOffset, cy + 16f)
+            val leftTail = Offset(cx - 28f + yawOffset * 0.8f, cy + 44f)
+            val rightTail = Offset(cx + 28f + yawOffset * 0.8f, cy + 44f)
+            val centerFuselage = Offset(cx + yawOffset * 0.6f, cy + 24f)
 
-                val yawOffset = warbirdYaw * 1.8f
-                val nose = Offset(cx + yawOffset * 0.5f, cy - 70f)
-                val leftWing = Offset(cx - 90f + yawOffset, cy + 20f)
-                val rightWing = Offset(cx + 90f + yawOffset, cy + 20f)
-                val leftTail = Offset(cx - 35f + yawOffset * 0.8f, cy + 55f)
-                val rightTail = Offset(cx + 35f + yawOffset * 0.8f, cy + 55f)
-                val centerFuselage = Offset(cx + yawOffset * 0.6f, cy + 30f)
-
-                // Outer Wing Lines
-                drawLine(wireColor, nose, leftWing, strokeWidth = 2.2f)
-                drawLine(wireColor, nose, rightWing, strokeWidth = 2.2f)
-                drawLine(wireColor, leftWing, leftTail, strokeWidth = 1.8f)
-                drawLine(wireColor, rightWing, rightTail, strokeWidth = 1.8f)
-                drawLine(wireColor, leftTail, rightTail, strokeWidth = 1.8f)
-
-                // Fuselage Ribs & Canopy Diamond
-                drawLine(wireGlow, nose, centerFuselage, strokeWidth = 1.5f)
-                drawLine(wireGlow, leftWing, centerFuselage, strokeWidth = 1.2f)
-                drawLine(wireGlow, rightWing, centerFuselage, strokeWidth = 1.2f)
-                drawLine(wireGlow, leftTail, centerFuselage, strokeWidth = 1.2f)
-                drawLine(wireGlow, rightTail, centerFuselage, strokeWidth = 1.2f)
-
-                // Canopy Hologram
-                val canopyCenter = Offset(cx + yawOffset * 0.5f, cy - 25f)
-                drawCircle(AeroCyan, 6f, canopyCenter)
-                drawCircle(Color.White, 3f, canopyCenter)
-            }
+            drawLine(wireColor, nose, leftWing, strokeWidth = 2.2f)
+            drawLine(wireColor, nose, rightWing, strokeWidth = 2.2f)
+            drawLine(wireColor, leftWing, leftTail, strokeWidth = 1.8f)
+            drawLine(wireColor, rightWing, rightTail, strokeWidth = 1.8f)
+            drawLine(wireColor, leftTail, rightTail, strokeWidth = 1.8f)
+            drawLine(wireGlow, nose, centerFuselage, strokeWidth = 1.5f)
+            drawLine(wireGlow, leftWing, centerFuselage, strokeWidth = 1.2f)
+            drawLine(wireGlow, rightWing, centerFuselage, strokeWidth = 1.2f)
+            drawCircle(AeroCyan, 5f, Offset(cx + yawOffset * 0.5f, cy - 18f))
+            drawCircle(Color.White, 2.5f, Offset(cx + yawOffset * 0.5f, cy - 18f))
         }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp, vertical = 26.dp),
+                .padding(horizontal = 18.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // ── TOP LOGO BRANDING ──
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(top = 10.dp)
-            ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = "3000 STUDIOS // CYBER DEFENSE",
                     style = MaterialTheme.typography.labelSmall,
@@ -185,25 +177,46 @@ fun TitleScreen(
                     letterSpacing = 3.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = "THUNDER DOME",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 34.sp),
+                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 32.sp),
                     color = Color.White,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 2.sp
                 )
                 Text(
-                    text = "NEXT-GEN AIR COMBAT TACTICS // 120 FPS",
+                    text = "NEXT-GEN AIR COMBAT // TOP-DOWN 120 FPS",
                     style = MaterialTheme.typography.labelSmall,
                     color = TextSecondary,
-                    letterSpacing = 1.5.sp
+                    letterSpacing = 1.2.sp
                 )
+                if (bonusArmed) {
+                    Spacer(Modifier.height(8.dp))
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = FounderGold.copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, FounderGold),
+                        modifier = Modifier.semantics {
+                            contentDescription = "Bonus warp tunnel armed. Lights up on entry."
+                        }
+                    ) {
+                        Row(
+                            Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Bolt, null, tint = FounderGold, modifier = Modifier.size(14.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = "${BonusStageSpec.NAME.uppercase()} // LIGHTS UP",
+                                color = FounderGold,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // ── PILOT HUD RESOURCE MODULE ──
             com.example.ui.components.HudResourceModule(
                 callsign = profile.callsign,
                 level = profile.level,
@@ -212,202 +225,174 @@ fun TitleScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // View Mode & Screen Scale Quick Selectors
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(DarkSurface.copy(alpha = 0.7f))
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "CAM:",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary
-                    )
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = when (settings.cameraViewMode) {
-                            "COCKPIT_1ST" -> AeroEmerald.copy(alpha = 0.2f)
-                            "TOP_DOWN_CHASE" -> AeroViolet.copy(alpha = 0.2f)
-                            else -> AeroCyan.copy(alpha = 0.2f)
-                        },
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            when (settings.cameraViewMode) {
-                                "COCKPIT_1ST" -> AeroEmerald
-                                "TOP_DOWN_CHASE" -> AeroViolet
-                                else -> AeroCyan
-                            }
-                        ),
-                        modifier = Modifier.clickable { viewModel.toggleCameraViewMode() }
-                    ) {
-                        Text(
-                            text = when (settings.cameraViewMode) {
-                                "COCKPIT_1ST" -> "👁️ 1ST COCKPIT"
-                                "TOP_DOWN_CHASE" -> "🛰️ TOP-DOWN"
-                                else -> "🚀 3RD FOLLOW"
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
+            // Spacer for radar hero zone (drawn in Canvas)
+            Spacer(Modifier.height(8.dp))
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "SCALE:",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary
-                    )
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = AeroAmber.copy(alpha = 0.2f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, AeroAmber),
-                        modifier = Modifier.clickable {
-                            val nextScale = when (settings.screenSizeScale) {
-                                "MAX_IMMERSIVE" -> "STANDARD"
-                                "STANDARD" -> "COMPACT"
-                                else -> "MAX_IMMERSIVE"
-                            }
-                            viewModel.setScreenSizeScale(nextScale)
-                        }
-                    ) {
-                        Text(
-                            text = when (settings.screenSizeScale) {
-                                "MAX_IMMERSIVE" -> "115% MAX"
-                                "COMPACT" -> "90% COMPACT"
-                                else -> "100% STD"
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = AeroAmber,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-            }
-
-            // ── MAIN COMBAT MODES SELECTOR ──
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // 1. Singleplayer Campaign Mode
+                // PRIMARY
                 com.example.ui.components.TacticalGlossButton(
                     onClick = onStartCampaign,
                     containerColor = AeroCyan,
                     contentColor = DarkVoid,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(54.dp)
                         .testTag("start_campaign_button")
+                        .semantics { contentDescription = "Start campaign sortie solo" }
                 ) {
                     Icon(Icons.Default.FlightTakeoff, contentDescription = null)
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text("CAMPAIGN SORTIE (SOLO)", fontWeight = FontWeight.Black, fontSize = 14.5.sp)
+                    Spacer(Modifier.width(10.dp))
+                    Text("CAMPAIGN SORTIE", fontWeight = FontWeight.Black, fontSize = 15.sp)
                 }
 
-                // 2. 4-Player Squad Co-op Campaign Mode
-                com.example.ui.components.TacticalGlossButton(
-                    onClick = {
-                        viewModel.gameEngine.isMultiplayerMatchActive = true
-                        viewModel.gameEngine.multiplayerManager.connectToMatchmaking(
-                            playerCallsign = profile.callsign,
-                            aircraftId = profile.selectedAircraftId,
-                            mode = com.example.game.multiplayer.MultiplayerMode.SQUAD_COOP_4P
-                        )
-                        onStartCampaign()
-                    },
-                    containerColor = AeroEmerald,
-                    contentColor = DarkVoid,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("start_coop_campaign_button")
-                ) {
-                    Icon(Icons.Default.Groups, contentDescription = null)
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text("4-PLAYER CO-OP SQUAD (CAMPAIGN)", fontWeight = FontWeight.Black, fontSize = 14.5.sp)
-                }
-
-                // 3. Real-Time 1v1 PvP Multiplayer Dogfight Mode
-                com.example.ui.components.TacticalGlossButton(
-                    onClick = {
-                        viewModel.gameEngine.isMultiplayerMatchActive = true
-                        viewModel.gameEngine.multiplayerManager.connectToMatchmaking(
-                            playerCallsign = profile.callsign,
-                            aircraftId = profile.selectedAircraftId,
-                            mode = com.example.game.multiplayer.MultiplayerMode.PVP_DOGFIGHT_1V1
-                        )
-                        onStartMultiplayer()
-                    },
-                    containerColor = AeroCrimson,
-                    contentColor = Color.White,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("start_multiplayer_button")
-                ) {
-                    Icon(Icons.Default.Wifi, contentDescription = null)
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text("1V1 MULTIPLAYER DOGFIGHT (PVP)", fontWeight = FontWeight.Black, fontSize = 14.5.sp)
-                }
-
+                // SECONDARY: Co-op | PvP
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // 3. Hangar Button
+                    com.example.ui.components.TacticalGlossButton(
+                        onClick = {
+                            viewModel.gameEngine.isMultiplayerMatchActive = true
+                            viewModel.gameEngine.multiplayerManager.connectToMatchmaking(
+                                playerCallsign = profile.callsign,
+                                aircraftId = profile.selectedAircraftId,
+                                mode = MultiplayerMode.SQUAD_COOP_4P
+                            )
+                            onStartCampaign()
+                        },
+                        containerColor = AeroEmerald,
+                        contentColor = DarkVoid,
+                        height = 48.dp,
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("start_coop_campaign_button")
+                    ) {
+                        Icon(Icons.Default.Groups, null, Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("4P CO-OP", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                    com.example.ui.components.TacticalGlossButton(
+                        onClick = {
+                            viewModel.gameEngine.isMultiplayerMatchActive = true
+                            viewModel.gameEngine.multiplayerManager.connectToMatchmaking(
+                                playerCallsign = profile.callsign,
+                                aircraftId = profile.selectedAircraftId,
+                                mode = MultiplayerMode.PVP_DOGFIGHT_1V1
+                            )
+                            onStartMultiplayer()
+                        },
+                        containerColor = AeroCrimson,
+                        contentColor = Color.White,
+                        height = 48.dp,
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("start_multiplayer_button")
+                    ) {
+                        Icon(Icons.Default.Wifi, null, Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("1V1 PVP", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                }
+
+                // TERTIARY: Hangar | Pass | Settings
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     com.example.ui.components.TacticalGlossButton(
                         onClick = onOpenHangar,
                         containerColor = CarbonElevated,
                         contentColor = Color.White,
-                        height = 48.dp,
+                        height = 46.dp,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.Build, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("HANGAR", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Icon(Icons.Default.Build, null, Modifier.size(15.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("HANGAR", fontWeight = FontWeight.Bold, fontSize = 11.sp)
                     }
-
-                    // 4. Battle Pass / Rewards Button
                     com.example.ui.components.TacticalGlossButton(
                         onClick = onOpenBattlePass,
                         containerColor = CarbonElevated,
                         contentColor = AeroAmber,
-                        height = 48.dp,
+                        height = 46.dp,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.MilitaryTech, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("PASS & REWARDS", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Icon(Icons.Default.MilitaryTech, null, Modifier.size(15.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("PASS", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                    }
+                    com.example.ui.components.TacticalGlossButton(
+                        onClick = {
+                            onOpenSettings?.invoke()
+                            // Fallback: cycle camera if settings route not wired yet
+                            if (onOpenSettings == null) viewModel.toggleCameraViewMode()
+                        },
+                        containerColor = CarbonElevated,
+                        contentColor = AeroViolet,
+                        height = 46.dp,
+                        modifier = Modifier.weight(1f).testTag("title_settings_button")
+                    ) {
+                        Icon(Icons.Default.Settings, null, Modifier.size(15.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("SETTINGS", fontWeight = FontWeight.Bold, fontSize = 11.sp)
                     }
                 }
 
-                // 5. Warbird Depot & In-App Purchase Store (Extra-Premium Button)
-                com.example.ui.components.DepotFounderButton(
-                    onClick = { viewModel.openStoreModal() },
+                // Compact cam/scale strip (moved off primary path)
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .testTag("open_store_button")
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(DarkSurface.copy(alpha = 0.65f))
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = when (settings.cameraViewMode) {
+                            "COCKPIT_1ST" -> "CAM: 1ST COCKPIT"
+                            "TOP_DOWN_CHASE" -> "CAM: TOP-DOWN"
+                            else -> "CAM: 3RD FOLLOW"
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AeroCyan,
+                        modifier = Modifier
+                            .clickable { viewModel.toggleCameraViewMode() }
+                            .semantics { contentDescription = "Toggle camera view mode" }
+                    )
+                    Text(
+                        text = when (settings.screenSizeScale) {
+                            "MAX_IMMERSIVE" -> "SCALE 115%"
+                            "COMPACT" -> "SCALE 90%"
+                            else -> "SCALE 100%"
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AeroAmber,
+                        modifier = Modifier.clickable {
+                            val next = when (settings.screenSizeScale) {
+                                "MAX_IMMERSIVE" -> "STANDARD"
+                                "STANDARD" -> "COMPACT"
+                                else -> "MAX_IMMERSIVE"
+                            }
+                            viewModel.setScreenSizeScale(next)
+                        }
+                    )
+                }
+
+                com.example.ui.components.DepotFounderButton(
+                    onClick = { viewModel.openStoreModal() },
+                    modifier = Modifier.fillMaxWidth().testTag("open_store_button")
                 )
             }
 
-            // ── FOOTER STATUS ──
             Text(
-                text = "SYSTEM READY // VERSION 3.2 ULTRA // 3000 STUDIOS",
+                text = "SYSTEM READY // v3.2 ULTRA // 24 STAGES + BONUS TUNNEL // 3000 STUDIOS",
                 style = MaterialTheme.typography.labelSmall,
                 color = TextMuted,
-                letterSpacing = 1.sp
+                letterSpacing = 0.8.sp
             )
         }
     }
