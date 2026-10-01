@@ -758,7 +758,6 @@ class GameEngine(
     val allSoundtracks = listOf(
         SoundTrack("Electric Skies", com.example.R.raw.track_3000_studios_electric_skies),
         SoundTrack("Creek Road Lantern", com.example.R.raw.track_3000_studios_creek_road_lantern),
-        SoundTrack("Die In A Fire Remix", com.example.R.raw.track_3000_studios_lick_my_balls_and_die_in_a_fire_remix),
         SoundTrack("3000 Studios Podcast", com.example.R.raw.track_3000_studios_podcast),
         SoundTrack("Burn Up The Bass", com.example.R.raw.track_burn_up_the_bass),
         SoundTrack("Cruise Voltage", com.example.R.raw.track_cruise_voltage),
@@ -769,7 +768,6 @@ class GameEngine(
         SoundTrack("Floor Ya", com.example.R.raw.track_floor_ya),
         SoundTrack("Am I Wrong (Stage 03 - Void Gate)", com.example.R.raw.track_stage_03_am_i_wrong),
         SoundTrack("Always Feel Like", com.example.R.raw.track_always_feel_like),
-        SoundTrack("Go The Other Way", com.example.R.raw.track_go_the_other_way_player),
         SoundTrack("Tropical Bass Land", com.example.R.raw.track_tropical_bass_land),
         SoundTrack("Still Learning", com.example.R.raw.track_still_learning),
         SoundTrack("So Fresh Tribute", com.example.R.raw.track_so_fresh_tribute),
