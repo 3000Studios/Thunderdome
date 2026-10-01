@@ -53,7 +53,7 @@ data class SettingsEntity(
     val controlScheme: String = "TOUCH_FOLLOW",
     val touchSensitivity: Float = 1.0f,
     val touchInputEnabled: Boolean = true,
-    val touchOffsetY: Float = 55f,
+    val touchOffsetY: Float = 65f,
     val hapticsEnabled: Boolean = true,
     val soundEnabled: Boolean = true,
     val sfxVolume: Float = 1.0f,

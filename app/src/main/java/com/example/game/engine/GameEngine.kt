@@ -75,7 +75,7 @@ class GameEngine(
     var isMultiplayerMatchActive: Boolean = false
     var isDirectTouchActive: Boolean = false
     var fingerOffsetX: Float = 0f
-    var fingerOffsetY: Float = 55f
+    var fingerOffsetY: Float = 65f
     var lastTouchX: Float = 0f
     var lastTouchY: Float = 0f
 
@@ -84,7 +84,7 @@ class GameEngine(
         touchY: Float,
         screenWidth: Float,
         screenHeight: Float,
-        touchOffsetY: Float = 55f,
+        touchOffsetY: Float = 65f,
         touchOffsetX: Float = 0f,
         controlScheme: String = "TOUCH_FOLLOW"
     ) {
@@ -94,16 +94,21 @@ class GameEngine(
         lastTouchX = touchX
         lastTouchY = touchY
 
+        val padX = 30f
+        val padY = 60f
+
         if (controlScheme == "TOUCH_FOLLOW") {
-            val padX = 25f
-            val padY = 50f
             val targetX = (touchX + fingerOffsetX).coerceIn(padX, screenWidth - padX)
             val targetY = (touchY - fingerOffsetY).coerceIn(padY, screenHeight - padY)
 
+            val deltaX = targetX - playerState.x
+            val deltaY = targetY - playerState.y
+
+            playerState.vx = (deltaX * 30f).coerceIn(-3000f, 3000f)
+            playerState.vy = (deltaY * 30f).coerceIn(-3000f, 3000f)
+
             playerState.x = targetX
             playerState.y = targetY
-            playerState.vx = 0f
-            playerState.vy = 0f
         }
     }
 
@@ -116,8 +121,8 @@ class GameEngine(
         controlScheme: String = "TOUCH_FOLLOW"
     ) {
         isDirectTouchActive = true
-        val padX = 25f
-        val padY = 50f
+        val padX = 30f
+        val padY = 60f
 
         val deltaRawX = touchX - lastTouchX
         val deltaRawY = touchY - lastTouchY
@@ -148,9 +153,9 @@ class GameEngine(
             playerState.y = targetY
         }
 
-        // Dynamic visual banking into turns
-        val targetBank = (playerState.vx / 800f).coerceIn(-1f, 1f) * 35f
-        playerState.bankAngle += (targetBank - playerState.bankAngle) * 0.45f
+        // Dynamic visual banking into turns (pilot feel)
+        val targetBank = (playerState.vx / 650f).coerceIn(-1f, 1f) * 36f
+        playerState.bankAngle += (targetBank - playerState.bankAngle) * 0.5f
     }
 
     fun onDirectTouchUp() {

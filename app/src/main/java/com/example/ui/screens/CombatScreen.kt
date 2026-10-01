@@ -123,7 +123,8 @@ fun CombatScreen(
                             engine.inputDirX = (dragAmount.x * 0.2f * settings.touchSensitivity).coerceIn(-1f, 1f)
                             engine.inputDirY = (dragAmount.y * 0.2f * settings.touchSensitivity).coerceIn(-1f, 1f)
                         }
-                        // Direct Finger Tracking / Relative Delta Drag: ship moves with finger wherever finger goes
+                    } else {
+                        // Direct Finger Tracking / Relative Touch: craft tracks naturally above thumb with zero lag
                         awaitEachGesture {
                             val down = awaitFirstDown(requireUnconsumed = false)
                             engine.onDirectTouchDown(

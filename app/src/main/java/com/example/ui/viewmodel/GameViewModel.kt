@@ -637,7 +637,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 controlScheme = "TOUCH_FOLLOW",
                 touchSensitivity = 1.0f,
                 touchInputEnabled = true,
-                touchOffsetY = 55f,
+                touchOffsetY = 65f,
                 hapticsEnabled = true,
                 soundEnabled = true,
                 sfxVolume = 1.0f,
