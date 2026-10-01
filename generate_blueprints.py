@@ -11,12 +11,12 @@ ARTIFACT_OUT.mkdir(parents=True, exist_ok=True)
 
 USER_UPLOADED_DIR = Path(r"C:\Users\MrJws\.gemini\antigravity\brain\15baa7c6-3701-4d45-8501-acc79ffd3170\.user_uploaded")
 
-# User-supplied reference sheets or uploaded media
+# User-supplied reference sheets
 sheets = {
-    (1,6): USER_UPLOADED_DIR / "media_1790625923952.jpg",
-    (7,12): USER_UPLOADED_DIR / "media_1790625940997.jpg",
-    (13,18): USER_UPLOADED_DIR / "media_1790625943004.jpg",
-    (19,24): USER_UPLOADED_DIR / "media_1790761241420.jpg",
+    (1,6): USER_UPLOADED_DIR / "media_1790893492205.jpg",   # Cinematic Cutscenes Stages 01-06
+    (7,12): USER_UPLOADED_DIR / "media_1790893492167.jpg",  # Cinematic Cutscenes Stages 07-12
+    (13,18): USER_UPLOADED_DIR / "media_1790893492188.jpg", # Cinematic Cutscenes Stages 13-18
+    (19,24): USER_UPLOADED_DIR / "media_1790893492229.jpg", # Showcase, Nexus Obliterator & 24 Stages
 }
 
 # Fonts
@@ -45,25 +45,25 @@ F_TINY = load_font(17, False)
 F_TAG = load_font(22, True)
 
 stages = [
-    dict(n=1, name="NEON OUTPOST", weather="NEON RAIN", boss="NEON OVERLORD",
+    dict(n=1, name="NEON OUTPOST", weather="NEON RAIN", boss="SHADOW WRAITH",
          palette=("#08121E","#00D9FF","#FF2C9C","#2478FF","#7B2CFF"),
          obstacles=["AA turret nests","holo-billboard canyon","laser-road gates","wet rooftop pylons","drone traffic"],
          speed=["40% cyan booster lane","76% rail-sling war-speed strip"],
          boss_abilities=["crossfire laser lattice","hologram decoy wings","radial micro-missile burst"],
          hero="Black chrome + cyan edge light + magenta circuit filigree; reflective wet-look clearcoat."),
-    dict(n=2, name="ASTEROID BELT", weather="SPACE DUST", boss="GOLIATH DREADNOUGHT",
+    dict(n=2, name="ASTEROID BELT", weather="SPACE DUST", boss="BLADE STORM",
          palette=("#120B08","#D65A0A","#FF7A00","#6E2AD8","#2A221F"),
          obstacles=["rotating asteroid clusters","magnetic purple mines","cratered rock arches","debris fields","tumbling boulders"],
          speed=["38% debris slingshot","72% twin-asteroid gravity boost"],
          boss_abilities=["broadside cannon walls","gravity tractor cone","armor-plate break phases"],
          hero="Gunmetal hull + amber hazard stripes + violet anti-grav cores; chipped rock-scar decals."),
-    dict(n=3, name="VOID GATE", weather="VOID WARP", boss="VOID STALKER",
+    dict(n=3, name="VOID GATE", weather="VOID WARP", boss="NEON PHANTOM",
          palette=("#09020F","#8A2BE2","#FF21D6","#5D35B8","#050505"),
          obstacles=["gravity shear rings","void spike corridors","warp-orb mines","fractured obsidian slabs","portal turbulence"],
          speed=["34% portal sling","74% vortex acceleration tunnel"],
          boss_abilities=["teleport ambush","void clone split","screen-edge gravity scythe"],
          hero="Obsidian ceramic + violet plasma veins + magenta portal glyphs; starfield panel texture."),
-    dict(n=4, name="TOXIC SECTOR", weather="TOXIC MIST", boss="TOXIN HAZE",
+    dict(n=4, name="TOXIC SECTOR", weather="TOXIC MIST", boss="OMEGA DRONE",
          palette=("#061006","#42FF30","#92D811","#D8EA23","#121212"),
          obstacles=["caustic gas clouds","acid puddle vents","corroded pipe towers","sludge channels","biohazard fans"],
          speed=["42% pressure-vent thrust lane","78% reactor exhaust warp strip"],
@@ -81,25 +81,25 @@ stages = [
          speed=["41% plasma draft","77% corona slingshot"],
          boss_abilities=["piercing solar beam","burning trail cage","corona overload pulse"],
          hero="Mirror black + molten gold trim + orange heat vents; sunburst wing graphics with ember clearcoat."),
-    dict(n=7, name="CYBER CITY", weather="NEON RAIN", boss="VOID REAPER",
+    dict(n=7, name="CYBER CITY", weather="NEON RAIN", boss="CYBER HAWK",
          palette=("#070916","#FF22CB","#00CFFF","#3B45FF","#7E2FB3"),
          obstacles=["skyscraper canyon","traffic drones","holo-ad minefields","service bridges","electric rooftop fences"],
          speed=["39% maglev corridor","73% neon transit warp lane"],
          boss_abilities=["black-hole pull","void orb barrage","shadow dash ram"],
          hero="Carbon fiber + cyan/magenta racing graphics + animated equalizer strips along the fuselage."),
-    dict(n=8, name="JUNKYARD", weather="RUST STORM", boss="BLADE STORM",
+    dict(n=8, name="JUNKYARD", weather="RUST STORM", boss="OMEGA DRONE",
          palette=("#130D08","#F36B17","#8C3D1F","#64412B","#181818"),
          obstacles=["sawblade debris","capital hull wrecks","scrap ambushes","explosive piles","crane arms"],
          speed=["35% salvage-catapult lane","70% turbine-corridor boost"],
          boss_abilities=["spinning blade halo","ricochet shot","scrap cyclone"],
          hero="Weathered titanium + orange weld seams + stenciled serial numbers; patchwork armored panels."),
-    dict(n=9, name="BLACK HOLE", weather="GRAVITY PULL", boss="NEON PHANTOM",
+    dict(n=9, name="BLACK HOLE", weather="GRAVITY PULL", boss="VOID REAPER",
          palette=("#05030A","#6E35E7","#A647FF","#341D78","#000000"),
          obstacles=["singularity pull zones","lensing rings","distorted asteroids","event-horizon lanes","tidal debris"],
          speed=["43% gravity-assist arc","79% horizon-surf warp burst"],
          boss_abilities=["phase dash","neon laser sweep","afterimage swarm"],
          hero="Ultra-black hull + purple lensing rings + violet star specks; curved gravitational distortion graphics."),
-    dict(n=10, name="LAVA PLANET", weather="LAVA RAIN", boss="OMEGA DRONE",
+    dict(n=10, name="LAVA PLANET", weather="LAVA RAIN", boss="MAGMA BRUTE",
          palette=("#130500","#FF5218","#E62717","#3A3635","#050505"),
          obstacles=["magma bombs","lava eruptions","basalt spires","factory platforms","heat distortion pockets"],
          speed=["37% magma updraft lane","74% furnace-jet warp strip"],
@@ -117,13 +117,13 @@ stages = [
          speed=["33% dune crest tailwind","69% canyon vent war-speed"],
          boss_abilities=["sand tornado pull","razor-dart spread","burrow strike"],
          hero="Desert tan + black belly + gold edge guards; viper-scale wing graphics and dust-worn nose."),
-    dict(n=13, name="BIO LABS", weather="BIO SPORES", boss="BIOSYNTH HYDRA",
+    dict(n=13, name="BIO LABS", weather="BIO SPORES", boss="ALIEN JUNGLE",
          palette=("#071008","#6FE51C","#A8E72B","#1F6D38","#D8E74A"),
          obstacles=["mutagen domes","glass tube towers","spore clouds","bio-weapon pods","slime channels"],
          speed=["41% nutrient-flow booster","77% gene-tube acceleration rail"],
          boss_abilities=["multi-head plasma spit","regeneration phase","bio missile homing swarm"],
          hero="Gloss black + luminous green vein lattice + translucent bio-cells; gene-helix wing markings."),
-    dict(n=14, name="UNDERWATER RUINS", weather="HYDRO STREAM", boss="AQUA STRIKE",
+    dict(n=14, name="UNDERWATER RUINS", weather="HYDRO STREAM", boss="STORM LORD",
          palette=("#051620","#0DAED0","#53E7FF","#1B627C","#87F0ED"),
          obstacles=["sunken towers","hydro current lanes","bubble mines","caustic pillars","collapsed arches"],
          speed=["36% current jet","72% hydro-tunnel slingshot"],
@@ -135,19 +135,19 @@ stages = [
          speed=["39% jetstream lane","75% celestial launch beam"],
          boss_abilities=["divine shield","holy pulse","wing-lance rain"],
          hero="Pearl white + sky-blue inlays + gold micro-trim; feathered geometric graphics on wings."),
-    dict(n=16, name="MACHINE WORLD", weather="SMELTER ASH", boss="MAGMA BRUTE",
+    dict(n=16, name="MACHINE WORLD", weather="SMELTER ASH", boss="OMEGA DRONE",
          palette=("#120A07","#C94B18","#FF7A22","#633020","#181818"),
          obstacles=["crusher presses","moving belts","gear walls","molten drains","robotic foundry arms"],
          speed=["42% conveyor overdrive","78% smelter exhaust warp"],
          boss_abilities=["magma ball barrage","lava trail ram","hydraulic shockwave"],
          hero="Blackened steel + copper welds + hot orange mechanical glyphs; gear-tooth wing striping."),
-    dict(n=17, name="CRYSTAL CAVERNS", weather="CRYSTAL DUST", boss="CYBER HAWK",
+    dict(n=17, name="CRYSTAL CAVERNS", weather="CRYSTAL DUST", boss="QUANTUM SHIFT",
          palette=("#0B0715","#7A2AE8","#B44DFF","#34C9FF","#E0EAFF"),
          obstacles=["mirror crystal fields","laser reflections","shard avalanches","prism gates","fracture pits"],
          speed=["38% prism-refraction boost","73% crystal resonance warp"],
          boss_abilities=["target lock pursuit","missile swarm","reflective feather shield"],
          hero="Dark violet + iridescent crystal facets + cyan laser lines; holographic prismatic wing skin."),
-    dict(n=18, name="STORM FRONT", weather="LIGHTNING", boss="QUANTUM SHIFT",
+    dict(n=18, name="STORM FRONT", weather="LIGHTNING", boss="NEXUS OBLITERATOR",
          palette=("#090C1A","#6947D9","#A157FF","#48B7FF","#D6E7FF"),
          obstacles=["lightning curtains","EMP arcs","storm vortices","charged cloud walls","temporal turbulence"],
          speed=["40% thunderhead updraft","76% lightning-rail war-speed"],
@@ -210,20 +210,37 @@ def crop_stage_panel(stage_num):
         if a <= stage_num <= b and path.exists():
             try:
                 img = Image.open(path).convert("RGB")
-                idx = stage_num - a
-                col = idx % 3
-                row = idx // 3
                 w, h = img.size
-                top_margin = int(h * 0.08)
-                bottom_margin = int(h * 0.06)
-                usable_h = h - top_margin - bottom_margin
-                cell_w = w / 3
-                cell_h = usable_h / 2
-                x0 = int(col * cell_w + 8)
-                x1 = int((col+1) * cell_w - 8)
-                y0 = int(top_margin + row * cell_h + 5)
-                y1 = int(top_margin + (row+1) * cell_h - 5)
-                return img.crop((x0,y0,x1,y1))
+                idx = stage_num - a
+                
+                if (a,b) in [(1,6), (7,12), (13,18)]:
+                    # 3 columns x 2 rows
+                    col = idx % 3
+                    row = idx // 3
+                    top_margin = int(h * 0.086)
+                    bottom_margin = int(h * 0.02)
+                    usable_h = h - top_margin - bottom_margin
+                    cell_w = w / 3
+                    cell_h = usable_h / 2
+                    x0 = int(col * cell_w + 4)
+                    x1 = int((col+1) * cell_w - 4)
+                    y0 = int(top_margin + row * cell_h + 3)
+                    y1 = int(top_margin + (row+1) * cell_h - 3)
+                    return img.crop((x0,y0,x1,y1))
+                elif (a,b) == (19,24):
+                    # 4-quadrant promo sheet
+                    if stage_num == 24: # Nexus Obliterator Final Boss
+                        # Bottom Left quadrant
+                        return img.crop((10, int(h * 0.50), int(w * 0.50), h - 10))
+                    elif stage_num == 23: # Final Approach
+                        # Bottom Right quadrant
+                        return img.crop((int(w * 0.50), int(h * 0.50), w - 10, h - 10))
+                    elif stage_num in [21, 22]: # Dimension Rift / Citadel
+                        # Top Right quadrant (Multiplayer Battle)
+                        return img.crop((int(w * 0.50), 10, w - 10, int(h * 0.50)))
+                    else: # 19, 20 (Alien Jungle / Space Graveyard)
+                        # Top Left quadrant (24 Stages Showcase)
+                        return img.crop((10, 10, int(w * 0.50), int(h * 0.50)))
             except Exception as e:
                 print(f"Error cropping panel for stage {stage_num}: {e}")
     
@@ -262,7 +279,7 @@ def wrap(draw, text, font, maxw):
     return lines
 
 specs = []
-print(f"Generating 24 Full Stage Blueprints...")
+print(f"Generating 24 Full Stage Blueprints with official 3000 Studios reference art...")
 
 for s in stages:
     W,H = 2048,3072
@@ -293,7 +310,8 @@ for s in stages:
     panel_box=(70,300,840,900)
     if panel:
         p=panel.copy()
-        p.thumbnail((panel_box[2]-panel_box[0], panel_box[3]-panel_box[1]))
+        # Scale to fit box preserving aspect ratio
+        p.thumbnail((panel_box[2]-panel_box[0] - 16, panel_box[3]-panel_box[1] - 16))
         px=panel_box[0]+(panel_box[2]-panel_box[0]-p.width)//2
         py=panel_box[1]+(panel_box[3]-panel_box[1]-p.height)//2
         draw.rounded_rectangle(panel_box, radius=20, fill=(5,7,12), outline=accent, width=4)
@@ -503,5 +521,5 @@ with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compressle
 # Also copy zip to artifacts
 shutil.copy(zip_path, ARTIFACT_OUT.parent / "Thunder_Dome_24_Full_Stage_Layouts_Antigravity.zip")
 
-print(f"\nSUCCESS: Created {len(stages)} annotated full-stage PNGs.")
+print(f"\nSUCCESS: Created {len(stages)} annotated full-stage PNGs with official concept panels.")
 print(f"Archive saved to: {zip_path}")

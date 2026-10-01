@@ -15,7 +15,7 @@
       "stage": 1,
       "name": "NEON OUTPOST",
       "weather": "NEON RAIN",
-      "boss": "SHADOW WRAITH",
+      "boss": "NEON OVERLORD",
       "palette": [
         "#08121E",
         "#00D9FF",
@@ -93,7 +93,7 @@
       "stage": 2,
       "name": "ASTEROID BELT",
       "weather": "SPACE DUST",
-      "boss": "BLADE STORM",
+      "boss": "GOLIATH DREADNOUGHT",
       "palette": [
         "#120B08",
         "#D65A0A",
@@ -171,7 +171,7 @@
       "stage": 3,
       "name": "VOID GATE",
       "weather": "VOID WARP",
-      "boss": "NEON PHANTOM",
+      "boss": "VOID STALKER",
       "palette": [
         "#09020F",
         "#8A2BE2",
@@ -249,7 +249,7 @@
       "stage": 4,
       "name": "TOXIC SECTOR",
       "weather": "TOXIC MIST",
-      "boss": "OMEGA DRONE",
+      "boss": "TOXIN HAZE",
       "palette": [
         "#061006",
         "#42FF30",
@@ -483,7 +483,7 @@
       "stage": 7,
       "name": "CYBER CITY",
       "weather": "NEON RAIN",
-      "boss": "CYBER HAWK",
+      "boss": "VOID REAPER",
       "palette": [
         "#070916",
         "#FF22CB",
@@ -561,7 +561,7 @@
       "stage": 8,
       "name": "JUNKYARD",
       "weather": "RUST STORM",
-      "boss": "OMEGA DRONE",
+      "boss": "BLADE STORM",
       "palette": [
         "#130D08",
         "#F36B17",
@@ -639,7 +639,7 @@
       "stage": 9,
       "name": "BLACK HOLE",
       "weather": "GRAVITY PULL",
-      "boss": "VOID REAPER",
+      "boss": "NEON PHANTOM",
       "palette": [
         "#05030A",
         "#6E35E7",
@@ -717,7 +717,7 @@
       "stage": 10,
       "name": "LAVA PLANET",
       "weather": "LAVA RAIN",
-      "boss": "MAGMA BRUTE",
+      "boss": "OMEGA DRONE",
       "palette": [
         "#130500",
         "#FF5218",
@@ -951,7 +951,7 @@
       "stage": 13,
       "name": "BIO LABS",
       "weather": "BIO SPORES",
-      "boss": "ALIEN JUNGLE",
+      "boss": "BIOSYNTH HYDRA",
       "palette": [
         "#071008",
         "#6FE51C",
@@ -1029,7 +1029,7 @@
       "stage": 14,
       "name": "UNDERWATER RUINS",
       "weather": "HYDRO STREAM",
-      "boss": "STORM LORD",
+      "boss": "AQUA STRIKE",
       "palette": [
         "#051620",
         "#0DAED0",
@@ -1185,7 +1185,7 @@
       "stage": 16,
       "name": "MACHINE WORLD",
       "weather": "SMELTER ASH",
-      "boss": "OMEGA DRONE",
+      "boss": "MAGMA BRUTE",
       "palette": [
         "#120A07",
         "#C94B18",
@@ -1263,7 +1263,7 @@
       "stage": 17,
       "name": "CRYSTAL CAVERNS",
       "weather": "CRYSTAL DUST",
-      "boss": "QUANTUM SHIFT",
+      "boss": "CYBER HAWK",
       "palette": [
         "#0B0715",
         "#7A2AE8",
@@ -1341,7 +1341,7 @@
       "stage": 18,
       "name": "STORM FRONT",
       "weather": "LIGHTNING",
-      "boss": "NEXUS OBLITERATOR",
+      "boss": "QUANTUM SHIFT",
       "palette": [
         "#090C1A",
         "#6947D9",
