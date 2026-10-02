@@ -52,6 +52,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         handleSuccessfulPurchase(productId)
     }
     val adManager = com.example.game.monetization.AdManager(application)
+    val authManager = com.example.game.auth.AuthManager(application, viewModelScope)
 
     // In-App Updates & Live Game Content
     val appUpdateManager = com.example.game.update.AppUpdateManager(application)
@@ -498,6 +499,53 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             com.example.game.analytics.AnalyticsManager.logPurchaseCompleted(productId)
             audioHaptics.playSound(AudioHapticSystem.SoundType.PURCHASE_SUCCESS)
             audioHaptics.triggerExplosionHaptic(false)
+            syncProfileToCloud()
+        }
+    }
+
+    // ── GOOGLE SIGN-IN & FIRESTORE CLOUD SAVE ──
+    fun signInWithGoogle(
+        activity: android.app.Activity,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        authManager.signInWithGoogle(
+            activity = activity,
+            onSuccess = {
+                // Once authenticated with Google, sync current profile or restore cloud save
+                restoreProfileFromCloud {
+                    syncProfileToCloud()
+                    onSuccess()
+                }
+            },
+            onError = onError
+        )
+    }
+
+    fun signOut(onComplete: () -> Unit = {}) {
+        authManager.signOut(onComplete)
+    }
+
+    fun syncProfileToCloud() {
+        authManager.syncProfileToFirestore(
+            profile = playerProfile.value,
+            aircraftList = allAircraft.value
+        )
+    }
+
+    fun restoreProfileFromCloud(onDone: () -> Unit = {}) {
+        authManager.restoreProfileFromFirestore { restoredProfile, restoredAircraft ->
+            if (restoredProfile != null) {
+                viewModelScope.launch {
+                    repository.updateProfile(restoredProfile)
+                    restoredAircraft?.forEach { craft ->
+                        repository.updateAircraft(craft)
+                    }
+                    onDone()
+                }
+            } else {
+                onDone()
+            }
         }
     }
 

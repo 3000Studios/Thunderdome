@@ -430,6 +430,187 @@ fun SettingsScreen(viewModel: GameViewModel) {
             }
         }
 
+        Spacer(modifier = Modifier.height(18.dp))
+
+        // Google Account & Cloud Save Synchronization
+        val authState by viewModel.authManager.authState.collectAsState()
+        val syncStatus by viewModel.authManager.syncStatus.collectAsState()
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val activity = context as? android.app.Activity
+
+        Text("CLOUD SAVE & GOOGLE IDENTITY", style = MaterialTheme.typography.labelLarge, color = Color.White)
+        Spacer(modifier = Modifier.height(8.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = DarkSurface),
+            shape = RoundedCornerShape(12.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, if (authState is com.example.game.auth.AuthState.Authenticated && !(authState as com.example.game.auth.AuthState.Authenticated).isAnonymous) AeroCyan else DarkSurfaceBorder)
+        ) {
+            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("Cloud Status:", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
+                        Text(syncStatus, color = AeroCyan, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                    }
+                    when (val st = authState) {
+                        is com.example.game.auth.AuthState.Authenticated -> {
+                            if (st.isAnonymous) {
+                                Text("GUEST PILOT", color = Color(0xFFF59E0B), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            } else {
+                                Text("LINKED (GOOGLE)", color = Color(0xFF22C55E), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            }
+                        }
+                        is com.example.game.auth.AuthState.Loading -> {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = AeroCyan)
+                        }
+                        else -> {
+                            Text("DISCONNECTED", color = DangerRed, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        }
+                    }
+                }
+
+                when (val st = authState) {
+                    is com.example.game.auth.AuthState.Authenticated -> {
+                        if (st.isAnonymous) {
+                            Text(
+                                "Sign in with your Google Account to automatically back up your fighters, upgrades, credits, and store purchases across devices.",
+                                color = TextSecondary,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            Button(
+                                onClick = {
+                                    if (activity != null) {
+                                        viewModel.signInWithGoogle(activity)
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.fillMaxWidth().height(42.dp)
+                            ) {
+                                Icon(Icons.Default.AccountCircle, contentDescription = null, tint = Color.Black)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("SIGN IN WITH GOOGLE", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
+                        } else {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Column {
+                                    Text("Signed In As:", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
+                                    Text(st.displayName ?: st.email ?: "Google Pilot", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                                    st.email?.let { Text(it, color = TextSecondary, style = MaterialTheme.typography.labelSmall) }
+                                }
+                                Button(
+                                    onClick = { viewModel.signOut() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = DarkSurfaceElevated, contentColor = DangerRed),
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Text("SIGN OUT", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                    else -> {}
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = { viewModel.syncProfileToCloud() },
+                        colors = ButtonDefaults.buttonColors(containerColor = AeroCyan, contentColor = DarkVoid),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.CloudUpload, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("BACKUP NOW", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = { viewModel.restoreProfileFromCloud() },
+                        colors = ButtonDefaults.buttonColors(containerColor = DarkSurfaceElevated, contentColor = AeroCyan),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.CloudDownload, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("RESTORE SAVE", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        // Play Store Compliance & Legal
+        Text("LEGAL & GOOGLE PLAY COMPLIANCE", style = MaterialTheme.typography.labelLarge, color = Color.White)
+        Spacer(modifier = Modifier.height(8.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = DarkSurface),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            try {
+                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://3000studios.vip/privacy"))
+                                context.startActivity(intent)
+                            } catch (_: Exception) {}
+                        }
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Privacy Policy", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                    Icon(Icons.Default.OpenInNew, contentDescription = null, tint = AeroCyan, modifier = Modifier.size(16.dp))
+                }
+                Divider(color = DarkSurfaceBorder, thickness = 0.5.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            try {
+                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://3000studios.vip/terms"))
+                                context.startActivity(intent)
+                            } catch (_: Exception) {}
+                        }
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Terms of Service", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                    Icon(Icons.Default.OpenInNew, contentDescription = null, tint = AeroCyan, modifier = Modifier.size(16.dp))
+                }
+                Divider(color = DarkSurfaceBorder, thickness = 0.5.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            viewModel.restorePurchases()
+                        }
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Restore Google Play Purchases", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                    Icon(Icons.Default.ShoppingBag, contentDescription = null, tint = AeroCyan, modifier = Modifier.size(16.dp))
+                }
+                Divider(color = DarkSurfaceBorder, thickness = 0.5.dp)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Studio & Publisher:", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
+                    Text("3000 Studios LLC", color = Color.White, style = MaterialTheme.typography.labelSmall)
+                }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Support & Inquiries:", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
+                    Text("support@3000studios.vip", color = AeroCyan, style = MaterialTheme.typography.labelSmall)
+                }
+            }
+        }
+
         // Developer Mode Active Status & Control Banner
         if (settings.isDeveloperMode) {
             Spacer(modifier = Modifier.height(16.dp))
