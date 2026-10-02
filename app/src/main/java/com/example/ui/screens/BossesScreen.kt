@@ -9,8 +9,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.example.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -90,7 +94,74 @@ fun BossesScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // 24 Enemy Planes Fleet Reconnaissance Banner
+        var showReconSheet by remember { mutableStateOf(false) }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(DarkSurfaceElevated.copy(alpha = 0.8f))
+                .border(1.dp, AeroCrimson.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                .clickable { showReconSheet = !showReconSheet }
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.RemoveRedEye, contentDescription = null, tint = AeroCrimson, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        "FLEET RECON INTEL // 24 ENEMY WARBIRDS",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Text(
+                    if (showReconSheet) "HIDE" else "VIEW INTEL",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    color = AeroCrimson,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        AnimatedVisibility(visible = showReconSheet) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(top = 8.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .border(1.dp, AeroCrimson.copy(alpha = 0.6f), RoundedCornerShape(10.dp))
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.thunder_dome_24_enemy_planes),
+                    contentDescription = "Enemy Planes Intel Roster",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Brush.verticalGradient(listOf(Color.Transparent, DarkVoid.copy(alpha = 0.7f))))
+                )
+                Text(
+                    text = "CLASSIFIED 3000 STUDIOS RECON SHEET",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                    color = AeroAmber,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.BottomStart).padding(8.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         // Top Horizontal Boss Carousel (01 to 24)
         LazyRow(

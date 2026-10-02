@@ -10,8 +10,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.example.R
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -188,6 +192,73 @@ fun HangarScreen(
                         Spacer(Modifier.width(4.dp))
                         Text("STORE", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // 24 Warbirds Aircraft Tactical Roster Banner
+            var showHangarRoster by remember { mutableStateOf(false) }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(DarkSurfaceElevated.copy(alpha = 0.8f))
+                    .border(1.dp, AeroCyan.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                    .clickable { showHangarRoster = !showHangarRoster }
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.FlightTakeoff, contentDescription = null, tint = AeroCyan, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            "TACTICAL AIRCRAFT ROSTER // 24 WARBIRDS",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Text(
+                        if (showHangarRoster) "HIDE" else "VIEW ROSTER",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                        color = AeroCyan,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            AnimatedVisibility(visible = showHangarRoster) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(210.dp)
+                        .padding(top = 8.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(1.dp, AeroCyan.copy(alpha = 0.6f), RoundedCornerShape(10.dp))
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.thunder_dome_24_planes_roster),
+                        contentDescription = "24 Aircraft Roster Concept Art",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Brush.verticalGradient(listOf(Color.Transparent, DarkVoid.copy(alpha = 0.7f))))
+                    )
+                    Text(
+                        text = "3000 STUDIOS // OFFICIAL 24 FIGHTER SPEC SHEET",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = AeroCyan,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.align(Alignment.BottomStart).padding(8.dp)
+                    )
                 }
             }
 
@@ -522,8 +593,21 @@ fun TurntablePreview(spec: AircraftSpec, paint: PaintScheme, exhaust: ExhaustFla
     ) {
         Canvas(Modifier.fillMaxSize()) {
             val cx = size.width * 0.5f; val cy = size.height * 0.55f
-            drawOval(DarkSurfaceBorder.copy(alpha = 0.6f), Offset(cx - 150f, cy - 38f), androidx.compose.ui.geometry.Size(300f, 76f), style = Stroke(1.5f))
-            drawOval(AeroCyan.copy(alpha = 0.15f), Offset(cx - 105f, cy - 27f), androidx.compose.ui.geometry.Size(210f, 54f), style = Stroke(1f))
+
+            // Holographic 3D Turntable Platform
+            drawOval(DarkSurfaceBorder.copy(alpha = 0.8f), Offset(cx - 150f, cy - 38f), androidx.compose.ui.geometry.Size(300f, 76f), style = Stroke(2f))
+            drawOval(AeroCyan.copy(alpha = 0.35f), Offset(cx - 105f, cy - 27f), androidx.compose.ui.geometry.Size(210f, 54f), style = Stroke(1.2f))
+            // Crosshair Azimuth Grid Lines
+            drawLine(AeroCyan.copy(alpha = 0.25f), Offset(cx - 150f, cy), Offset(cx + 150f, cy), 1f)
+            drawLine(AeroCyan.copy(alpha = 0.25f), Offset(cx, cy - 38f), Offset(cx, cy + 38f), 1f)
+            // Sweeping Holographic Laser Scanner
+            val scanY = cy - 38f + ((turntableRotation * 2.5f) % 76f)
+            drawLine(
+                brush = Brush.horizontalGradient(listOf(Color.Transparent, AeroCyan.copy(alpha = 0.6f), Color.White, AeroCyan.copy(alpha = 0.6f), Color.Transparent)),
+                start = Offset(cx - 120f, scanY),
+                end = Offset(cx + 120f, scanY),
+                strokeWidth = 2f
+            )
 
             val angleRad = (turntableRotation * PI / 180f).toFloat()
             val scaleX = cos(angleRad).coerceIn(-1f, 1f)
@@ -553,13 +637,43 @@ fun TurntablePreview(spec: AircraftSpec, paint: PaintScheme, exhaust: ExhaustFla
                 }
                 close()
             }
-            drawPath(jetPath, color = paint.bodyColor)
-            drawPath(jetPath, color = paint.trimColor, style = Stroke(2f))
-            drawOval(AeroCyan.copy(alpha = 0.3f), Offset(cx - 6f * abs(scaleX), cy - noseLen * 0.5f), androidx.compose.ui.geometry.Size(12f * abs(scaleX), 14f))
-            val er = 18f * enginePulse
-            drawCircle(brush = Brush.radialGradient(listOf(exhaust.coreColor.copy(alpha = 0.9f * enginePulse), exhaust.outerColor.copy(alpha = 0.4f * enginePulse), Color.Transparent), radius = er * 2),
-                radius = er * 2, center = Offset(cx, cy + 38f))
-            drawCircle(exhaust.coreColor, 6f * enginePulse, Offset(cx, cy + 38f))
+            // 3D Metallic Specular Body Shading
+            val metallicBrush = Brush.linearGradient(
+                colors = listOf(
+                    paint.bodyColor,
+                    Color.White.copy(alpha = 0.35f),
+                    paint.bodyColor,
+                    paint.bodyColor.copy(alpha = 0.8f)
+                ),
+                start = Offset(cx - wingSpread * scaleX, cy - noseLen),
+                end = Offset(cx + wingSpread * scaleX, cy + 30f)
+            )
+            drawPath(jetPath, brush = metallicBrush)
+            // Emissive Edge Glow & Outline
+            drawPath(jetPath, color = paint.trimColor.copy(alpha = 0.35f), style = Stroke(4f))
+            drawPath(jetPath, color = paint.trimColor, style = Stroke(1.8f))
+            // 3D Glass Canopy with Specular Glint
+            drawOval(
+                brush = Brush.verticalGradient(listOf(Color.White, AeroCyan, Color(0xFF0284C7))),
+                topLeft = Offset(cx - 6f * abs(scaleX), cy - noseLen * 0.5f),
+                size = androidx.compose.ui.geometry.Size(12f * abs(scaleX), 16f)
+            )
+            // Multi-Stage Pulsing Afterburners
+            val er = 22f * enginePulse
+            drawCircle(
+                brush = Brush.radialGradient(
+                    listOf(
+                        Color.White,
+                        exhaust.coreColor.copy(alpha = 0.95f * enginePulse),
+                        exhaust.outerColor.copy(alpha = 0.5f * enginePulse),
+                        Color.Transparent
+                    ),
+                    radius = er * 2.2f
+                ),
+                radius = er * 2.2f,
+                center = Offset(cx, cy + 38f)
+            )
+            drawCircle(Color.White, 7f * enginePulse, Offset(cx, cy + 38f))
         }
 
         // Name plate

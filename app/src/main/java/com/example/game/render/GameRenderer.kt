@@ -895,57 +895,290 @@ object GameRenderer {
         width: Float,
         height: Float
     ) {
+        val scroll = env.scrollOffset
         when (biome.id) {
-            "asteroid_belt", "junkyard", "space_graveyard" -> {
-                // Floating space debris & jagged asteroid boulders
-                for (i in 0 until 12) {
-                    val astY = ((env.scrollOffset * 0.6f + i * 140f) % (height + 160f)) - 80f
-                    val astX = ((i * 197f) % (width - 60f)) + 30f
-                    val size = 22f + (i % 5) * 8f
-                    val astCol = if (biome.id == "junkyard") Color(0xFF78350F) else Color(0xFF475569)
-                    scope.drawCircle(astCol.copy(alpha = 0.55f), size, Offset(astX, astY))
-                    scope.drawCircle(Color.Black.copy(alpha = 0.4f), size * 0.6f, Offset(astX - 3f, astY - 3f))
-                }
-            }
-            "crystal_caverns", "dimension_rift", "void_gate" -> {
-                // Prismatic crystal refraction shards & dimensional fracture lines
-                val pulse = (sin(env.scrollOffset * 0.02) * 0.3f + 0.7f).toFloat()
-                for (i in 0 until 8) {
-                    val crx = ((i * 220f) % (width - 80f)) + 40f
-                    val cry = ((env.scrollOffset * 0.8f + i * 200f) % (height + 200f)) - 100f
-                    val shardPath = Path().apply {
-                        moveTo(crx, cry - 30f)
-                        lineTo(crx + 18f, cry)
-                        lineTo(crx, cry + 30f)
-                        lineTo(crx - 18f, cry)
-                        close()
-                    }
-                    scope.drawPath(shardPath, color = AeroViolet.copy(alpha = 0.25f * pulse))
-                    scope.drawPath(shardPath, color = AeroCyan.copy(alpha = 0.65f * pulse), style = Stroke(width = 1.5f))
-                }
-            }
-            "lava_planet", "solar_core", "volcanic_ridge" -> {
-                // Glowing magma cracks & heat fissure veins on terrain
-                val lavaCol = Color(0xFFFF5500)
-                for (i in 0 until 6) {
-                    val lx = ((i * 180f) % (width - 100f)) + 50f
-                    val ly = ((env.scrollOffset * 0.5f + i * 240f) % (height + 150f)) - 80f
+            "neon_outpost" -> {
+                // Stage 01: Wet Neon Asphalt & Hologram Ads
+                val gridAlpha = 0.16f
+                for (x in 0..(width / 60f).toInt()) {
                     scope.drawLine(
-                        color = lavaCol.copy(alpha = 0.45f),
-                        start = Offset(lx - 40f, ly),
-                        end = Offset(lx + 40f, ly + 60f),
-                        strokeWidth = 5f
+                        color = Color(0xFF00D9FF).copy(alpha = gridAlpha),
+                        start = Offset(x * 60f, 0f),
+                        end = Offset(x * 60f, height),
+                        strokeWidth = 1f
                     )
+                }
+                // Reflective neon puddles
+                for (i in 0 until 5) {
+                    val px = ((i * 180f + 60f) % (width - 80f)) + 40f
+                    val py = ((scroll * 0.7f + i * 220f) % (height + 160f)) - 80f
+                    scope.drawOval(
+                        brush = Brush.radialGradient(
+                            listOf(Color(0xFFFF2C9C).copy(alpha = 0.35f), Color.Transparent),
+                            radius = 45f
+                        ),
+                        topLeft = Offset(px - 45f, py - 18f),
+                        size = Size(90f, 36f)
+                    )
+                }
+            }
+            "asteroid_belt" -> {
+                // Stage 02: 3D Rock Craters & Purple Magnetic Mines
+                for (i in 0 until 14) {
+                    val astY = ((scroll * 0.55f + i * 135f) % (height + 180f)) - 90f
+                    val astX = ((i * 211f) % (width - 70f)) + 35f
+                    val size = 20f + (i % 6) * 7f
+                    // Asteroid Body
+                    scope.drawCircle(Color(0xFF3B2F2A), size, Offset(astX, astY))
+                    // Shading & Crater
+                    scope.drawCircle(Color(0xFF221A16), size * 0.65f, Offset(astX - 4f, astY - 4f))
+                    scope.drawCircle(Color(0xFF6E2AD8).copy(alpha = 0.4f), size * 0.25f, Offset(astX + 5f, astY + 5f))
+                }
+            }
+            "void_gate" -> {
+                // Stage 03: Swirling Spacetime Portal & Event Horizon Ring
+                val pulse = (sin(scroll * 0.03) * 0.25f + 0.75f).toFloat()
+                val gateY = ((scroll * 0.4f) % (height + 300f)) - 150f
+                scope.drawCircle(
+                    brush = Brush.radialGradient(
+                        listOf(Color.White.copy(alpha = 0.8f * pulse), Color(0xFFC084FC).copy(alpha = 0.4f * pulse), Color.Transparent),
+                        radius = 160f
+                    ),
+                    radius = 160f,
+                    center = Offset(width * 0.5f, gateY)
+                )
+                scope.drawCircle(
+                    color = Color(0xFFA855F7),
+                    radius = 130f,
+                    center = Offset(width * 0.5f, gateY),
+                    style = Stroke(width = 4f)
+                )
+            }
+            "toxic_sector" -> {
+                // Stage 04: Bubbling Green Acid Reservoirs & Corroded Conduits
+                for (i in 0 until 6) {
+                    val py = ((scroll * 0.6f + i * 240f) % (height + 150f)) - 75f
+                    val px = ((i * 190f) % (width - 120f)) + 60f
+                    scope.drawOval(
+                        brush = Brush.radialGradient(listOf(Color(0xFF22C55E).copy(alpha = 0.5f), Color(0xFF14532D).copy(alpha = 0.2f), Color.Transparent), radius = 60f),
+                        topLeft = Offset(px - 60f, py - 25f),
+                        size = Size(120f, 50f)
+                    )
+                    scope.drawCircle(Color(0xFF86EFAC).copy(alpha = 0.8f), 6f, Offset(px + sin(scroll * 0.05 + i).toFloat() * 20f, py - 5f))
+                }
+            }
+            "ice_fortress" -> {
+                // Stage 05: Glacial Crevasses & Frosted Shards
+                for (i in 0 until 8) {
+                    val fy = ((scroll * 0.75f + i * 190f) % (height + 200f)) - 100f
+                    val fx = ((i * 170f) % (width - 80f)) + 40f
                     scope.drawLine(
-                        color = Color(0xFFFDE047).copy(alpha = 0.7f),
-                        start = Offset(lx - 20f, ly + 15f),
-                        end = Offset(lx + 20f, ly + 45f),
+                        brush = Brush.linearGradient(listOf(Color(0xFFBAE6FD).copy(alpha = 0.6f), Color.White.copy(alpha = 0.8f), Color(0xFF0284C7).copy(alpha = 0.3f))),
+                        start = Offset(fx - 30f, fy - 40f),
+                        end = Offset(fx + 30f, fy + 40f),
+                        strokeWidth = 3f
+                    )
+                }
+            }
+            "solar_core" -> {
+                // Stage 06: Corona Radiation Bloom & Convection Ribbons
+                val flarePulse = (sin(scroll * 0.04) * 0.3f + 0.7f).toFloat()
+                scope.drawRect(
+                    brush = Brush.verticalGradient(
+                        listOf(Color(0xFFFF7A00).copy(alpha = 0.25f * flarePulse), Color.Transparent, Color(0xFFFF2200).copy(alpha = 0.3f * flarePulse))
+                    ),
+                    size = Size(width, height)
+                )
+                for (i in 0 until 5) {
+                    val ly = ((scroll * 0.9f + i * 260f) % (height + 150f)) - 75f
+                    scope.drawLine(
+                        color = Color(0xFFFEF08A).copy(alpha = 0.55f),
+                        start = Offset(0f, ly),
+                        end = Offset(width, ly + 40f),
+                        strokeWidth = 4f
+                    )
+                }
+            }
+            "cyber_city" -> {
+                // Stage 07: Skyscraper Canyon Trench & Vehicular Light Streams
+                val roadX = width * 0.5f
+                scope.drawLine(Color(0xFF00E5FF).copy(alpha = 0.35f), Offset(roadX - 120f, 0f), Offset(roadX - 120f, height), 2.5f)
+                scope.drawLine(Color(0xFF00E5FF).copy(alpha = 0.35f), Offset(roadX + 120f, 0f), Offset(roadX + 120f, height), 2.5f)
+                // Speeding traffic light streaks
+                for (i in 0 until 8) {
+                    val ty = ((scroll * 1.5f + i * 160f) % (height + 100f)) - 50f
+                    scope.drawLine(Color(0xFFFF0055).copy(alpha = 0.7f), Offset(roadX - 80f, ty), Offset(roadX - 80f, ty + 40f), 2f)
+                    scope.drawLine(Color(0xFF00FFFF).copy(alpha = 0.7f), Offset(roadX + 80f, height - ty), Offset(roadX + 80f, height - ty - 40f), 2f)
+                }
+            }
+            "junkyard" -> {
+                // Stage 08: Rusted Dreadnought Carcasses & Scrap Piles
+                for (i in 0 until 10) {
+                    val jy = ((scroll * 0.5f + i * 180f) % (height + 160f)) - 80f
+                    val jx = ((i * 185f) % (width - 100f)) + 50f
+                    scope.drawRect(Color(0xFF78350F).copy(alpha = 0.5f), Offset(jx, jy), Size(55f, 35f))
+                    scope.drawRect(Color(0xFF451A03).copy(alpha = 0.6f), Offset(jx + 6f, jy + 6f), Size(43f, 23f))
+                    scope.drawLine(Color(0xFFD97706).copy(alpha = 0.6f), Offset(jx, jy), Offset(jx + 55f, jy + 35f), 1.5f)
+                }
+            }
+            "black_hole" -> {
+                // Stage 09: Gravitational Singularity Accretion Disc
+                val bhY = height * 0.35f
+                val bhX = width * 0.5f
+                val rot = (scroll * 0.8f) % 360f
+                scope.drawCircle(Color.Black, radius = 70f, center = Offset(bhX, bhY))
+                scope.drawCircle(Color(0xFF00E5FF).copy(alpha = 0.7f), radius = 74f, center = Offset(bhX, bhY), style = Stroke(width = 3.5f))
+                scope.drawCircle(
+                    brush = Brush.radialGradient(listOf(Color(0xFFC084FC).copy(alpha = 0.45f), Color.Transparent), radius = 170f),
+                    radius = 170f, center = Offset(bhX, bhY)
+                )
+            }
+            "lava_planet" -> {
+                // Stage 10: Molten Magma Veins & Heat Shimmer
+                for (i in 0 until 7) {
+                    val lx = ((i * 170f) % (width - 100f)) + 50f
+                    val ly = ((scroll * 0.6f + i * 220f) % (height + 150f)) - 75f
+                    scope.drawLine(Color(0xFFFF3B00).copy(alpha = 0.6f), Offset(lx - 45f, ly), Offset(lx + 45f, ly + 70f), 7f)
+                    scope.drawLine(Color(0xFFFFDD00).copy(alpha = 0.85f), Offset(lx - 25f, ly + 15f), Offset(lx + 25f, ly + 55f), 2.5f)
+                }
+            }
+            "orbital_array" -> {
+                // Stage 11: Satellite Solar Arrays & Ion Beam Communications
+                for (i in 0 until 5) {
+                    val sy = ((scroll * 0.45f + i * 280f) % (height + 200f)) - 100f
+                    val sx = ((i * 220f + 60f) % (width - 120f)) + 60f
+                    // Solar Panel Wings
+                    scope.drawRect(Color(0xFF1E3A8A).copy(alpha = 0.7f), Offset(sx - 50f, sy - 12f), Size(100f, 24f))
+                    scope.drawCircle(Color(0xFF38BDF8), 8f, Offset(sx, sy))
+                }
+            }
+            "sand_wastes" -> {
+                // Stage 12: Shifting Desert Dunes & EM Sand Whirlwinds
+                for (i in 0 until 8) {
+                    val dy = ((scroll * 0.65f + i * 190f) % (height + 150f)) - 75f
+                    val dx = ((i * 160f) % (width - 80f)) + 40f
+                    scope.drawOval(Color(0xFFB45309).copy(alpha = 0.25f), Offset(dx - 60f, dy - 20f), Size(120f, 40f))
+                    scope.drawCircle(Color(0xFFFDE68A).copy(alpha = 0.4f), 5f, Offset(dx, dy))
+                }
+            }
+            "bio_labs" -> {
+                // Stage 13: Glowing Mutagen Incubation Pods & Bio Conduits
+                for (i in 0 until 7) {
+                    val by = ((scroll * 0.7f + i * 210f) % (height + 150f)) - 75f
+                    val bx = ((i * 180f + 50f) % (width - 100f)) + 50f
+                    scope.drawCircle(Color(0xFF15803D).copy(alpha = 0.45f), 26f, Offset(bx, by))
+                    scope.drawCircle(Color(0xFF4ADE80).copy(alpha = 0.85f), 10f, Offset(bx, by))
+                }
+            }
+            "underwater_ruins" -> {
+                // Stage 14: Abyssal Caustics & Sunken Monoliths
+                for (i in 0 until 16) {
+                    val bx = ((i * 131f) % width)
+                    val by = height - ((scroll * 1.3f + i * 95f) % (height + 60f))
+                    scope.drawCircle(Color(0xFF38BDF8).copy(alpha = 0.45f), 3f + (i % 3) * 3f, Offset(bx, by), style = Stroke(1.5f))
+                }
+            }
+            "sky_temple" -> {
+                // Stage 15: Floating Anti-Grav Islands & God Rays
+                for (i in 0 until 6) {
+                    val iy = ((scroll * 0.5f + i * 260f) % (height + 200f)) - 100f
+                    val ix = ((i * 200f + 60f) % (width - 140f)) + 70f
+                    scope.drawOval(Color(0xFF475569).copy(alpha = 0.6f), Offset(ix - 55f, iy - 20f), Size(110f, 40f))
+                    scope.drawOval(Color(0xFFE2E8F0).copy(alpha = 0.7f), Offset(ix - 35f, iy - 14f), Size(70f, 28f))
+                }
+            }
+            "machine_world" -> {
+                // Stage 16: Smelting Foundry Gears & Fire Vents
+                for (i in 0 until 5) {
+                    val gy = ((scroll * 0.55f + i * 270f) % (height + 180f)) - 90f
+                    val gx = ((i * 210f + 70f) % (width - 120f)) + 60f
+                    scope.drawCircle(Color(0xFF334155), 40f, Offset(gx, gy), style = Stroke(width = 8f))
+                    scope.drawCircle(Color(0xFFEA580C).copy(alpha = 0.7f), 16f, Offset(gx, gy))
+                }
+            }
+            "crystal_caverns" -> {
+                // Stage 17: Prismatic Quartz Clusters & Refraction Glints
+                for (i in 0 until 9) {
+                    val cy = ((scroll * 0.75f + i * 180f) % (height + 180f)) - 90f
+                    val cx = ((i * 175f + 40f) % (width - 80f)) + 40f
+                    val path = Path().apply {
+                        moveTo(cx, cy - 25f); lineTo(cx + 15f, cy); lineTo(cx, cy + 25f); lineTo(cx - 15f, cy); close()
+                    }
+                    scope.drawPath(path, Color(0xFFA855F7).copy(alpha = 0.35f))
+                    scope.drawPath(path, Color(0xFFE879F9).copy(alpha = 0.8f), style = Stroke(1.5f))
+                }
+            }
+            "storm_front" -> {
+                // Stage 18: Horizontal Lightning Arcs & Chrono Cloud Walls
+                val boltFlash = (sin(scroll * 0.08) > 0.6)
+                if (boltFlash) {
+                    val ly = ((scroll * 1.8f) % height)
+                    scope.drawLine(Color.White, Offset(0f, ly), Offset(width, ly + 30f), 3.5f)
+                    scope.drawLine(Color(0xFF60A5FA).copy(alpha = 0.5f), Offset(0f, ly), Offset(width, ly + 30f), 10f)
+                }
+            }
+            "alien_jungle" -> {
+                // Stage 19: Bioluminescent Vines & Spore Canopy
+                for (i in 0 until 8) {
+                    val vy = ((scroll * 0.8f + i * 190f) % (height + 160f)) - 80f
+                    val vx = ((i * 165f) % (width - 80f)) + 40f
+                    scope.drawCircle(Color(0xFF16A34A).copy(alpha = 0.4f), 28f, Offset(vx, vy))
+                    scope.drawCircle(Color(0xFFA3E635).copy(alpha = 0.75f), 9f, Offset(vx, vy))
+                }
+            }
+            "space_graveyard" -> {
+                // Stage 20: Shattered Capital Starship Carcasses
+                for (i in 0 until 8) {
+                    val gy = ((scroll * 0.45f + i * 220f) % (height + 180f)) - 90f
+                    val gx = ((i * 195f) % (width - 100f)) + 50f
+                    scope.drawRect(Color(0xFF1E293B).copy(alpha = 0.65f), Offset(gx, gy), Size(65f, 30f))
+                    scope.drawLine(Color(0xFF64748B), Offset(gx, gy), Offset(gx + 65f, gy + 30f), 2f)
+                }
+            }
+            "dimension_rift" -> {
+                // Stage 21: Fractured Reality Mirror Seams
+                for (i in 0 until 7) {
+                    val ry = ((scroll * 0.9f + i * 220f) % (height + 160f)) - 80f
+                    val rx = ((i * 180f + 40f) % (width - 80f)) + 40f
+                    scope.drawLine(Color(0xFFE11D48).copy(alpha = 0.7f), Offset(rx - 30f, ry), Offset(rx + 30f, ry + 50f), 2.5f)
+                    scope.drawLine(Color(0xFFA855F7).copy(alpha = 0.7f), Offset(rx + 30f, ry), Offset(rx - 30f, ry + 50f), 2.5f)
+                }
+            }
+            "the_citadel" -> {
+                // Stage 22: Fortress Heavy Blast Rings & Defense Spines
+                val citadelY = ((scroll * 0.5f) % (height + 300f)) - 150f
+                scope.drawCircle(Color(0xFF1F2937), radius = 180f, center = Offset(width * 0.5f, citadelY), style = Stroke(width = 16f))
+                scope.drawCircle(Color(0xFFDC2626).copy(alpha = 0.6f), radius = 180f, center = Offset(width * 0.5f, citadelY), style = Stroke(width = 2f))
+            }
+            "final_approach" -> {
+                // Stage 23: Flagship Fleet Armada Line & Searchlights
+                val glowAlpha = (sin(scroll * 0.05) * 0.25f + 0.45f).toFloat()
+                scope.drawLine(Color(0xFFDC2626).copy(alpha = glowAlpha), Offset(0f, (scroll * 0.8f) % height), Offset(width, (scroll * 0.8f) % height), 3f)
+                scope.drawRect(Color(0xFF0F172A).copy(alpha = 0.5f), Offset(width * 0.2f, (scroll * 0.4f) % height), Size(width * 0.6f, 60f))
+            }
+            "thunder_dome" -> {
+                // Stage 24: Apex Colosseum Golden Arena & Concentric Lightning Spokes
+                val arenaY = height * 0.5f
+                val arenaX = width * 0.5f
+                val pulse = (sin(scroll * 0.06) * 0.2f + 0.8f).toFloat()
+                // Concentric Golden Rings
+                scope.drawCircle(Color(0xFFFFC42D).copy(alpha = 0.2f * pulse), radius = width * 0.48f, center = Offset(arenaX, arenaY), style = Stroke(5f))
+                scope.drawCircle(Color(0xFFFFC42D).copy(alpha = 0.4f * pulse), radius = width * 0.32f, center = Offset(arenaX, arenaY), style = Stroke(3.5f))
+                scope.drawCircle(Color(0xFFFFC42D).copy(alpha = 0.6f * pulse), radius = width * 0.16f, center = Offset(arenaX, arenaY), style = Stroke(2f))
+                // Rotating Lightning Spokes
+                val rot = (scroll * 0.5f) % 360f
+                for (s in 0 until 8) {
+                    val ang = (rot + s * 45f) * PI.toFloat() / 180f
+                    scope.drawLine(
+                        color = Color(0xFFFFD700).copy(alpha = 0.4f),
+                        start = Offset(arenaX, arenaY),
+                        end = Offset(arenaX + cos(ang) * width * 0.48f, arenaY + sin(ang) * width * 0.48f),
                         strokeWidth = 2f
                     )
                 }
             }
-            "neon_outpost", "cyber_city", "orbital_array" -> {
-                // Cyberpunk runway gridlines & high-tech ground telemetry
+            else -> {
+                // Default atmospheric telemetry grid
                 val gridAlpha = 0.12f
                 for (x in 0..(width / 70f).toInt()) {
                     scope.drawLine(
@@ -955,24 +1188,6 @@ object GameRenderer {
                         strokeWidth = 1f
                     )
                 }
-            }
-            "underwater_ruins" -> {
-                // Rising deep-sea bubbles & luminous hydro-currents
-                for (i in 0 until 14) {
-                    val bx = ((i * 137f) % width)
-                    val by = height - ((env.scrollOffset * 1.2f + i * 90f) % (height + 50f))
-                    scope.drawCircle(AeroCyan.copy(alpha = 0.35f), 4f + (i % 3) * 3f, Offset(bx, by), style = Stroke(width = 1.5f))
-                }
-            }
-            "thunder_dome", "the_citadel", "final_approach" -> {
-                // Apex Colosseum thunder arcs & golden arena floodlights
-                val glowAlpha = (sin(env.scrollOffset * 0.04) * 0.2f + 0.35f).toFloat()
-                scope.drawLine(
-                    color = AeroAmber.copy(alpha = glowAlpha),
-                    start = Offset(0f, (env.scrollOffset * 0.7f) % height),
-                    end = Offset(width, (env.scrollOffset * 0.7f) % height),
-                    strokeWidth = 2.5f
-                )
             }
         }
     }
@@ -1453,43 +1668,90 @@ object GameRenderer {
         val timer = engine.tunnelTimer
         val speedMult = engine.tunnelSpeedMultiplier
 
-        // Neon Warp Tunnel Rings zooming toward screen
-        val ringCount = 12
-        for (i in 0 until ringCount) {
-            val z = ((timer * 1.8f * speedMult + i * (1.0f / ringCount)) % 1.0f)
-            val ringRadius = z * (width * 0.75f)
-            val alpha = (z * 1.2f).coerceIn(0f, 0.9f)
+        // 1. Deep Space Warp Vortex Background
+        scope.drawRect(
+            brush = Brush.radialGradient(
+                listOf(Color(0xFF030712), Color(0xFF0F172A), Color.Black),
+                radius = width * 0.7f,
+                center = Offset(cx, cy)
+            ),
+            size = Size(width, height)
+        )
 
-            scope.drawCircle(
-                color = if (i % 2 == 0) AeroCyan.copy(alpha = alpha) else AeroViolet.copy(alpha = alpha),
-                radius = ringRadius.coerceAtLeast(10f),
-                center = Offset(cx, cy),
-                style = Stroke(width = (2f + z * 8f))
-            )
-        }
-
-        // Radial Hyper Streaks
-        val streakCount = 16
-        for (i in 0 until streakCount) {
-            val angle = i * (360f / streakCount) + timer * 90f
-            val rad = angle * PI.toFloat() / 180f
-            val innerR = 40f
-            val outerR = width * 0.8f
+        // 2. Dynamic 3D Hexagonal Tunnel Lattice Ribs (16 Spokes)
+        val spokeCount = 16
+        val rotOffset = (timer * 45f * speedMult) % 360f
+        for (s in 0 until spokeCount) {
+            val ang = (s * (360f / spokeCount) + rotOffset) * PI.toFloat() / 180f
+            val cosA = cos(ang)
+            val sinA = sin(ang)
+            val innerR = 25f
+            val outerR = width * 0.85f
+            val spokeColor = when (s % 3) {
+                0 -> Color(0xFF00E5FF)
+                1 -> Color(0xFFD946EF)
+                else -> Color(0xFFFFD700)
+            }
             scope.drawLine(
-                color = ShieldBlue.copy(alpha = 0.45f),
-                start = Offset(cx + cos(rad) * innerR, cy + sin(rad) * innerR),
-                end = Offset(cx + cos(rad) * outerR, cy + sin(rad) * outerR),
-                strokeWidth = 2.5f
+                brush = Brush.linearGradient(
+                    listOf(Color.White.copy(alpha = 0.8f), spokeColor.copy(alpha = 0.5f), Color.Transparent),
+                    start = Offset(cx + cosA * innerR, cy + sinA * innerR),
+                    end = Offset(cx + cosA * outerR, cy + sinA * outerR)
+                ),
+                start = Offset(cx + cosA * innerR, cy + sinA * innerR),
+                end = Offset(cx + cosA * outerR, cy + sinA * outerR),
+                strokeWidth = 2.2f
             )
         }
 
-        // Floating Golden Tunnel Bonus Coins
-        for (k in 0..4) {
-            val coinY = cy - 250f + k * 100f + ((timer * 400f * speedMult) % 500f)
-            val coinX = cx + sin((timer * 3f + k).toDouble()).toFloat() * 140f
+        // 3. Neon Warp Tunnel Concentric Rings with Dynamic Color Cascade
+        val ringCount = 14
+        for (i in 0 until ringCount) {
+            val z = ((timer * 2.0f * speedMult + i * (1.0f / ringCount)) % 1.0f)
+            val ringRadius = z * (width * 0.75f)
+            val alpha = (z * 1.3f).coerceIn(0f, 0.95f)
+            val cascadeColor = when {
+                z > 0.66f -> Color(0xFFFFD700) // Electric Gold
+                z > 0.33f -> Color(0xFFE879F9) // Cyber Magenta
+                else -> Color(0xFF00E5FF)      // Radiant Cyan
+            }
+
+            // Outer Bloom Stroke
             scope.drawCircle(
-                color = Color(0xFFFFD700).copy(alpha = 0.9f),
-                radius = 14f,
+                color = cascadeColor.copy(alpha = alpha * 0.4f),
+                radius = ringRadius.coerceAtLeast(8f),
+                center = Offset(cx, cy),
+                style = Stroke(width = (4f + z * 10f))
+            )
+            // Inner Crisp Laser Ring
+            scope.drawCircle(
+                color = Color.White.copy(alpha = alpha),
+                radius = ringRadius.coerceAtLeast(8f),
+                center = Offset(cx, cy),
+                style = Stroke(width = (1.5f + z * 3f))
+            )
+        }
+
+        // 4. Floating Glowing Golden Plasma Pickups with Energy Halo
+        for (k in 0..5) {
+            val coinProgress = ((timer * 350f * speedMult + k * 90f) % (height * 0.7f))
+            val coinY = cy - height * 0.35f + coinProgress
+            val coinX = cx + sin((timer * 3.5f + k * 1.2f).toDouble()).toFloat() * (width * 0.28f)
+            val pulse = 1f + 0.2f * sin(timer * 8f + k).toFloat()
+
+            // Outer Aura
+            scope.drawCircle(
+                brush = Brush.radialGradient(
+                    listOf(Color(0xFFFFD700).copy(alpha = 0.6f), Color.Transparent),
+                    radius = 24f * pulse
+                ),
+                radius = 24f * pulse,
+                center = Offset(coinX, coinY)
+            )
+            // Glowing Core
+            scope.drawCircle(
+                color = Color(0xFFFFC42D),
+                radius = 12f * pulse,
                 center = Offset(coinX, coinY)
             )
             scope.drawCircle(

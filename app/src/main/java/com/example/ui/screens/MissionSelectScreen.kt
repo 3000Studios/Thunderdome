@@ -20,6 +20,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.example.R
 import com.example.game.model.BiomeCatalog
 import com.example.game.model.BiomeSpec
 import com.example.ui.theme.*
@@ -121,6 +125,65 @@ fun MissionSelectScreen(
                         .padding(14.dp)
                 ) {
                     Column {
+                        // High-Definition Cinematic Stage Banner
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(140.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .border(
+                                    1.dp,
+                                    if (isSelected) AeroCyan else DarkSurfaceBorder.copy(alpha = 0.6f),
+                                    RoundedCornerShape(8.dp)
+                                )
+                        ) {
+                            Image(
+                                painter = painterResource(id = getStagePreviewResource(stageSpec.stage)),
+                                contentDescription = stageSpec.name,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                            // Ambient Cinematic Vignette Overlay
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            listOf(
+                                                Color.Transparent,
+                                                DarkVoid.copy(alpha = 0.8f)
+                                            )
+                                        )
+                                    )
+                            )
+                            // Weather & Atmosphere Badge
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .padding(8.dp)
+                                    .background(DarkVoid.copy(alpha = 0.85f), RoundedCornerShape(4.dp))
+                                    .border(0.5.dp, AeroCyan.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Cloud,
+                                    contentDescription = null,
+                                    tint = AeroCyan,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    stageSpec.weather,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -280,4 +343,32 @@ fun MissionSelectScreen(
             )
         }
     }
+}
+
+fun getStagePreviewResource(stage: Int): Int = when (stage) {
+    1 -> R.drawable.td_stage_01_preview
+    2 -> R.drawable.td_stage_02_preview
+    3 -> R.drawable.td_stage_03_preview
+    4 -> R.drawable.td_stage_04_preview
+    5 -> R.drawable.td_stage_05_preview
+    6 -> R.drawable.td_stage_06_preview
+    7 -> R.drawable.td_stage_07_preview
+    8 -> R.drawable.td_stage_08_preview
+    9 -> R.drawable.td_stage_09_preview
+    10 -> R.drawable.td_stage_10_preview
+    11 -> R.drawable.td_stage_11_preview
+    12 -> R.drawable.td_stage_12_preview
+    13 -> R.drawable.td_stage_13_preview
+    14 -> R.drawable.td_stage_14_preview
+    15 -> R.drawable.td_stage_15_preview
+    16 -> R.drawable.td_stage_16_preview
+    17 -> R.drawable.td_stage_17_preview
+    18 -> R.drawable.td_stage_18_preview
+    19 -> R.drawable.td_stage_19_preview
+    20 -> R.drawable.td_stage_20_preview
+    21 -> R.drawable.td_stage_21_preview
+    22 -> R.drawable.td_stage_22_preview
+    23 -> R.drawable.td_stage_23_preview
+    24 -> R.drawable.td_stage_24_preview
+    else -> R.drawable.td_stage_01_preview
 }
