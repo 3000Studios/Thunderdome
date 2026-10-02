@@ -671,3 +671,370 @@ object BiomeCatalog {
 
     fun getById(id: String): BiomeSpec = ALL_BIOMES.firstOrNull { it.id == id } ?: THEATER_01
 }
+
+// Master Stage Specifications & Wormhole Architecture
+data class RouteEventSpec(
+    val percent: Int,
+    val event: String
+)
+
+data class WormholeUnlockSpec(
+    val atPercent: Int = 90,
+    val requiresNoDamage: Boolean = true,
+    val requiresAllEnemiesKilled: Boolean = true,
+    val appearanceSeconds: Float = 4.0f
+)
+
+data class StageMasterSpec(
+    val stage: Int,
+    val name: String,
+    val weather: String,
+    val boss: String,
+    val palette: List<String>,
+    val obstacles: List<String>,
+    val boostWarSpeed: List<String>,
+    val bossAbilities: List<String>,
+    val heroPlaneSkin: String,
+    val routeEvents: List<RouteEventSpec>,
+    val wormholeUnlock: WormholeUnlockSpec = WormholeUnlockSpec(),
+    val biome: BiomeSpec
+)
+
+object StageMasterCatalog {
+    val DEFAULT_ROUTE_EVENTS = listOf(
+        RouteEventSpec(3, "SPAWN / LOADOUT LOCK"),
+        RouteEventSpec(12, "WAVE A"),
+        RouteEventSpec(24, "OBSTACLE GATE"),
+        RouteEventSpec(40, "BOOST ZONE"),
+        RouteEventSpec(53, "ELITE WAVE"),
+        RouteEventSpec(65, "WEATHER ESCALATION"),
+        RouteEventSpec(76, "WAR-SPEED SPOT"),
+        RouteEventSpec(85, "MINIBOSS / CHECKPOINT"),
+        RouteEventSpec(90, "PERFECT-RUN WORMHOLE"),
+        RouteEventSpec(100, "BOSS ARENA")
+    )
+
+    val STAGES = listOf(
+        StageMasterSpec(
+            stage = 1,
+            name = "NEON OUTPOST",
+            weather = "NEON RAIN",
+            boss = "NEON OVERLORD",
+            palette = listOf("#08121E", "#00D9FF", "#FF2C9C", "#2478FF", "#7B2CFF"),
+            obstacles = listOf("AA turret nests", "holo-billboard canyon", "laser-road gates", "wet rooftop pylons", "drone traffic"),
+            boostWarSpeed = listOf("40% cyan booster lane", "76% rail-sling war-speed strip"),
+            bossAbilities = listOf("crossfire laser lattice", "hologram decoy wings", "radial micro-missile burst"),
+            heroPlaneSkin = "Black chrome + cyan edge light + magenta circuit filigree; reflective wet-look clearcoat.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_01
+        ),
+        StageMasterSpec(
+            stage = 2,
+            name = "ASTEROID BELT",
+            weather = "SPACE DUST",
+            boss = "GOLIATH DREADNOUGHT",
+            palette = listOf("#120B08", "#D65A0A", "#FF7A00", "#6E2AD8", "#2A221F"),
+            obstacles = listOf("rotating asteroid clusters", "magnetic purple mines", "cratered rock arches", "debris fields", "tumbling boulders"),
+            boostWarSpeed = listOf("38% debris slingshot", "72% twin-asteroid gravity boost"),
+            bossAbilities = listOf("broadside cannon walls", "gravity tractor cone", "armor-plate break phases"),
+            heroPlaneSkin = "Gunmetal hull + amber hazard stripes + violet anti-grav cores; chipped rock-scar decals.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_02
+        ),
+        StageMasterSpec(
+            stage = 3,
+            name = "VOID GATE",
+            weather = "VOID WARP",
+            boss = "VOID STALKER",
+            palette = listOf("#09020F", "#8A2BE2", "#FF21D6", "#5D35B8", "#050505"),
+            obstacles = listOf("gravity shear rings", "void spike corridors", "warp-orb mines", "fractured obsidian slabs", "portal turbulence"),
+            boostWarSpeed = listOf("34% portal sling", "74% vortex acceleration tunnel"),
+            bossAbilities = listOf("teleport ambush", "void clone split", "screen-edge gravity scythe"),
+            heroPlaneSkin = "Obsidian ceramic + violet plasma veins + magenta portal glyphs; starfield panel texture.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_03
+        ),
+        StageMasterSpec(
+            stage = 4,
+            name = "TOXIC SECTOR",
+            weather = "TOXIC MIST",
+            boss = "TOXIN HAZE",
+            palette = listOf("#061006", "#42FF30", "#92D811", "#D8EA23", "#121212"),
+            obstacles = listOf("caustic gas clouds", "acid puddle vents", "corroded pipe towers", "sludge channels", "biohazard fans"),
+            boostWarSpeed = listOf("42% pressure-vent thrust lane", "78% reactor exhaust warp strip"),
+            bossAbilities = listOf("poison cloud bloom", "corrosion beam", "toxic clone spores"),
+            heroPlaneSkin = "Matte black + luminous toxic green vents + yellow warning chevrons; biohazard stencil skin.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_04
+        ),
+        StageMasterSpec(
+            stage = 5,
+            name = "ICE FORTRESS",
+            weather = "BLIZZARD",
+            boss = "FROST NOVA",
+            palette = listOf("#061420", "#56C8FF", "#F2FAFF", "#5B8FCC", "#1F5A99"),
+            obstacles = listOf("ice spike walls", "frost turrets", "glacier crevasses", "wind shear zones", "frozen bridge arches"),
+            boostWarSpeed = listOf("36% ice-canyon slipstream", "71% frozen launch rail"),
+            bossAbilities = listOf("freeze pulse", "ice shard fan", "crystal armor rebuild"),
+            heroPlaneSkin = "Brushed steel + ice-blue emissive ribs + white frost fade; faceted crystal wing tips.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_05
+        ),
+        StageMasterSpec(
+            stage = 6,
+            name = "SOLAR CORE",
+            weather = "SOLAR FLARES",
+            boss = "SOLAR FLARE",
+            palette = listOf("#1A0900", "#FFB000", "#FF6A00", "#FF2A1A", "#4A1200"),
+            obstacles = listOf("solar flare curtains", "plasma jets", "heat-plate rings", "burning trails", "corona shockwaves"),
+            boostWarSpeed = listOf("41% plasma draft", "77% corona slingshot"),
+            bossAbilities = listOf("piercing solar beam", "burning trail cage", "corona overload pulse"),
+            heroPlaneSkin = "Mirror black + molten gold trim + orange heat vents; sunburst wing graphics with ember clearcoat.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_06
+        ),
+        StageMasterSpec(
+            stage = 7,
+            name = "CYBER CITY",
+            weather = "NEON RAIN",
+            boss = "VOID REAPER",
+            palette = listOf("#070916", "#FF22CB", "#00CFFF", "#3B45FF", "#7E2FB3"),
+            obstacles = listOf("skyscraper canyon", "traffic drones", "holo-ad minefields", "service bridges", "electric rooftop fences"),
+            boostWarSpeed = listOf("39% maglev corridor", "73% neon transit warp lane"),
+            bossAbilities = listOf("black-hole pull", "void orb barrage", "shadow dash ram"),
+            heroPlaneSkin = "Carbon fiber + cyan/magenta racing graphics + animated equalizer strips along the fuselage.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_07
+        ),
+        StageMasterSpec(
+            stage = 8,
+            name = "JUNKYARD",
+            weather = "RUST STORM",
+            boss = "BLADE STORM",
+            palette = listOf("#130D08", "#F36B17", "#8C3D1F", "#64412B", "#181818"),
+            obstacles = listOf("sawblade debris", "capital hull wrecks", "scrap ambushes", "explosive piles", "crane arms"),
+            boostWarSpeed = listOf("35% salvage-catapult lane", "70% turbine-corridor boost"),
+            bossAbilities = listOf("spinning blade halo", "ricochet shot", "scrap cyclone"),
+            heroPlaneSkin = "Weathered titanium + orange weld seams + stenciled serial numbers; patchwork armored panels.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_08
+        ),
+        StageMasterSpec(
+            stage = 9,
+            name = "BLACK HOLE",
+            weather = "GRAVITY PULL",
+            boss = "NEON PHANTOM",
+            palette = listOf("#05030A", "#6E35E7", "#A647FF", "#341D78", "#000000"),
+            obstacles = listOf("singularity pull zones", "lensing rings", "distorted asteroids", "event-horizon lanes", "tidal debris"),
+            boostWarSpeed = listOf("43% gravity-assist arc", "79% horizon-surf warp burst"),
+            bossAbilities = listOf("phase dash", "neon laser sweep", "afterimage swarm"),
+            heroPlaneSkin = "Ultra-black hull + purple lensing rings + violet star specks; curved gravitational distortion graphics.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_09
+        ),
+        StageMasterSpec(
+            stage = 10,
+            name = "LAVA PLANET",
+            weather = "LAVA RAIN",
+            boss = "OMEGA DRONE",
+            palette = listOf("#130500", "#FF5218", "#E62717", "#3A3635", "#050505"),
+            obstacles = listOf("magma bombs", "lava eruptions", "basalt spires", "factory platforms", "heat distortion pockets"),
+            boostWarSpeed = listOf("37% magma updraft lane", "74% furnace-jet warp strip"),
+            bossAbilities = listOf("summon attack drones", "laser grid", "molten missile spread"),
+            heroPlaneSkin = "Charcoal armor + red-hot cracks + orange underside glow; volcanic fracture graphic across wings.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_10
+        ),
+        StageMasterSpec(
+            stage = 11,
+            name = "ORBITAL ARRAY",
+            weather = "ION DUST",
+            boss = "LIQUID METAL",
+            palette = listOf("#05111B", "#21A7F3", "#9FD9FF", "#1B64D4", "#DCE8F1"),
+            obstacles = listOf("laser sweep rings", "ion pulse nodes", "station modules", "satellite spokes", "antenna fields"),
+            boostWarSpeed = listOf("40% ion conduit", "75% ring-orbit catapult"),
+            bossAbilities = listOf("shape shift", "reflective skin", "metal-wave projectile"),
+            heroPlaneSkin = "Polished silver + electric-blue circuitry + white ion streaks; satellite-ring insignia.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_11
+        ),
+        StageMasterSpec(
+            stage = 12,
+            name = "SAND WASTES",
+            weather = "SAND STORM",
+            boss = "SAND VIPER",
+            palette = listOf("#1A120B", "#D58A2B", "#A25D27", "#6D4527", "#E9B64A"),
+            obstacles = listOf("sand tornadoes", "EM dust bursts", "canyon spires", "buried ruins", "rock arches"),
+            boostWarSpeed = listOf("33% dune crest tailwind", "69% canyon vent war-speed"),
+            bossAbilities = listOf("sand tornado pull", "razor-dart spread", "burrow strike"),
+            heroPlaneSkin = "Desert tan + black belly + gold edge guards; viper-scale wing graphics and dust-worn nose.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_12
+        ),
+        StageMasterSpec(
+            stage = 13,
+            name = "BIO LABS",
+            weather = "BIO SPORES",
+            boss = "BIOSYNTH HYDRA",
+            palette = listOf("#071008", "#6FE51C", "#A8E72B", "#1F6D38", "#D8E74A"),
+            obstacles = listOf("mutagen domes", "glass tube towers", "spore clouds", "bio-weapon pods", "slime channels"),
+            boostWarSpeed = listOf("41% nutrient-flow booster", "77% gene-tube acceleration rail"),
+            bossAbilities = listOf("multi-head plasma spit", "regeneration phase", "bio missile homing swarm"),
+            heroPlaneSkin = "Gloss black + luminous green vein lattice + translucent bio-cells; gene-helix wing markings.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_13
+        ),
+        StageMasterSpec(
+            stage = 14,
+            name = "UNDERWATER RUINS",
+            weather = "HYDRO STREAM",
+            boss = "AQUA STRIKE",
+            palette = listOf("#051620", "#0DAED0", "#53E7FF", "#1B627C", "#87F0ED"),
+            obstacles = listOf("sunken towers", "hydro current lanes", "bubble mines", "caustic pillars", "collapsed arches"),
+            boostWarSpeed = listOf("36% current jet", "72% hydro-tunnel slingshot"),
+            bossAbilities = listOf("water cannon knockback", "bubble shield", "torpedo spiral"),
+            heroPlaneSkin = "Deep navy + cyan caustic shimmer + pearl-white trim; scale-like hydrodynamic pattern.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_14
+        ),
+        StageMasterSpec(
+            stage = 15,
+            name = "SKY TEMPLE",
+            weather = "AURA BREEZE",
+            boss = "CELESTIAL GUARD",
+            palette = listOf("#10233A", "#8CCAF0", "#F7FBFF", "#7EA6C9", "#D2EEF8"),
+            obstacles = listOf("floating island gaps", "crystal shards", "wind columns", "temple gates", "god-ray blind zones"),
+            boostWarSpeed = listOf("39% jetstream lane", "75% celestial launch beam"),
+            bossAbilities = listOf("divine shield", "holy pulse", "wing-lance rain"),
+            heroPlaneSkin = "Pearl white + sky-blue inlays + gold micro-trim; feathered geometric graphics on wings.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_15
+        ),
+        StageMasterSpec(
+            stage = 16,
+            name = "MACHINE WORLD",
+            weather = "SMELTER ASH",
+            boss = "MAGMA BRUTE",
+            palette = listOf("#120A07", "#C94B18", "#FF7A22", "#633020", "#181818"),
+            obstacles = listOf("crusher presses", "moving belts", "gear walls", "molten drains", "robotic foundry arms"),
+            boostWarSpeed = listOf("42% conveyor overdrive", "78% smelter exhaust warp"),
+            bossAbilities = listOf("magma ball barrage", "lava trail ram", "hydraulic shockwave"),
+            heroPlaneSkin = "Blackened steel + copper welds + hot orange mechanical glyphs; gear-tooth wing striping.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_16
+        ),
+        StageMasterSpec(
+            stage = 17,
+            name = "CRYSTAL CAVERNS",
+            weather = "CRYSTAL DUST",
+            boss = "CYBER HAWK",
+            palette = listOf("#0B0715", "#7A2AE8", "#B44DFF", "#34C9FF", "#E0EAFF"),
+            obstacles = listOf("mirror crystal fields", "laser reflections", "shard avalanches", "prism gates", "fracture pits"),
+            boostWarSpeed = listOf("38% prism-refraction boost", "73% crystal resonance warp"),
+            bossAbilities = listOf("target lock pursuit", "missile swarm", "reflective feather shield"),
+            heroPlaneSkin = "Dark violet + iridescent crystal facets + cyan laser lines; holographic prismatic wing skin.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_17
+        ),
+        StageMasterSpec(
+            stage = 18,
+            name = "STORM FRONT",
+            weather = "LIGHTNING",
+            boss = "QUANTUM SHIFT",
+            palette = listOf("#090C1A", "#6947D9", "#A157FF", "#48B7FF", "#D6E7FF"),
+            obstacles = listOf("lightning curtains", "EMP arcs", "storm vortices", "charged cloud walls", "temporal turbulence"),
+            boostWarSpeed = listOf("40% thunderhead updraft", "76% lightning-rail war-speed"),
+            bossAbilities = listOf("time warp slow field", "quantum teleport", "temporal blade strike"),
+            heroPlaneSkin = "Midnight blue + white lightning forks + violet quantum rings; animated pulse texture on tail.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_18
+        ),
+        StageMasterSpec(
+            stage = 19,
+            name = "ALIEN JUNGLE",
+            weather = "NEURO MIST",
+            boss = "STORM LORD",
+            palette = listOf("#06100C", "#57D71D", "#B8EA24", "#1B6D54", "#6639A5"),
+            obstacles = listOf("predatory vines", "bioluminescent canopy", "spore pods", "living root gates", "acid flower turrets"),
+            boostWarSpeed = listOf("37% canopy wind tunnel", "72% bio-electric surge lane"),
+            bossAbilities = listOf("random thunder strike", "persistent storm field", "charged wing dive"),
+            heroPlaneSkin = "Forest-black + acid-green edge veins + purple bio-lights; alien leaf/fractal graphics.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_19
+        ),
+        StageMasterSpec(
+            stage = 20,
+            name = "SPACE GRAVEYARD",
+            weather = "DEBRIS HAZARD",
+            boss = "GRAVITY TITAN",
+            palette = listOf("#050912", "#2860D9", "#443CB4", "#7569E7", "#292151"),
+            obstacles = listOf("wrecked battleship hulls", "debris collisions", "sniper corridors", "engine carcasses", "floating armor plates"),
+            boostWarSpeed = listOf("34% reactor-remnant boost", "69% wreck-corridor gravity sling"),
+            bossAbilities = listOf("gravity field", "meteor drop", "hull-fragment shield"),
+            heroPlaneSkin = "Cold gunmetal + spectral blue-violet exhaust + ghosted fleet emblems; battle-scar skin.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_20
+        ),
+        StageMasterSpec(
+            stage = 21,
+            name = "DIMENSION RIFT",
+            weather = "PHASE SHIFT",
+            boss = "CRYSTAL REVENANT",
+            palette = listOf("#0B0414", "#7720E8", "#A42DDC", "#E1297A", "#B81731"),
+            obstacles = listOf("reality seams", "phase walls", "fractured chunks", "glitch corridors", "lava-wake scars"),
+            boostWarSpeed = listOf("41% phase skip", "77% multiverse tear warp"),
+            bossAbilities = listOf("multi-direction crystal spikes", "reflective armor", "phase inversion"),
+            heroPlaneSkin = "Black-violet base + magenta/red glitch slices + fractured mirror panels; chromatic split graphics.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_21
+        ),
+        StageMasterSpec(
+            stage = 22,
+            name = "THE CITADEL",
+            weather = "FLAK BURSTS",
+            boss = "CITADEL COMMANDER",
+            palette = listOf("#110708", "#982123", "#D73722", "#6F202A", "#262626"),
+            obstacles = listOf("heavy flak walls", "command spires", "defense rings", "missile towers", "armored blast doors"),
+            boostWarSpeed = listOf("39% launch-bay catapult", "74% reactor trench overdrive"),
+            bossAbilities = listOf("flak grid command", "shielded turret ring", "command missile swarm"),
+            heroPlaneSkin = "Dark armor + crimson command stripes + metallic silver insignia; angular military geometry.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_22
+        ),
+        StageMasterSpec(
+            stage = 23,
+            name = "FINAL APPROACH",
+            weather = "WAR HAZE",
+            boss = "INFERNO RIDER",
+            palette = listOf("#140707", "#7E151B", "#D01B12", "#F04A18", "#5A2B1D"),
+            obstacles = listOf("flagship armada lanes", "missile walls", "fighter swarms", "capital cannon beams", "burning wreck trails"),
+            boostWarSpeed = listOf("42% carrier launch wake", "80% final assault war-speed corridor"),
+            bossAbilities = listOf("fire dash", "inferno wave", "flame-lance pursuit"),
+            heroPlaneSkin = "Satin black + deep red spear graphics + orange afterburner blades; campaign kill-mark decals.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_23
+        ),
+        StageMasterSpec(
+            stage = 24,
+            name = "THUNDER DOME",
+            weather = "COLOSSEUM LIGHTNING",
+            boss = "NEXUS OBLITERATOR",
+            palette = listOf("#110D05", "#FFC42D", "#E9A400", "#7B5100", "#1B1B1B"),
+            obstacles = listOf("rotating arena rings", "lightning spokes", "energy walls", "moving pylons", "collapse zones"),
+            boostWarSpeed = listOf("35% outer-ring accelerator", "70% inner-ring war-speed launch"),
+            bossAbilities = listOf("universe collapse screen pulse", "multi-phase form change", "nexus laser crown", "arena-ring shockwave"),
+            heroPlaneSkin = "Mirror black + championship gold + electric-blue core lines; 3000 Studios thunder crest across wings.",
+            routeEvents = DEFAULT_ROUTE_EVENTS,
+            biome = BiomeCatalog.THEATER_24
+        )
+    )
+
+    fun getForStage(stageNum: Int): StageMasterSpec {
+        val idx = (stageNum - 1).coerceIn(0, STAGES.size - 1)
+        return STAGES[idx]
+    }
+
+    fun getForBiome(biomeId: String): StageMasterSpec {
+        return STAGES.firstOrNull { it.biome.id == biomeId } ?: STAGES[0]
+    }
+}

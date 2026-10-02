@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.game.model.BiomeCatalog
 import com.example.game.model.BiomeSpec
 import com.example.ui.theme.*
@@ -95,6 +96,7 @@ fun MissionSelectScreen(
 
         BiomeCatalog.ALL_BIOMES.forEach { biome ->
             val isSelected = biome.id == selectedBiome.id
+            val stageSpec = com.example.game.model.StageMasterCatalog.getForBiome(biome.id)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -116,7 +118,7 @@ fun MissionSelectScreen(
                                 listOf(biome.skyColorTop, biome.skyColorBottom.copy(alpha = 0.6f))
                             )
                         )
-                        .padding(16.dp)
+                        .padding(14.dp)
                 ) {
                     Column {
                         Row(
@@ -125,9 +127,10 @@ fun MissionSelectScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = biome.name,
+                                text = "${stageSpec.stage.toString().padStart(2, '0')}. ${stageSpec.name}",
                                 style = MaterialTheme.typography.titleMedium,
-                                color = Color.White
+                                color = Color.White,
+                                fontWeight = FontWeight.Black
                             )
                             Text(
                                 text = "DIFFICULTY x${biome.difficultyMultiplier}",
@@ -144,18 +147,77 @@ fun MissionSelectScreen(
                             color = TextSecondary
                         )
 
-                        Spacer(modifier = Modifier.height(10.dp))
-                        val matchedBoss = com.example.game.model.BossProfileCatalog.getForBiome(biome.id)
-                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Cloud, contentDescription = null, tint = AeroCyan, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(biome.weatherType.replace("_", " "), color = TextSecondary, style = MaterialTheme.typography.labelSmall)
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        // Palette Swatches & Hero Skin Tag
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text("PALETTE:", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = TextSecondary)
+                            stageSpec.palette.forEach { hex ->
+                                val color = try {
+                                    Color(android.graphics.Color.parseColor(hex))
+                                } catch (_: Exception) {
+                                    AeroCyan
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .size(12.dp)
+                                        .clip(RoundedCornerShape(2.dp))
+                                        .background(color)
+                                        .border(0.5.dp, Color.White.copy(alpha = 0.4f), RoundedCornerShape(2.dp))
+                                )
                             }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.MilitaryTech, contentDescription = null, tint = matchedBoss.primaryColor, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(matchedBoss.name, color = matchedBoss.primaryColor, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        // Obstacles & Speed Lanes
+                        Text(
+                            text = "OBSTACLES: ${stageSpec.obstacles.joinToString(", ")}",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            color = TextSecondary
+                        )
+                        Text(
+                            text = "SPEED LANES: ${stageSpec.boostWarSpeed.joinToString(" • ")}",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            color = AeroCyan
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        val matchedBoss = com.example.game.model.BossProfileCatalog.getForBiome(biome.id)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Cloud, contentDescription = null, tint = AeroCyan, modifier = Modifier.size(15.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(stageSpec.weather, color = TextSecondary, style = MaterialTheme.typography.labelSmall)
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.MilitaryTech, contentDescription = null, tint = matchedBoss.primaryColor, modifier = Modifier.size(15.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(stageSpec.boss, color = matchedBoss.primaryColor, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                }
+                            }
+
+                            // Wormhole Rule Badge
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = AeroCyan.copy(alpha = 0.15f),
+                                border = androidx.compose.foundation.BorderStroke(0.5.dp, AeroCyan.copy(alpha = 0.6f))
+                            ) {
+                                Text(
+                                    text = "🌌 90% WORMHOLE",
+                                    color = AeroCyan,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                )
                             }
                         }
                     }

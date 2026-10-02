@@ -210,6 +210,8 @@ class GameEngine(
     var vortexY: Float = 0f
     var vortexRadius: Float = 60f
     var vortexRotation: Float = 0f
+    var wormholeAppearanceTimer: Float = 0f
+    val triggeredMilestones: MutableSet<Int> = mutableSetOf()
 
     var isInBonusTunnel: Boolean = false
     var tunnelTimer: Float = 0f
@@ -268,6 +270,8 @@ class GameEngine(
         totalTargetsSpawned = 0
         totalTargetsDestroyed = 0
         bonusVortexActive = false
+        wormholeAppearanceTimer = 0f
+        triggeredMilestones.clear()
         isInBonusTunnel = false
         tunnelTimer = 0f
         tunnelCoinsCollected = 0
@@ -499,29 +503,95 @@ class GameEngine(
             val speedFactor = if (playerState.isBoosting) 180f else 110f
             stageDistanceCurrent = (stageDistanceCurrent + clampedDt * speedFactor).coerceAtMost(stageDistanceTotal)
             val progressRatio = stageDistanceCurrent / stageDistanceTotal
+            val progressPct = (progressRatio * 100).toInt()
+            val currentStageSpec = StageMasterCatalog.getForBiome(currentBiome.id)
+
+            // Trigger Route Milestones along the 24-stage flight path
+            for (event in currentStageSpec.routeEvents) {
+                if (progressPct >= event.percent && !triggeredMilestones.contains(event.percent)) {
+                    triggeredMilestones.add(event.percent)
+                    when (event.percent) {
+                        3 -> {
+                            vfx.addText("🔒 [3%] LOADOUT LOCKED // DEPLOYING TO ${currentStageSpec.name}", screenWidth * 0.5f, screenHeight * 0.35f, Color(0xFF00F0FF))
+                        }
+                        12 -> {
+                            vfx.addText("⚔️ [12%] HOSTILE WAVE A ENGAGING", screenWidth * 0.5f, screenHeight * 0.35f, Color(0xFFFF5555))
+                            audioHaptics.playSound(AudioHapticSystem.SoundType.WARNING_BEEP)
+                        }
+                        24 -> {
+                            val obstacle = currentStageSpec.obstacles.firstOrNull() ?: "HAZARD ZONE"
+                            vfx.addText("⚠️ [24%] OBSTACLE GATE: ${obstacle.uppercase()}", screenWidth * 0.5f, screenHeight * 0.35f, Color(0xFFFF9500))
+                            physics.addTrauma(0.15f)
+                        }
+                        40 -> {
+                            val boostName = currentStageSpec.boostWarSpeed.getOrNull(0) ?: "BOOST ZONE"
+                            vfx.addText("🚀 [40%] BOOST ACCELERATOR: ${boostName.uppercase()}", screenWidth * 0.5f, screenHeight * 0.35f, Color(0xFF00FFCC))
+                            playerState.boost = playerState.maxBoost
+                            playerState.isBoosting = true
+                            audioHaptics.playSound(AudioHapticSystem.SoundType.BOOST_BURST)
+                        }
+                        53 -> {
+                            vfx.addText("🔥 [53%] ELITE SQUADRON INCOMING", screenWidth * 0.5f, screenHeight * 0.35f, Color(0xFFFF3366))
+                            audioHaptics.playSound(AudioHapticSystem.SoundType.WARNING_BEEP)
+                        }
+                        65 -> {
+                            vfx.addText("🌪️ [65%] WEATHER ESCALATION: ${currentStageSpec.weather}", screenWidth * 0.5f, screenHeight * 0.35f, Color(0xFF38BDF8))
+                            physics.addTrauma(0.2f)
+                        }
+                        76 -> {
+                            val warSpeed = currentStageSpec.boostWarSpeed.getOrNull(1) ?: "WAR-SPEED STRIP"
+                            vfx.addText("⚡ [76%] WAR-SPEED SPOT: ${warSpeed.uppercase()}", screenWidth * 0.5f, screenHeight * 0.35f, Color(0xFFFFD700))
+                            playerState.boost = playerState.maxBoost
+                            playerState.isBoosting = true
+                            audioHaptics.playSound(AudioHapticSystem.SoundType.BOOST_BURST)
+                            audioHaptics.triggerBoostHaptic()
+                        }
+                        85 -> {
+                            vfx.addText("🎯 [85%] CHECKPOINT REACHED // SECTOR MINIBOSS", screenWidth * 0.5f, screenHeight * 0.35f, Color(0xFFA855F7))
+                            audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+                        }
+                        90 -> {
+                            // Perfect-Run Wormhole check: at 90% only if 0 damage and all enemies killed
+                            val allEnemiesKilled = combatStats.kills >= 5 && enemySystem.enemies.none { it.health > 0f }
+                            if (damageTakenThisStage == 0f && allEnemiesKilled) {
+                                bonusVortexActive = true
+                                wormholeAppearanceTimer = currentStageSpec.wormholeUnlock.appearanceSeconds
+                                vortexX = screenWidth * 0.5f
+                                vortexY = screenHeight * 0.32f
+                                vfx.addText("🌌 [90%] PERFECT-RUN WORMHOLE OPEN (4.0s)! 🌌", screenWidth * 0.5f, screenHeight * 0.22f, Color(0xFF00F0FF))
+                                audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+                                audioHaptics.triggerExplosionHaptic(true)
+                            } else {
+                                vfx.addText("⏳ [90%] WORMHOLE LOCKED (REQ: 0 DMG & ALL TARGETS KILLED)", screenWidth * 0.5f, screenHeight * 0.35f, Color(0xFF94A3B8))
+                            }
+                        }
+                        100 -> {
+                            vfx.addText("👑 [100%] BOSS ARENA: ${currentStageSpec.boss}", screenWidth * 0.5f, screenHeight * 0.30f, Color(0xFFEF4444))
+                        }
+                    }
+                }
+            }
+
+            // Manage 4.0s Wormhole Appearance Timer
+            if (bonusVortexActive) {
+                wormholeAppearanceTimer -= clampedDt
+                if (wormholeAppearanceTimer <= 0f) {
+                    bonusVortexActive = false
+                    vfx.addText("WORMHOLE COLLAPSED", screenWidth * 0.5f, screenHeight * 0.32f, Color(0xFF64748B))
+                }
+            }
 
             // Trigger Epic Boss Encounter upon reaching 100% stage distance (3-8 min flight completed)
             if (stageDistanceCurrent >= stageDistanceTotal && enemySystem.currentBoss == null && !enemySystem.isBossWave) {
                 enemySystem.spawnBoss(screenWidth, screenHeight)
                 enemySystem.isBossWave = true
-                vfx.addText("⚠️ WARNING: BOSS DREADNOUGHT DETECTED ⚠️", screenWidth * 0.5f, screenHeight * 0.30f, Color(0xFFEF4444))
+                vfx.addText("⚠️ WARNING: BOSS ARENA ENGAGED // ${currentStageSpec.boss} ⚠️", screenWidth * 0.5f, screenHeight * 0.30f, Color(0xFFEF4444))
                 audioHaptics.playSound(AudioHapticSystem.SoundType.WARNING_BEEP)
             }
 
-            // Check for Bonus Vortex Spawn at 90% Stage Progress
-            // Requirement: Reached 90%, 0 damage taken on stage, and destroyed targets
-            if (progressRatio >= 0.90f && !bonusVortexActive && damageTakenThisStage == 0f && combatStats.kills >= 3) {
-                bonusVortexActive = true
-                vortexX = screenWidth * 0.5f
-                vortexY = screenHeight * 0.32f
-                vfx.addText("⭐ PERFECT RUN! BONUS VORTEX DETECTED! ⭐", screenWidth * 0.5f, screenHeight * 0.22f, Color(0xFF00F0FF))
-                audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
-            }
-
-            // Animate Active Vortex
+            // Animate Active Vortex & Event Horizon Entry
             if (bonusVortexActive) {
                 vortexRotation += clampedDt * 280f
-                // Check if player craft enters the vortex event horizon
                 val distToVortex = hypot(playerState.x - vortexX, playerState.y - vortexY)
                 if (distToVortex < vortexRadius + 35f) {
                     // ENTER WARP TUNNEL!
