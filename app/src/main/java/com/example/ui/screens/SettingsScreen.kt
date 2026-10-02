@@ -130,25 +130,66 @@ fun SettingsScreen(viewModel: GameViewModel) {
         }
         Spacer(modifier = Modifier.height(10.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Plane Position Relative To Finger", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("PLANE FINGER LEAD DISTANCE", color = Color.White, style = MaterialTheme.typography.labelMedium)
+                Text(
+                    text = "${settings.touchOffsetY.toInt()} dp (${if (settings.touchOffsetY > 0) "${settings.touchOffsetY.toInt()}dp in front" else if (settings.touchOffsetY == 0f) "Direct Center" else "${-settings.touchOffsetY.toInt()}dp behind"})",
+                    color = AeroCyan,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
             Text(
-                text = "${settings.touchOffsetY.toInt()} dp (${if (settings.touchOffsetY > 0) "${settings.touchOffsetY.toInt()}dp Above" else if (settings.touchOffsetY == 0f) "Direct Center" else "${-settings.touchOffsetY.toInt()}dp Below"})",
-                color = AeroCyan,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold
+                text = "Controls how far in front/above your finger the plane flies so your finger never blocks the aircraft or combat view (matches Balloons Pilot control standard).",
+                color = TextSecondary,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                modifier = Modifier.padding(top = 2.dp, bottom = 6.dp)
+            )
+
+            // Preset Quick Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                listOf(
+                    0f to "DIRECT (0)",
+                    40f to "CLOSE (40)",
+                    75f to "STANDARD (75)",
+                    120f to "EXTENDED (120)",
+                    180f to "BALLOON (180)"
+                ).forEach { (offsetVal, label) ->
+                    val isCurrent = kotlin.math.abs(settings.touchOffsetY - offsetVal) < 8f
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (isCurrent) AeroCyan else DarkSurfaceElevated)
+                            .clickable { viewModel.updateSettings(touchOffsetY = offsetVal) }
+                            .padding(vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                            color = if (isCurrent) DarkVoid else TextSecondary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            Slider(
+                value = settings.touchOffsetY,
+                onValueChange = { viewModel.updateSettings(touchOffsetY = it) },
+                valueRange = -20f..220f,
+                modifier = Modifier.fillMaxWidth().testTag("plane_position_slider")
             )
         }
-        Slider(
-            value = settings.touchOffsetY,
-            onValueChange = { viewModel.updateSettings(touchOffsetY = it) },
-            valueRange = -30f..200f,
-            modifier = Modifier.fillMaxWidth().testTag("plane_position_slider")
-        )
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),

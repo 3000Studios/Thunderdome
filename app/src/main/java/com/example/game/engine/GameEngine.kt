@@ -118,9 +118,13 @@ class GameEngine(
         screenWidth: Float,
         screenHeight: Float,
         sensitivity: Float = 1.0f,
-        controlScheme: String = "TOUCH_FOLLOW"
+        controlScheme: String = "TOUCH_FOLLOW",
+        touchOffsetY: Float? = null,
+        touchOffsetX: Float? = null
     ) {
         isDirectTouchActive = true
+        if (touchOffsetY != null) this.fingerOffsetY = touchOffsetY
+        if (touchOffsetX != null) this.fingerOffsetX = touchOffsetX
         val padX = 30f
         val padY = 60f
 

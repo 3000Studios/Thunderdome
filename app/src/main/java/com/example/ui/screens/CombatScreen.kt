@@ -153,7 +153,8 @@ fun CombatScreen(
                                     screenWidth = size.width.toFloat(),
                                     screenHeight = size.height.toFloat(),
                                     sensitivity = settings.touchSensitivity,
-                                    controlScheme = settings.controlScheme
+                                    controlScheme = settings.controlScheme,
+                                    touchOffsetY = settings.touchOffsetY
                                 )
                             }
                         }
@@ -1341,26 +1342,59 @@ fun PauseModal(
                             }
                         }
 
-                        // Finger Position Offset Slider
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("PLANE POSITION RELATIVE TO FINGER", color = Color.White, style = MaterialTheme.typography.labelSmall)
-                            Text(
-                                text = "${settings.touchOffsetY.toInt()} dp (${if (settings.touchOffsetY > 0) "${settings.touchOffsetY.toInt()}dp Above" else if (settings.touchOffsetY == 0f) "Direct Center" else "${-settings.touchOffsetY.toInt()}dp Below"})",
-                                color = AeroCyan,
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                fontWeight = FontWeight.Bold
+                        // Finger Position Offset Slider & Presets
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("PLANE FINGER LEAD DISTANCE", color = Color.White, style = MaterialTheme.typography.labelSmall)
+                                Text(
+                                    text = "${settings.touchOffsetY.toInt()} dp (${if (settings.touchOffsetY > 0) "${settings.touchOffsetY.toInt()}dp in front" else if (settings.touchOffsetY == 0f) "Direct Center" else "${-settings.touchOffsetY.toInt()}dp behind"})",
+                                    color = AeroCyan,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Spacer(Modifier.height(4.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                listOf(
+                                    0f to "DIRECT (0)",
+                                    40f to "CLOSE (40)",
+                                    75f to "STANDARD (75)",
+                                    120f to "EXTENDED (120)",
+                                    180f to "BALLOON (180)"
+                                ).forEach { (offsetVal, label) ->
+                                    val isCurrent = kotlin.math.abs(settings.touchOffsetY - offsetVal) < 8f
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(if (isCurrent) AeroCyan else DarkSurfaceElevated)
+                                            .clickable { onUpdateTouchOffsetY(offsetVal) }
+                                            .padding(vertical = 5.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 7.5.sp),
+                                            color = if (isCurrent) DarkVoid else TextSecondary,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+                            Slider(
+                                value = settings.touchOffsetY,
+                                onValueChange = { onUpdateTouchOffsetY(it) },
+                                valueRange = -20f..220f,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
-                        Slider(
-                            value = settings.touchOffsetY,
-                            onValueChange = { onUpdateTouchOffsetY(it) },
-                            valueRange = -30f..200f,
-                            modifier = Modifier.fillMaxWidth()
-                        )
 
                         // Flight Sensitivity Slider
                         Row(

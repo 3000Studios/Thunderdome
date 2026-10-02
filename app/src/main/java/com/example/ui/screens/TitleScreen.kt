@@ -286,7 +286,7 @@ fun TitleScreen(
                             .weight(1f)
                             .testTag("start_campaign_button")
                     ) {
-                        Icon(Icons.Default.FlightTakeoff, null, modifier = Modifier.size(20.dp))
+                        com.example.ui.components.RotatingCampaignBadge(modifier = Modifier.size(30.dp))
                         Spacer(Modifier.width(6.dp))
                         Column {
                             Text("CAMPAIGN", fontWeight = FontWeight.Black, fontSize = 13.sp)
@@ -311,7 +311,7 @@ fun TitleScreen(
                             .weight(1f)
                             .testTag("start_multiplayer_button")
                     ) {
-                        Icon(Icons.Default.Groups, null, modifier = Modifier.size(20.dp))
+                        com.example.ui.components.RotatingMultiplayerBadge(modifier = Modifier.size(30.dp))
                         Spacer(Modifier.width(6.dp))
                         Column {
                             Text("MULTIPLAYER", fontWeight = FontWeight.Black, fontSize = 13.sp)
@@ -332,7 +332,7 @@ fun TitleScreen(
                         height = 50.dp,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.Flight, null, modifier = Modifier.size(18.dp))
+                        com.example.ui.components.HangarBayBadge(modifier = Modifier.size(28.dp))
                         Spacer(Modifier.width(6.dp))
                         Column {
                             Text("HANGAR", fontWeight = FontWeight.Black, fontSize = 12.sp)
@@ -347,7 +347,7 @@ fun TitleScreen(
                         height = 50.dp,
                         modifier = Modifier.weight(1f).testTag("open_store_button")
                     ) {
-                        Icon(Icons.Default.ShoppingBag, null, modifier = Modifier.size(18.dp))
+                        com.example.ui.components.DepotStoreBadge(modifier = Modifier.size(28.dp))
                         Spacer(Modifier.width(6.dp))
                         Column {
                             Text("DEPOT STORE", fontWeight = FontWeight.Black, fontSize = 12.sp)
@@ -368,7 +368,7 @@ fun TitleScreen(
                         height = 42.dp,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.Public, null, Modifier.size(14.dp))
+                        com.example.ui.components.RotatingStagesBadge(modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(3.dp))
                         Text("STAGES", fontWeight = FontWeight.Bold, fontSize = 10.sp)
                     }
@@ -380,7 +380,7 @@ fun TitleScreen(
                         height = 42.dp,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.Dangerous, null, Modifier.size(14.dp))
+                        com.example.ui.components.RotatingBossesBadge(modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(3.dp))
                         Text("BOSSES", fontWeight = FontWeight.Bold, fontSize = 10.sp)
                     }
@@ -392,7 +392,7 @@ fun TitleScreen(
                         height = 42.dp,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.MilitaryTech, null, Modifier.size(14.dp))
+                        com.example.ui.components.RotatingPassBadge(modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(3.dp))
                         Text("PASS", fontWeight = FontWeight.Bold, fontSize = 10.sp)
                     }
@@ -406,7 +406,7 @@ fun TitleScreen(
                         height = 42.dp,
                         modifier = Modifier.weight(1f).testTag("title_settings_button")
                     ) {
-                        Icon(Icons.Default.Settings, null, Modifier.size(14.dp))
+                        com.example.ui.components.RotatingSystemsBadge(modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(3.dp))
                         Text("SYSTEMS", fontWeight = FontWeight.Bold, fontSize = 10.sp)
                     }

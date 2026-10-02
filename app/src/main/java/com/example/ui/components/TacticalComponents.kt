@@ -535,3 +535,362 @@ fun HudResourceModule(
         }
     }
 }
+
+// ── DYNAMIC ANIMATED & ROTATING GAME MODE BADGES ──
+
+@Composable
+fun RotatingCampaignBadge(modifier: Modifier = Modifier.size(36.dp)) {
+    val transition = rememberInfiniteTransition(label = "campaign_badge")
+    val rotation by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(4000, easing = LinearEasing), RepeatMode.Restart),
+        label = "radar_sweep"
+    )
+    val pulse by transition.animateFloat(
+        initialValue = 0.6f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "radar_pulse"
+    )
+
+    Canvas(modifier = modifier) {
+        val cx = size.width * 0.5f
+        val cy = size.height * 0.5f
+        val r = size.minDimension * 0.45f
+
+        // Outer Tactical Holo Ring
+        drawCircle(
+            color = AeroCyan.copy(alpha = 0.35f * pulse),
+            radius = r,
+            center = Offset(cx, cy),
+            style = Stroke(width = 1.8f)
+        )
+        drawCircle(
+            color = AeroCyan.copy(alpha = 0.15f),
+            radius = r * 0.65f,
+            center = Offset(cx, cy),
+            style = Stroke(width = 1.0f)
+        )
+
+        // Crosshairs
+        drawLine(AeroCyan.copy(alpha = 0.4f), Offset(cx - r, cy), Offset(cx + r, cy), strokeWidth = 1f)
+        drawLine(AeroCyan.copy(alpha = 0.4f), Offset(cx, cy - r), Offset(cx, cy + r), strokeWidth = 1f)
+
+        // Rotating Radar Sweep Vector
+        val rad = (rotation * Math.PI / 180f).toFloat()
+        val sweepEnd = Offset(cx + kotlin.math.cos(rad) * r, cy + kotlin.math.sin(rad) * r)
+        drawLine(
+            brush = Brush.linearGradient(
+                listOf(AeroCyan, Color.White, Color.Transparent),
+                start = Offset(cx, cy),
+                end = sweepEnd
+            ),
+            start = Offset(cx, cy),
+            end = sweepEnd,
+            strokeWidth = 2.2f
+        )
+
+        // Center Target Beacon Blip
+        drawCircle(AeroEmerald, radius = 3.5f * pulse, center = Offset(cx, cy))
+        drawCircle(Color.White, radius = 1.5f, center = Offset(cx, cy))
+    }
+}
+
+@Composable
+fun RotatingMultiplayerBadge(modifier: Modifier = Modifier.size(36.dp)) {
+    val transition = rememberInfiniteTransition(label = "mp_badge")
+    val rotAngle by transition.animateFloat(
+        initialValue = -15f,
+        targetValue = 15f,
+        animationSpec = infiniteRepeatable(tween(2200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "formation_yaw"
+    )
+    val beaconPulse by transition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(800, easing = LinearEasing), RepeatMode.Reverse),
+        label = "beacon"
+    )
+
+    Canvas(modifier = modifier) {
+        val cx = size.width * 0.5f
+        val cy = size.height * 0.5f
+        val scale = size.minDimension / 40f
+
+        // Tactical 4-Wingmen Diamond Formation
+        val leadNose = Offset(cx, cy - 14f * scale)
+        val leadLeft = Offset(cx - 8f * scale, cy - 2f * scale)
+        val leadRight = Offset(cx + 8f * scale, cy - 2f * scale)
+
+        val wing1Nose = Offset(cx - 12f * scale, cy + 3f * scale)
+        val wing1Left = Offset(cx - 18f * scale, cy + 12f * scale)
+        val wing1Right = Offset(cx - 6f * scale, cy + 12f * scale)
+
+        val wing2Nose = Offset(cx + 12f * scale, cy + 3f * scale)
+        val wing2Left = Offset(cx + 6f * scale, cy + 12f * scale)
+        val wing2Right = Offset(cx + 18f * scale, cy + 12f * scale)
+
+        // Lead Fighter (Cyan)
+        val leadPath = Path().apply {
+            moveTo(leadNose.x, leadNose.y)
+            lineTo(leadLeft.x, leadLeft.y)
+            lineTo(leadRight.x, leadRight.y)
+            close()
+        }
+        drawPath(leadPath, color = Color.White)
+
+        // Wingmen Fighters (Crimson & Amber)
+        val wing1Path = Path().apply {
+            moveTo(wing1Nose.x, wing1Nose.y)
+            lineTo(wing1Left.x, wing1Left.y)
+            lineTo(wing1Right.x, wing1Right.y)
+            close()
+        }
+        drawPath(wing1Path, color = AeroCrimson)
+
+        val wing2Path = Path().apply {
+            moveTo(wing2Nose.x, wing2Nose.y)
+            lineTo(wing2Left.x, wing2Left.y)
+            lineTo(wing2Right.x, wing2Right.y)
+            close()
+        }
+        drawPath(wing2Path, color = AeroAmber)
+
+        // Pulsing Telemetry Signal Rings
+        drawCircle(AeroCrimson.copy(alpha = 0.5f * beaconPulse), radius = 17f * scale, center = Offset(cx, cy), style = Stroke(1.2f))
+    }
+}
+
+@Composable
+fun HangarBayBadge(modifier: Modifier = Modifier.size(36.dp)) {
+    val transition = rememberInfiniteTransition(label = "hangar_badge")
+    val gantrySlide by transition.animateFloat(
+        initialValue = -3f,
+        targetValue = 3f,
+        animationSpec = infiniteRepeatable(tween(2500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "gantry"
+    )
+    val lightBlink by transition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing), RepeatMode.Reverse),
+        label = "neon"
+    )
+
+    Canvas(modifier = modifier) {
+        val cx = size.width * 0.5f
+        val cy = size.height * 0.5f
+        val w = size.width
+        val h = size.height
+
+        // Hangar Bay Blast Doors & Floor Grid
+        drawRect(
+            brush = Brush.verticalGradient(
+                listOf(Color(0xFF1E1B4B), Color(0xFF0F172A))
+            )
+        )
+
+        // Maintenance Bay Floor Chevron Stripes
+        for (i in 0..3) {
+            val yOffset = h * 0.25f + i * (h * 0.2f)
+            drawLine(
+                color = AeroViolet.copy(alpha = 0.35f),
+                start = Offset(w * 0.15f, yOffset),
+                end = Offset(w * 0.85f, yOffset),
+                strokeWidth = 1.5f
+            )
+        }
+
+        // Yellow Warning Hazard Edge Lines
+        drawLine(Color(0xFFFBBF24).copy(alpha = lightBlink), Offset(2f, 0f), Offset(2f, h), strokeWidth = 2.5f)
+        drawLine(Color(0xFFFBBF24).copy(alpha = lightBlink), Offset(w - 2f, 0f), Offset(w - 2f, h), strokeWidth = 2.5f)
+
+        // Docked Warbird Silhouette in Center Bay
+        val nose = Offset(cx, cy - h * 0.28f)
+        val leftTip = Offset(cx - w * 0.32f + gantrySlide, cy + h * 0.15f)
+        val rightTip = Offset(cx + w * 0.32f + gantrySlide, cy + h * 0.15f)
+        val tail = Offset(cx, cy + h * 0.30f)
+
+        val craftPath = Path().apply {
+            moveTo(nose.x, nose.y)
+            lineTo(leftTip.x, leftTip.y)
+            lineTo(cx, cy + h * 0.05f)
+            lineTo(rightTip.x, rightTip.y)
+            close()
+        }
+        drawPath(craftPath, color = Color.White)
+        drawCircle(AeroCyan, radius = 2.5f, center = nose)
+    }
+}
+
+@Composable
+fun DepotStoreBadge(modifier: Modifier = Modifier.size(36.dp)) {
+    val transition = rememberInfiniteTransition(label = "depot_badge")
+    val crateGlow by transition.animateFloat(
+        initialValue = 0.6f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "crate_glow"
+    )
+    val floatY by transition.animateFloat(
+        initialValue = -2f,
+        targetValue = 2f,
+        animationSpec = infiniteRepeatable(tween(2000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "float"
+    )
+
+    Canvas(modifier = modifier) {
+        val cx = size.width * 0.5f
+        val cy = size.height * 0.5f + floatY
+        val sizeBox = size.minDimension * 0.68f
+
+        // Golden Supply Crate Container Body
+        val left = cx - sizeBox * 0.5f
+        val top = cy - sizeBox * 0.5f
+        drawRoundRect(
+            brush = Brush.verticalGradient(
+                listOf(Color(0xFFF59E0B), Color(0xFFB45309), Color(0xFF78350F))
+            ),
+            topLeft = Offset(left, top),
+            size = Size(sizeBox, sizeBox),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f)
+        )
+
+        // Metallic Reinforced Crate Straps & Latches
+        drawRoundRect(
+            color = Color(0xFFFEF3C7),
+            topLeft = Offset(left, top),
+            size = Size(sizeBox, sizeBox),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f),
+            style = Stroke(width = 1.8f)
+        )
+        drawLine(Color(0xFFFEF3C7), Offset(left, cy), Offset(left + sizeBox, cy), strokeWidth = 1.5f)
+        drawLine(Color(0xFFFEF3C7), Offset(cx, top), Offset(cx, top + sizeBox), strokeWidth = 1.5f)
+
+        // Glowing Center Plasma Crystal Inset
+        val crystalPath = Path().apply {
+            moveTo(cx, cy - 6f)
+            lineTo(cx + 6f, cy)
+            lineTo(cx, cy + 6f)
+            lineTo(cx - 6f, cy)
+            close()
+        }
+        drawPath(crystalPath, brush = Brush.radialGradient(listOf(Color(0xFFE9D5FF), Color(0xFFA855F7))))
+        drawCircle(Color.White.copy(alpha = crateGlow), radius = 2f, center = Offset(cx, cy))
+    }
+}
+
+@Composable
+fun RotatingStagesBadge(modifier: Modifier = Modifier.size(24.dp)) {
+    val transition = rememberInfiniteTransition(label = "stages_badge")
+    val rot by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(6000, easing = LinearEasing), RepeatMode.Restart),
+        label = "globe_rot"
+    )
+
+    Canvas(modifier = modifier) {
+        val cx = size.width * 0.5f
+        val cy = size.height * 0.5f
+        val r = size.minDimension * 0.45f
+
+        drawCircle(color = AeroCyan.copy(alpha = 0.35f), radius = r, center = Offset(cx, cy), style = Stroke(1.2f))
+        drawOval(
+            color = AeroCyan.copy(alpha = 0.5f),
+            topLeft = Offset(cx - r * 0.6f, cy - r),
+            size = Size(r * 1.2f, r * 2f),
+            style = Stroke(1f)
+        )
+        drawLine(AeroCyan.copy(alpha = 0.6f), Offset(cx - r, cy), Offset(cx + r, cy), strokeWidth = 1f)
+        drawCircle(Color.White, radius = 2f, center = Offset(cx, cy))
+    }
+}
+
+@Composable
+fun RotatingBossesBadge(modifier: Modifier = Modifier.size(24.dp)) {
+    val transition = rememberInfiniteTransition(label = "bosses_badge")
+    val pulse by transition.animateFloat(
+        initialValue = 0.5f,
+        targetValue = 1.2f,
+        animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "boss_pulse"
+    )
+
+    Canvas(modifier = modifier) {
+        val cx = size.width * 0.5f
+        val cy = size.height * 0.5f
+        val r = size.minDimension * 0.45f
+
+        drawCircle(color = AeroCrimson.copy(alpha = 0.4f * pulse), radius = r, center = Offset(cx, cy))
+        drawCircle(color = DangerRed, radius = r * 0.8f, center = Offset(cx, cy), style = Stroke(1.5f))
+
+        // Red Dreadnought Eye
+        drawCircle(Color.White, radius = 3f * pulse, center = Offset(cx, cy))
+        drawCircle(DangerRed, radius = 1.5f, center = Offset(cx, cy))
+    }
+}
+
+@Composable
+fun RotatingPassBadge(modifier: Modifier = Modifier.size(24.dp)) {
+    val transition = rememberInfiniteTransition(label = "pass_badge")
+    val spin by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(4500, easing = LinearEasing), RepeatMode.Restart),
+        label = "star_spin"
+    )
+
+    Canvas(modifier = modifier) {
+        val cx = size.width * 0.5f
+        val cy = size.height * 0.5f
+        val r = size.minDimension * 0.44f
+
+        drawCircle(color = AeroAmber.copy(alpha = 0.35f), radius = r, center = Offset(cx, cy), style = Stroke(1.2f))
+
+        // 4-Point Star
+        val path = Path().apply {
+            moveTo(cx, cy - r * 0.8f)
+            lineTo(cx + r * 0.25f, cy - r * 0.25f)
+            lineTo(cx + r * 0.8f, cy)
+            lineTo(cx + r * 0.25f, cy + r * 0.25f)
+            lineTo(cx, cy + r * 0.8f)
+            lineTo(cx - r * 0.25f, cy + r * 0.25f)
+            lineTo(cx - r * 0.8f, cy)
+            lineTo(cx - r * 0.25f, cy - r * 0.25f)
+            close()
+        }
+        drawPath(path, color = Color(0xFFFBBF24))
+        drawCircle(Color.White, radius = 2f, center = Offset(cx, cy))
+    }
+}
+
+@Composable
+fun RotatingSystemsBadge(modifier: Modifier = Modifier.size(24.dp)) {
+    val transition = rememberInfiniteTransition(label = "sys_badge")
+    val rot by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(5000, easing = LinearEasing), RepeatMode.Restart),
+        label = "gear_rot"
+    )
+
+    Canvas(modifier = modifier) {
+        val cx = size.width * 0.5f
+        val cy = size.height * 0.5f
+        val r = size.minDimension * 0.42f
+
+        drawCircle(color = AeroCyan.copy(alpha = 0.5f), radius = r, center = Offset(cx, cy), style = Stroke(1.5f))
+        for (i in 0 until 6) {
+            val a = (i * 60f + rot) * Math.PI / 180f
+            val x1 = cx + kotlin.math.cos(a).toFloat() * r * 0.7f
+            val y1 = cy + kotlin.math.sin(a).toFloat() * r * 0.7f
+            val x2 = cx + kotlin.math.cos(a).toFloat() * r * 1.15f
+            val y2 = cy + kotlin.math.sin(a).toFloat() * r * 1.15f
+            drawLine(AeroCyan, Offset(x1, y1), Offset(x2, y2), strokeWidth = 1.8f)
+        }
+        drawCircle(Color.White, radius = 2.5f, center = Offset(cx, cy))
+    }
+}
+
