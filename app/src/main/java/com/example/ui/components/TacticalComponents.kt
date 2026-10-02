@@ -154,6 +154,7 @@ fun TacticalGlossButton(
     borderColor: Color = MetallicBorder,
     height: Dp = 54.dp,
     enabled: Boolean = true,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 6.dp, vertical = 4.dp),
     content: @Composable RowScope.() -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -238,7 +239,7 @@ fun TacticalGlossButton(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(contentPadding),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -246,9 +247,9 @@ fun TacticalGlossButton(
                     value = TextStyle(
                         fontFamily = FontFamily.SansSerif,
                         fontWeight = FontWeight.Black,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         color = contentColor,
-                        letterSpacing = 1.sp
+                        letterSpacing = 0.5.sp
                     )
                 ) {
                     content()

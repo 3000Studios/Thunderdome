@@ -329,7 +329,8 @@ fun TitleScreen(
                         onClick = onOpenHangar,
                         containerColor = AeroViolet,
                         contentColor = Color.White,
-                        height = 50.dp,
+                        height = 54.dp,
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp),
                         modifier = Modifier.weight(1f)
                     ) {
                         com.example.ui.components.HangarBayBadge(modifier = Modifier.size(28.dp))
@@ -344,7 +345,8 @@ fun TitleScreen(
                         onClick = { viewModel.openStoreModal() },
                         containerColor = FounderGold,
                         contentColor = DarkVoid,
-                        height = 50.dp,
+                        height = 54.dp,
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp),
                         modifier = Modifier.weight(1f).testTag("open_store_button")
                     ) {
                         com.example.ui.components.DepotStoreBadge(modifier = Modifier.size(28.dp))
@@ -359,18 +361,19 @@ fun TitleScreen(
                 // Row 3: Quick Systems Strip (MISSIONS | BOSSES | PASS | SETTINGS)
                 Row(
                     Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     com.example.ui.components.TacticalGlossButton(
                         onClick = { onOpenMissions?.invoke() ?: onStartCampaign() },
                         containerColor = CarbonElevated,
                         contentColor = AeroCyan,
                         height = 42.dp,
+                        contentPadding = PaddingValues(horizontal = 2.dp, vertical = 2.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        com.example.ui.components.RotatingStagesBadge(modifier = Modifier.size(16.dp))
+                        com.example.ui.components.RotatingStagesBadge(modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(3.dp))
-                        Text("STAGES", fontWeight = FontWeight.Bold, fontSize = 10.sp)
+                        Text("STAGES", fontWeight = FontWeight.Bold, fontSize = 9.5.sp)
                     }
 
                     com.example.ui.components.TacticalGlossButton(
@@ -378,11 +381,12 @@ fun TitleScreen(
                         containerColor = CarbonElevated,
                         contentColor = AeroCrimson,
                         height = 42.dp,
+                        contentPadding = PaddingValues(horizontal = 2.dp, vertical = 2.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        com.example.ui.components.RotatingBossesBadge(modifier = Modifier.size(16.dp))
+                        com.example.ui.components.RotatingBossesBadge(modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(3.dp))
-                        Text("BOSSES", fontWeight = FontWeight.Bold, fontSize = 10.sp)
+                        Text("BOSSES", fontWeight = FontWeight.Bold, fontSize = 9.5.sp)
                     }
 
                     com.example.ui.components.TacticalGlossButton(
@@ -390,11 +394,12 @@ fun TitleScreen(
                         containerColor = CarbonElevated,
                         contentColor = AeroAmber,
                         height = 42.dp,
+                        contentPadding = PaddingValues(horizontal = 2.dp, vertical = 2.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        com.example.ui.components.RotatingPassBadge(modifier = Modifier.size(16.dp))
+                        com.example.ui.components.RotatingPassBadge(modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(3.dp))
-                        Text("PASS", fontWeight = FontWeight.Bold, fontSize = 10.sp)
+                        Text("PASS", fontWeight = FontWeight.Bold, fontSize = 9.5.sp)
                     }
 
                     com.example.ui.components.TacticalGlossButton(
@@ -404,11 +409,12 @@ fun TitleScreen(
                         containerColor = CarbonElevated,
                         contentColor = TextSecondary,
                         height = 42.dp,
+                        contentPadding = PaddingValues(horizontal = 2.dp, vertical = 2.dp),
                         modifier = Modifier.weight(1f).testTag("title_settings_button")
                     ) {
-                        com.example.ui.components.RotatingSystemsBadge(modifier = Modifier.size(16.dp))
+                        com.example.ui.components.RotatingSystemsBadge(modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(3.dp))
-                        Text("SYSTEMS", fontWeight = FontWeight.Bold, fontSize = 10.sp)
+                        Text("SYSTEMS", fontWeight = FontWeight.Bold, fontSize = 9.5.sp)
                     }
                 }
 

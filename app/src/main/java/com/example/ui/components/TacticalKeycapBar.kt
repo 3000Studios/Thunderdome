@@ -41,12 +41,12 @@ fun TacticalKeycapBar(
         modifier = modifier
             .fillMaxWidth()
             .background(DarkVoid.copy(alpha = 0.96f))
-            .padding(horizontal = 8.dp, vertical = 6.dp)
+            .padding(horizontal = 4.dp, vertical = 5.dp)
             .testTag("tactical_bottom_nav")
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             MainNavTab.values().forEach { tab ->
@@ -144,13 +144,13 @@ fun TacticalKeycapItem(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(2.dp)
+            modifier = Modifier.padding(horizontal = 1.dp, vertical = 2.dp)
         ) {
             Icon(
                 imageVector = tab.icon,
                 contentDescription = tab.title,
                 tint = if (isSelected) AeroCyan else TextSecondary,
-                modifier = Modifier.size(if (isSelected) 20.dp else 18.dp)
+                modifier = Modifier.size(if (isSelected) 18.dp else 16.dp)
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
@@ -158,9 +158,9 @@ fun TacticalKeycapItem(
                 style = androidx.compose.ui.text.TextStyle(
                     fontFamily = FontFamily.Monospace,
                     fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
-                    fontSize = 8.5.sp,
+                    fontSize = 7.5.sp,
                     color = if (isSelected) Color.White else TextMuted,
-                    letterSpacing = 0.5.sp
+                    letterSpacing = 0.sp
                 ),
                 maxLines = 1
             )

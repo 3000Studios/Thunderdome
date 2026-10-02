@@ -73,6 +73,12 @@ fun VideoSplashScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
+            .clickable {
+                if (!hasNavigated) {
+                    hasNavigated = true
+                    onSplashFinished()
+                }
+            }
             .testTag("video_splash_screen")
     ) {
         AndroidView(

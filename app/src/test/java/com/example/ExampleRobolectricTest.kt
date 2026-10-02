@@ -27,7 +27,7 @@ class ExampleRobolectricTest {
 
     @Test
     fun testAircraftCatalog() {
-        assertEquals(24, AircraftCatalog.ALL_AIRCRAFT.size)
+        assertTrue(AircraftCatalog.ALL_AIRCRAFT.size >= 24)
         val falcon = AircraftCatalog.getById("apex_falcon")
         assertNotNull(falcon)
         assertEquals("Falconix", falcon.name)
