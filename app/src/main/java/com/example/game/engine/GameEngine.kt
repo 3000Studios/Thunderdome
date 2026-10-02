@@ -170,6 +170,7 @@ class GameEngine(
             if (playerState.isBoosting) {
                 audioHaptics.playSound(com.example.game.audio.AudioHapticSystem.SoundType.BOOST_BURST)
                 audioHaptics.triggerBoostHaptic()
+                audioHaptics.soundBites.playOverdriveBoost()
                 vfx.addText("⚡ AFTERBURNER ENGAGED", playerState.x, playerState.y - 35f, Color(0xFFFF9500))
             }
         } else {
@@ -184,6 +185,7 @@ class GameEngine(
                 playerState.isBoosting = true
                 audioHaptics.playSound(com.example.game.audio.AudioHapticSystem.SoundType.BOOST_BURST)
                 audioHaptics.triggerBoostHaptic()
+                audioHaptics.soundBites.playOverdriveBoost()
             }
         } else {
             playerState.isBoosting = false
@@ -336,6 +338,7 @@ class GameEngine(
             else -> abs(biome.id.hashCode()) % allSoundtracks.size
         }
         playRadioTrack(stageSongIdx)
+        audioHaptics.soundBites.playStageStart()
     }
 
     fun update(dt: Float, screenWidth: Float, screenHeight: Float) {
@@ -465,6 +468,7 @@ class GameEngine(
                 stopTunnelMusic()
                 stopRadioMusic()
                 audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
+                audioHaptics.soundBites.playBossDefeated()
             }
         )
 
@@ -561,6 +565,7 @@ class GameEngine(
                                 vfx.addText("🌌 [90%] PERFECT-RUN WORMHOLE OPEN (4.0s)! 🌌", screenWidth * 0.5f, screenHeight * 0.22f, Color(0xFF00F0FF))
                                 audioHaptics.playSound(AudioHapticSystem.SoundType.POWERUP)
                                 audioHaptics.triggerExplosionHaptic(true)
+                                audioHaptics.soundBites.playWormholePerfection()
                             } else {
                                 vfx.addText("⏳ [90%] WORMHOLE LOCKED (REQ: 0 DMG & ALL TARGETS KILLED)", screenWidth * 0.5f, screenHeight * 0.35f, Color(0xFF94A3B8))
                             }
@@ -585,6 +590,7 @@ class GameEngine(
             if (stageDistanceCurrent >= stageDistanceTotal && enemySystem.currentBoss == null && !enemySystem.isBossWave) {
                 enemySystem.spawnBoss(screenWidth, screenHeight)
                 enemySystem.isBossWave = true
+                audioHaptics.soundBites.playBossSpawn(currentStageSpec.stage)
                 vfx.addText("⚠️ WARNING: BOSS ARENA ENGAGED // ${currentStageSpec.boss} ⚠️", screenWidth * 0.5f, screenHeight * 0.30f, Color(0xFFEF4444))
                 audioHaptics.playSound(AudioHapticSystem.SoundType.WARNING_BEEP)
             }
@@ -641,9 +647,11 @@ class GameEngine(
                 tunnelBonusCredits = bonus15Percent
 
                 // Warp directly to 100% stage completion & trigger Boss encounter
+                val currentStageSpec = StageMasterCatalog.getForBiome(currentBiome.id)
                 stageDistanceCurrent = stageDistanceTotal
                 enemySystem.spawnBoss(screenWidth, screenHeight)
                 enemySystem.isBossWave = true
+                audioHaptics.soundBites.playBossSpawn(currentStageSpec.stage)
                 triggerHoloCommsEncounter()
 
                 vfx.addText("⚡ WARP EXIT: BOSS LEVEL ENCOUNTER! +15% BONUS CR (${bonus15Percent} CR) ⚡", screenWidth * 0.5f, screenHeight * 0.35f, Color(0xFFFFD700))
@@ -1077,6 +1085,7 @@ class GameEngine(
             if (enemy.type == EnemyType.HEAVY_GUNSHIP) AudioHapticSystem.SoundType.EXPLOSION_HEAVY else AudioHapticSystem.SoundType.EXPLOSION_LIGHT
         )
         audioHaptics.triggerExplosionHaptic(enemy.type == EnemyType.HEAVY_GUNSHIP)
+        audioHaptics.soundBites.playKillReaction(isHeavy = enemy.type == EnemyType.HEAVY_GUNSHIP, comboCount = combatStats.comboCount)
         physics.addTrauma(if (enemy.type == EnemyType.HEAVY_GUNSHIP) 0.18f else 0.08f)
 
         // Big-Time Award Bonuses & Combat Announcements
@@ -1193,7 +1202,10 @@ class GameEngine(
             vfx.spawnExplosion(playerState.x, playerState.y, isHeavy = true, colorScheme = Color(0xFFEF4444))
             audioHaptics.playSound(AudioHapticSystem.SoundType.EXPLOSION_HEAVY)
             audioHaptics.triggerExplosionHaptic(true)
+            audioHaptics.soundBites.playGameOver()
             physics.addTrauma(0.6f)
+        } else if (playerState.health < playerState.maxHealth * 0.25f) {
+            audioHaptics.soundBites.playCriticalHullAlert()
         }
     }
 

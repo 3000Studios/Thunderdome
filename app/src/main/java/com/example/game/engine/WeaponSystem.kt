@@ -104,6 +104,7 @@ class WeaponSystem(
         player.secondaryCooldown = 1.0f / spec.fireRate
         audioHaptics.triggerExplosionHaptic(false)
         audioHaptics.playSound(AudioHapticSystem.SoundType.MISSILE_LAUNCH)
+        audioHaptics.soundBites.playMissileLaunch()
 
         when (spec.id) {
             "swarm_missiles" -> {

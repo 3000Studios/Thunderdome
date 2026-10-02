@@ -47,6 +47,10 @@ fun TitleScreen(
     val profile by viewModel.playerProfile.collectAsState()
     val settings by viewModel.settings.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.audioHaptics.soundBites.playIntroWelcome()
+    }
+
     val reduceMotion = false
 
     val infiniteTransition = rememberInfiniteTransition(label = "title_bg")

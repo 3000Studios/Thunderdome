@@ -34,6 +34,14 @@ class AudioHapticSystem(private val context: Context) {
     var hapticsEnabled: Boolean = true
     var sfxVolume: Float = 0.85f
 
+    val soundBites: SoundBiteSystem by lazy { SoundBiteSystem(context) }
+
+    fun playSoundBite(bite: SoundBiteSystem.SoundBite, volume: Float = 0.95f, force: Boolean = false) {
+        if (sfxVolume > 0.01f) {
+            soundBites.play(bite, volume * sfxVolume, force)
+        }
+    }
+
     enum class SoundType {
         PLASMA_SHOT,
         GATLING_SHOT,

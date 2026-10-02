@@ -1,0 +1,66 @@
+﻿clip,file,saying,category,recommended_game_placement,source_start_sec,source_end_sec,export_start_sec,export_end_sec,duration_sec
+1,01_INTRO/001_INTRO_FRAGMENT__COME_TO.wav,Come to-,Intro / Fragment,Opening / review this clipped fragment,3.904,4.904,3.784,5.104,1.320
+2,08_ANNOUNCER_COMEDY/002_INTRO_ANNOUNCER__WELCOME_TO_THE_THUNDERDOME.wav,Welcome to the Thunderdome,Intro / Announcer,Title screen / game boot / main menu reveal,13.589,17.073,13.469,17.273,3.804
+3,02_SYSTEM_ALERTS/003_SYSTEM_ALERT__DETECTED.wav,Detected.,System Alert,Enemy/contact detection HUD alert,26.909,27.726,26.789,27.926,1.138
+4,02_SYSTEM_ALERTS/004_SYSTEM_ALERT__SYSTEM_OVERLOAD.wav,System overload,System Alert,Critical systems / damage warning,28.325,29.452,28.205,29.652,1.447
+5,04_HERO_LINES/005_HERO_TAUNT__NOT_TODAY.wav,Not today.,Hero Taunt,Player dodge / counter / clutch survival,33.634,34.757,33.514,34.957,1.443
+6,04_HERO_LINES/006_HERO_TAUNT__YOU_PICKED_THE_WRONG_PILOT.wav,You picked the wrong pilot.,Hero Taunt,Player pre-fight / revenge / comeback,35.741,37.199,35.621,37.399,1.778
+7,03_VILLAIN_TAUNTS/007_VILLAIN_TAUNT__YOU_ACTUALLY_THOUGHT_YOU_COULD_BEAT_ME.wav,You actually thought you could beat me?,Villain Taunt,Boss hologram / boss phase taunt,38.973,40.745,38.853,40.945,2.092
+8,03_VILLAIN_TAUNTS/008_VILLAIN_TAUNT__WELCOME_TO_YOUR_FINAL_FLIGHT.wav,Welcome to your final flight.,Villain Taunt,Boss intro hologram / final phase,41.751,43.882,41.631,44.082,2.451
+9,03_VILLAIN_TAUNTS/009_VILLAIN_TAUNT__I_OWN_THIS_AIRSPACE.wav,I own this airspace.,Villain Taunt,Boss combat taunt / arena control,44.759,46.873,44.639,47.073,2.434
+10,05_COMBAT_CALLOUTS/010_COMBAT_CALLOUT__TARGET_LOCKED.wav,Target locked.,Combat Callout,Lock-on confirmation,48.601,49.617,48.481,49.817,1.336
+11,05_COMBAT_CALLOUTS/011_COMBAT_CALLOUT__FOX_ONE.wav,Fox one.,Combat Callout,Missile launch,50.406,51.291,50.286,51.491,1.205
+12,05_COMBAT_CALLOUTS/012_COMBAT_CALLOUT__MISSILE_AWAY.wav,Missile away.,Combat Callout,Missile launch / weapon fired,51.920,53.125,51.800,53.325,1.525
+13,08_ANNOUNCER_COMEDY/013_IMPACT_ANNOUNCER__BOOM.wav,Boom,Impact / Announcer,Explosion / confirmed hit,53.170,53.840,53.050,54.040,0.990
+14,04_HERO_LINES/014_HERO_TAUNT__THATS_HOW_ITS_DONE.wav,That's how it's done.,Hero Taunt,Kill confirmation / successful maneuver,55.965,56.874,55.845,57.074,1.229
+15,06_KILL_CONFIRMATIONS/015_KILL_CONFIRMATION__TARGET_DESTROYED.wav,Target destroyed.,Kill Confirmation,Enemy destroyed,57.510,59.063,57.390,59.263,1.873
+16,06_KILL_CONFIRMATIONS/016_KILL_CONFIRMATION__CLEAN_KILL.wav,Clean kill,Kill Confirmation,Perfect enemy kill,59.575,60.531,59.455,60.731,1.276
+17,03_VILLAIN_TAUNTS/017_VILLAIN_TAUNT__TOO_SLOW.wav,Too slow.,Villain Taunt,Enemy dodge / boss evade,62.882,63.529,62.762,63.729,0.967
+18,03_VILLAIN_TAUNTS/018_VILLAIN_TAUNT__THAT_WAS_YOUR_BEST_SHOT.wav,That was your best shot?,Villain Taunt,Boss taunt after player miss,63.986,65.034,63.866,65.234,1.368
+19,03_VILLAIN_TAUNTS/019_VILLAIN_TAUNT__I_CAN_HEAR_YOUR_ENGINES_SCREAMING.wav,I can hear your engines screaming.,Villain Taunt,Boss pressure taunt,65.765,67.503,65.645,67.703,2.058
+20,03_VILLAIN_TAUNTS/020_VILLAIN_TAUNT__YOURE_RUNNING_OUT_OF_SKY.wav,You're running out of sky!,Villain Taunt,Boss chase / low-health pressure,67.681,69.655,67.561,69.855,2.294
+21,02_SYSTEM_ALERTS/021_SYSTEM_ALERT__ARMOR_FAILING_CONTROLS_UNSTABLE_CRITICAL_DAMAGE.wav,"Armor failing, controls unstable, critical damage.",System Alert,Player critical-damage warning,70.659,75.083,70.539,75.283,4.744
+22,03_VILLAIN_TAUNTS/022_VILLAIN_TAUNT__YOURE_GOING_DOWN.wav,You're going down,Villain Taunt,Boss near-kill taunt,75.219,76.689,75.099,76.889,1.791
+23,05_COMBAT_CALLOUTS/023_UNCLEAR_COMBAT_LINE__SO_FLYING_MY_TURN.wav,So flying my turn,Unclear Combat Line,Combat taunt / review wording before shipping,79.324,81.459,79.204,81.659,2.455
+24,03_VILLAIN_TAUNTS/024_VILLAIN_TAUNT__WEAPONS_MEAN_NOTHING.wav,Weapons mean nothing.,Villain Taunt,Boss shield / invulnerability phase,95.330,96.436,95.210,96.636,1.426
+25,03_VILLAIN_TAUNTS/025_VILLAIN_TAUNT__YOU_CANNOT_ESCAPE.wav,You cannot escape.,Villain Taunt,Boss chase / arena lock,97.029,98.295,96.909,98.495,1.587
+26,03_VILLAIN_TAUNTS/026_VILLAIN_TAUNT__THE_DOME_BELONGS_TO_ME.wav,The dome belongs to me.,Villain Taunt,Boss hologram / Thunder Dome claim,99.013,101.231,98.893,101.431,2.538
+27,04_HERO_LINES/027_HERO_TAUNT__NOBODY_OWNS_THESE_SKIES.wav,Nobody owns these skies.,Hero Taunt,Player response to boss / comeback,101.635,103.400,101.515,103.600,2.085
+28,04_HERO_LINES/028_HERO_CALLOUT__LOCKED_AND_LOADED.wav,Locked and loaded.,Hero Callout,Weapon ready / stage start,103.715,104.839,103.595,105.039,1.444
+29,04_HERO_LINES/029_HERO_CALLOUT__LETS_LIGHT_THEM_UP.wav,Let's light them up.,Hero Callout,Wave start / power-up / attack,105.149,106.480,105.029,106.680,1.651
+30,02_SYSTEM_ALERTS/030_SYSTEM_ALERT__RADAR_JAMMED.wav,Radar jammed.,System Alert,Electronic warfare / radar failure,107.506,108.667,107.386,108.867,1.481
+31,02_SYSTEM_ALERTS/031_SYSTEM_ALERT__REACTOR_UNSTABLE.wav,Reactor unstable.,System Alert,Critical reactor warning,108.936,110.400,108.816,110.600,1.784
+32,02_SYSTEM_ALERTS/032_SYSTEM_ALERT__BRACE_FOR_IMPACT.wav,Brace for impact,System Alert,Collision / incoming heavy hit,110.708,111.579,110.588,111.779,1.191
+33,03_VILLAIN_TAUNTS/033_VILLAIN_TAUNT__YOUR_LUCK_ENDS_HERE.wav,Your luck ends here.,Villain Taunt,Boss phase intro,122.014,123.004,121.894,123.204,1.311
+34,03_VILLAIN_TAUNTS/034_VILLAIN_TAUNT__EVERY_PATH_LEADS_TO_ME.wav,Every path leads to me.,Villain Taunt,Boss hologram / pursuit taunt,123.568,125.100,123.448,125.300,1.852
+35,10_MISC_REVIEW/035_UNCLEAR_FRAGMENT__SAY_GOOD.wav,Say good-,Unclear / Fragment,Boss taunt fragment / review wording before shipping,125.703,126.334,125.583,126.534,0.951
+36,04_HERO_LINES/036_HERO_CALLOUT__HERE_WE_GO.wav,Here we go.,Hero Callout,Stage start / combat wave / boost activation,126.584,128.800,126.464,129.000,2.536
+37,04_HERO_LINES/037_HERO_TAUNT__TAKE_THAT.wav,Take that.,Hero Taunt,Hit confirmation / counterattack,129.283,130.012,129.163,130.212,1.049
+38,08_ANNOUNCER_COMEDY/038_ANNOUNCER_COMEDY__BOOM_SHAKA_LAKA.wav,Boom shaka-laka,Announcer / Comedy,Big kill / explosive combo,130.979,131.991,130.859,132.191,1.332
+39,08_ANNOUNCER_COMEDY/039_ANNOUNCER_COMEDY__A_COFFIN.wav,A coffin.,Announcer / Comedy,Knockout / destruction punchline,134.586,135.261,134.466,135.461,0.994
+40,08_ANNOUNCER_COMEDY/040_ANNOUNCER_COMEDY__I_BET_HE_WASNT_READY_FOR_THAT.wav,I bet he wasn't ready for that,Announcer / Comedy,Heavy hit / surprise kill,135.969,137.339,135.849,137.539,1.690
+41,10_MISC_REVIEW/041_TAUNT__IS_THAT_ALL_YOU_GOT.wav,Is that all you got?,Taunt,Boss or player response after weak hit,142.237,143.113,142.117,143.313,1.196
+42,10_MISC_REVIEW/042_TAUNT__TOO_SLOW.wav,Too slow.,Taunt,Dodge / evade,144.067,144.928,143.947,145.128,1.181
+43,08_ANNOUNCER_COMEDY/043_COMBAT_ANNOUNCER__CRITICAL_HIT.wav,Critical hit.,Combat Announcer,Critical damage event,145.863,146.726,145.743,146.926,1.183
+44,06_KILL_CONFIRMATIONS/044_KILL_CONFIRMATION__FLATLINED.wav,Flatlined,Kill Confirmation,Enemy destroyed / boss minion kill,147.527,148.408,147.407,148.608,1.201
+45,04_HERO_LINES/045_HERO_TAUNT__READY_FOR_THAT.wav,Ready for that?,Hero Taunt,Pre-attack / special ability,175.579,176.203,175.459,176.403,0.944
+46,07_POWERUPS/046_POWER_UP_ANNOUNCER__UNSTOPPABLE.wav,Unstoppable.,Power-Up / Announcer,Streak / invulnerability / max power,176.973,177.174,176.853,177.374,0.521
+47,08_ANNOUNCER_COMEDY/047_ANNOUNCER_COMEDY__DID_SOMEONE_ORDER_A_KNUCKLE_SANDWICH_WITH_EXTRA_CHEESE.wav,Did someone order a knuckle sandwich with extra cheese?,Announcer / Comedy,Heavy melee-style impact / huge hit,181.661,184.488,181.541,184.688,3.147
+48,08_ANNOUNCER_COMEDY/048_ANNOUNCER_COMEDY__ORDER_UP.wav,Order up.,Announcer / Comedy,Follow-up kill punchline,184.941,185.613,184.821,185.813,0.992
+49,10_MISC_REVIEW/049_TAUNT__IS_THAT_ALL_YOU_GOT.wav,Is that all you got?,Taunt,Damage response,186.129,187.108,186.009,187.308,1.299
+50,10_MISC_REVIEW/050_TAUNT__TOO_SLOW.wav,Too slow.,Taunt,Dodge / evade,187.966,188.710,187.846,188.910,1.064
+51,08_ANNOUNCER_COMEDY/051_ANNOUNCER_COMEDY__EMOTIONAL_DAMAGE.wav,Emotional damage.,Announcer / Comedy,Devastating hit / humiliation combo,189.177,190.362,189.057,190.562,1.504
+52,08_ANNOUNCER_COMEDY/052_ANNOUNCER_COMEDY__THATS_GONNA_LEAVE_A_MARK.wav,That's gonna leave a mark.,Announcer / Comedy,Heavy hit / collision,190.742,191.863,190.622,192.063,1.441
+53,08_ANNOUNCER_COMEDY/053_ANNOUNCER_COMEDY__CALL_THE_AMBULANCE_BUT_NOT_FOR_ME.wav,"Call the ambulance, but not for me.",Announcer / Comedy,Clutch reversal / comeback,192.310,194.733,192.190,194.933,2.743
+54,08_ANNOUNCER_COMEDY/054_COMBAT_ANNOUNCER__CRITICAL_HIT.wav,Critical hit.,Combat Announcer,Critical damage event,195.232,196.059,195.112,196.259,1.147
+55,06_KILL_CONFIRMATIONS/055_KILL_CONFIRMATION__FLATLINED.wav,Flatlined.,Kill Confirmation,Enemy destroyed,196.571,197.391,196.451,197.591,1.139
+56,08_ANNOUNCER_COMEDY/056_ANNOUNCER_COMEDY__HOLY_CANNOLI_HE_TOOK_THE_WHOLE_SCREEN_WITH_HIM.wav,"Holy cannoli, he took the whole screen with him!",Announcer / Comedy,Screen-clearing attack / boss explosion,197.911,201.260,197.791,201.460,3.668
+57,08_ANNOUNCER_COMEDY/057_ANNOUNCER_COMEDY__OH_BABY_ABSOLUTE_PERFECTION.wav,"Oh baby, absolute perfection",Announcer / Comedy,Perfect combo / flawless kill,201.765,204.813,201.645,205.013,3.368
+58,08_ANNOUNCER_COMEDY/058_ANNOUNCER_COMEDY__BLINKED.wav,Blinked.,Announcer / Comedy,Instant kill / quick reaction,208.926,209.343,208.806,209.543,0.737
+59,08_ANNOUNCER_COMEDY/059_ANNOUNCER_COMEDY__RULE_NUMBER_ONE_NEVER_BLINK.wav,"Rule number one, never blink.",Announcer / Comedy,Follow-up after instant kill,209.637,211.787,209.517,211.987,2.470
+60,10_MISC_REVIEW/060_TAUNT__SIT_DOWN_JUNIOR.wav,"Sit down, junior.",Taunt,Dominating kill / boss or player taunt,212.317,213.603,212.197,213.803,1.606
+61,07_POWERUPS/061_POWER_UP_ANNOUNCER__MAXIMUM_OVERDRIVE.wav,Maximum overdrive!,Power-Up / Announcer,Boost / overdrive activation,214.019,216.395,213.899,216.595,2.696
+62,08_ANNOUNCER_COMEDY/062_ANNOUNCER_COMEDY__I_DONT_KNOW_WHAT_YOU_WERE_AIMING_FOR_BUT_THE_DIRT_IS_V.wav,"I don't know what you were aiming for, but the dirt is very offended.",Announcer / Comedy,Miss / failed attack commentary,217.094,220.434,216.974,220.634,3.660
+63,08_ANNOUNCER_COMEDY/063_ANNOUNCER_COMEDY__FROM_DOWNTOWN_HE_PUT_HIM_ON_A_POSTER.wav,"From downtown, he put him on a poster.",Announcer / Comedy,Long-range kill / spectacular hit,220.456,224.180,220.336,224.380,4.045
+64,08_ANNOUNCER_COMEDY/064_ANNOUNCER_COMEDY__GOOD_NIGHT_SWEET_PRINCE.wav,"Good night, sweet prince.",Announcer / Comedy,Elimination / boss finisher,224.726,226.819,224.606,227.019,2.412
+65,09_GAME_STATE/065_GAME_STATE__GAME_OVER.wav,Game over.,Game State,Defeat screen / final elimination,227.697,228.523,227.577,228.723,1.145
