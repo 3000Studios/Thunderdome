@@ -1,0 +1,24 @@
+name = "thunder-dome-network"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+PUBLIC_SITE_ORIGIN = "https://3000studios.vip"
+
+[[durable_objects.bindings]]
+name = "MATCH_ROOM"
+class_name = "MatchRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["MatchRoom"]
+
+# Add the D1 binding after creating the production database:
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "thunder-dome"
+# database_id = "<set with wrangler after database creation>"
+#
+# Set secrets with Wrangler, never commit them:
+# SUPABASE_URL
+# SUPABASE_ANON_KEY
