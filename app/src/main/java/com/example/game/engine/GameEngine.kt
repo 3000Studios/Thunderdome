@@ -595,7 +595,6 @@ class GameEngine(
                 enemySystem.spawnBoss(screenWidth, screenHeight)
                 enemySystem.isBossWave = true
                 audioHaptics.soundBites.playBossSpawn(currentStageSpec.stage)
-                vfx.addText("⚠️ WARNING: BOSS ARENA ENGAGED // ${currentStageSpec.boss} ⚠️", screenWidth * 0.5f, screenHeight * 0.30f, Color(0xFFEF4444))
                 audioHaptics.playSound(AudioHapticSystem.SoundType.WARNING_BEEP)
             }
 
